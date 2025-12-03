@@ -34,5 +34,15 @@
     "SFM_reamer": 70,
     "SFM_thread": 50,
     "SFM_countersink": 100
+  },
+  "Nylatron": {
+    "SFM_endmill": 950,
+    "SFM_shellmill": 1050,
+    "SFM_drill": 330,
+    "SFM_spot": 250,
+    "SFM_reamer": 120,
+    "SFM_thread": 80,
+    "SFM_countersink": 200
   }
+
 }
