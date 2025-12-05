@@ -232,129 +232,84 @@ function calculateEndmill() {
     let sfm = materialsData[mat].SFM_endmill;
 
     let warningText = "";
-    
+
     // DOC recommendation
     warningText += getDocRecommendation(toolType, mat, dia) + "\n";
-    document.getElementById("warnings").innerText = warningText;
 
     // ==========================================================
     // SHELL MILL LOGIC
     // ==========================================================
+    let effTeeth = flutes;
     if (toolType === "Shell Mill") {
-
       // Use SFM_shellmill from material.json
       sfm = materialsData[mat].SFM_shellmill || sfm;
 
-      const effTeeth = flutes * (engagedTeeth / 100);
-
-      const rpm = Math.round((sfm * 3.82) / dia);
-      const ipm = rpm * effTeeth * ipt;
-
-      // Debug summary
-      console.groupCollapsed(`CALCULATION SUMMARY → SHELL MILL (${mat})`);
-      console.table({
-        "Tool Type": toolType,
-        "Diameter (in)": dia,
-        "Inserts": flutes,
-        "Engaged Teeth (%)": engagedTeeth,
-        "Effective Teeth": effTeeth.toFixed(2),
-        "Stickout (in)": stickout,
-        "Depth (in)": depth,
-        "Stepover (%)": stepover * 100,
-        "SFM Used": sfm.toFixed(2),
-        "IPT Used": ipt.toFixed(5),
-        "RPM Final": rpm,
-        "Feed Rate (IPM)": ipm.toFixed(2),
-        "HSM Mode": isHsm ? "ON" : "OFF"
-      });
-      console.groupEnd();
-
-      // Output
-      document.getElementById("rpm").innerText = `RPM: ${rpm}`;
-      document.getElementById("feedRate").innerText = `Feed Rate (IPM): ${ipm.toFixed(1)}`;
-      document.getElementById("sfmOut").innerText = `SFM: ${sfm.toFixed(1)}`;
-      document.getElementById("iptOut").innerText = `Feed per Tooth (IPT): ${ipt.toFixed(5)}`;
-      document.getElementById("warnings").innerText = "";
-
-      return;
+      effTeeth = flutes * (engagedTeeth / 100);
     }
 
     // ==========================================================
     // SOLID ENDMILL LOGIC
     // ==========================================================
+    if (toolType !== "Shell Mill") {
+      // Corner radius warning
+      if (toolType === "Bull Nose" && cornerRadius > dia / 2) {
+        warningText += `⚠ Corner radius (${cornerRadius}) > half tool dia (${(dia / 2).toFixed(3)})\n`;
+      }
 
-    // Corner radius warning
-    if (toolType === "Bull Nose" && cornerRadius > dia / 2) {
-      warningText += `⚠ Corner radius (${cornerRadius}) > half tool dia (${(dia / 2).toFixed(3)})\n`;
+      // Stickout reduction
+      const ratio = stickout / dia;
+      var reduction = 1.0;
+      if (ratio > 3.0) { reduction = 0.7; warningText += `⚠ Stickout too high (S/D=${ratio.toFixed(1)})\n`; }
+      else if (ratio > 2.0) { reduction = 0.85; warningText += `⚠ Stickout high (S/D=${ratio.toFixed(1)})\n`; }
+
+      if (stepover > 0.5) warningText += "⚠ Stepover >50% recommended\n";
+      if (depth > dia) warningText += "⚠ Depth > diameter\n";
+
+      // Tool type modifiers
+      if (toolType === "Bull Nose") ipt *= 0.95;
+      if (toolType === "Ball Nose") ipt *= 0.9;
     }
 
-    // Stickout reduction
-    const ratio = stickout / dia;
-    let reduction = 1.0;
-    if (ratio > 3.0) { reduction = 0.7; warningText += `⚠ Stickout too high (S/D=${ratio.toFixed(1)})\n`; }
-    else if (ratio > 2.0) { reduction = 0.85; warningText += `⚠ Stickout high (S/D=${ratio.toFixed(1)})\n`; }
-
-    if (stepover > 0.5) warningText += "⚠ Stepover >50% recommended\n";
-    if (depth > dia) warningText += "⚠ Depth > diameter\n";
-
-    // Tool type modifiers
-    if (toolType === "Bull Nose") ipt *= 0.95;
-    if (toolType === "Ball Nose") ipt *= 0.9;
-
     // HSM adjustments (only for dynamic toolpaths)
-if (isHsm) {
-    warningText += "HSM active\n";
+    if (isHsm) {
+      warningText += "HSM active\n";
 
-    // Base multipliers
-    let sfmBoost = 1.0;
-    let iptBoost = 1.0;
+      // Base multipliers
+      let sfmBoost = 1.0;
+      let iptBoost = 1.0;
 
-    if (mat.includes("7075") || mat.includes("6061")) {
+      if (mat.includes("7075") || mat.includes("6061")) {
         sfmBoost = 1.15; // conservative base SFM increase
         iptBoost = 1.1;  // base IPT increase
 
-        // Scale boost down if radial engagement (stepover) is high
-        if (stepover > 0.5) {
-            sfmBoost -= 0.05;
-            iptBoost -= 0.05;
-        } else if (stepover <= 0.2) {
-            sfmBoost += 0.05;
-            iptBoost += 0.03;
-        }
+        if (stepover > 0.5) { sfmBoost -= 0.05; iptBoost -= 0.05; }
+        else if (stepover <= 0.2) { sfmBoost += 0.05; iptBoost += 0.03; }
 
-        // Scale boost based on depth (DOC)
-        if (depth > dia * 0.5) {
-            sfmBoost -= 0.05;
-            iptBoost -= 0.05;
-        } else if (depth <= dia * 0.25) {
-            sfmBoost += 0.03;
-            iptBoost += 0.02;
-        }
+        if (depth > dia * 0.5) { sfmBoost -= 0.05; iptBoost -= 0.05; }
+        else if (depth <= dia * 0.25) { sfmBoost += 0.03; iptBoost += 0.02; }
 
-    } else if (mat.includes("Stainless")) {
-        sfmBoost = 1.1;
-        iptBoost = 1.05;
+      } else if (mat.includes("Stainless")) {
+        sfmBoost = 1.1; iptBoost = 1.05;
         if (stepover <= 0.2) sfmBoost += 0.03;
-    } else if (mat.includes("HRS")) {
-        sfmBoost = 1.05;
-        iptBoost = 1.03;
+      } else if (mat.includes("HRS")) {
+        sfmBoost = 1.05; iptBoost = 1.03;
+      }
+
+      sfm *= sfmBoost;
+      ipt *= iptBoost;
     }
 
-    sfm *= sfmBoost;
-    ipt *= iptBoost;
-}
+    // --- Risk-based RPM limit ---
+    const machineMaxRpm = 10000;
+    let rpmLimit = isHsm ? machineMaxRpm : 9000;
+    if (isHsm && (stickout / dia > 2.5 || flutes > 4 || stepover > 0.6)) {
+      rpmLimit = Math.min(machineMaxRpm, 9500);
+      warningText += "⚠ HSM modifiers limited due to stickout/teeth/stepover\n";
+    }
 
-// --- Risk-based RPM limit ---
-const machineMaxRpm = 10000;
-let rpmLimit = isHsm ? machineMaxRpm : 9000;
-if (isHsm && (stickout / dia > 2.5 || flutes > 4 || stepover > 0.6)) {
-    rpmLimit = Math.min(machineMaxRpm, 9500);
-    warningText += "⚠ Conservative RPM limit applied due to stickout/teeth/stepover\n";
-}
-
-// Calculate RPM and feed
-const rpm = Math.min(Math.round((sfm * 3.82) / dia), rpmLimit);
-const ipm = rpm * flutes * ipt * reduction;
+    // Calculate RPM and feed
+    const rpm = Math.min(Math.round((sfm * 3.82) / dia), rpmLimit);
+    const ipm = rpm * effTeeth * ipt * (reduction || 1.0);
 
     // Debug summary
     console.groupCollapsed(`CALCULATION SUMMARY → ${toolType} (${mat})`);
@@ -363,13 +318,14 @@ const ipm = rpm * flutes * ipt * reduction;
       "Material": mat,
       "Diameter (in)": dia,
       "Flutes": flutes,
+      "Effective Teeth": effTeeth.toFixed(2),
       "Stickout (in)": stickout,
       "Depth (in)": depth,
       "Stepover (%)": stepover * 100,
       "Corner Radius (in)": cornerRadius,
       "SFM Used": sfm.toFixed(2),
       "IPT Used": ipt.toFixed(5),
-      "Reduction Factor": reduction.toFixed(2),
+      "Reduction Factor": (reduction || 1.0).toFixed(2),
       "RPM Final": rpm,
       "Feed Rate (IPM)": ipm.toFixed(2),
       "HSM Mode": isHsm ? "ON" : "OFF"
