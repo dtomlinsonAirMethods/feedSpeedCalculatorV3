@@ -151,50 +151,46 @@ function _findIptEntry(toolType, material, dia) {
   return dataSet.find(e => dia <= e.max) || dataSet[dataSet.length - 1];
 }
 
-// Main: compute DOC recommendation based only on dia and milling type
+// Main: compute DOC recommendation (finish shows "max LOC")
 function getDocRecommendation(toolType, material, dia) {
-  // 1) find the matched IPT entry
-  const entry = _findIptEntry(toolType, material, dia);
-  if (!entry) {
-    return "⚠ No DOC data available.";
+  // small formatter to keep your 2-4 decimal rules
+  function _fmt(v) {
+    if (v % 1 === 0) return v.toFixed(2);
+    const s = v.toFixed(4);
+    if (s.endsWith("0")) return v.toFixed(3);
+    return s;
   }
 
-  // 2) determine bucket (slot / rough / finish) from stepover input
+  const entry = _findIptEntry(toolType, material, dia);
+  if (!entry) return "⚠️ No DOC data available.";
+
+  // determine bucket from stepover (parseSmartInput returns percent when 2nd arg true)
   const spRaw = parseSmartInput(document.getElementById("stepover")?.value, true);
-  const sp = (typeof spRaw === "number") ? spRaw : 100; // percent
+  const sp = (typeof spRaw === "number") ? spRaw : 100;
   let bucket;
   if (Math.abs(sp - 100) < 0.0001) bucket = "slot";
   else if (sp <= 6) bucket = "finish";
   else bucket = "rough";
 
-  // 3) determine DOC percentage range
-  let pctMin, pctMax;
+  // finish: return max LOC label
+  if (bucket === "finish") {
+    return "Recommended DOC: Max LOC";
+  }
+
+  // for slot/rough: use DOC_pct from JSON if present, otherwise defaults
+  let pctMin = null, pctMax = null;
   if (entry[bucket] && entry[bucket].DOC_pct) {
     pctMin = Number(entry[bucket].DOC_pct.min);
     pctMax = Number(entry[bucket].DOC_pct.max);
   } else {
     if (bucket === "slot") { pctMin = 75; pctMax = 125; }
     else if (bucket === "rough") { pctMin = 125; pctMax = 200; }
-    else if (bucket === "finish") { pctMin = null; pctMax = null; }
   }
 
-  // 4) compute DOC range in inches
-  const minDocIn = bucket === "finish" ? 0 : (pctMin / 100) * dia;
-  const maxDocIn = bucket === "finish" ? dia : (pctMax / 100) * dia;
+  const minDocIn = (pctMin / 100) * dia;
+  const maxDocIn = (pctMax / 100) * dia;
 
-  // 5) format nicely
-  const formatDoc = (v) => {
-    if (v % 1 === 0) return v.toFixed(2);
-    const str = v.toFixed(4);
-    if (str.endsWith("0")) return v.toFixed(3);
-    return str;
-  };
-
-  if (bucket === "finish") {
-    return `Recommended DOC: up to ${formatDoc(maxDocIn)} in.`;
-  } else {
-    return `Recommended DOC: ${formatDoc(minDocIn)} - ${formatDoc(maxDocIn)} in (≈ ${pctMin}% - ${pctMax}% of dia).`;
-  }
+  return `Recommended DOC: ${_fmt(minDocIn)} - ${_fmt(maxDocIn)} in (≈ ${pctMin}% - ${pctMax}% of dia).`;
 }
 
 // --- Tab switching ---
@@ -253,17 +249,17 @@ function calculateEndmill() {
     if (toolType !== "Shell Mill") {
       // Corner radius warning
       if (toolType === "Bull Nose" && cornerRadius > dia / 2) {
-        warningText += `⚠ Corner radius (${cornerRadius}) > half tool dia (${(dia / 2).toFixed(3)})\n`;
+        warningText += `⚠️ Corner radius (${cornerRadius}) > half tool dia (${(dia / 2).toFixed(3)})\n`;
       }
 
       // Stickout reduction
       const ratio = stickout / dia;
       var reduction = 1.0;
-      if (ratio > 3.0) { reduction = 0.7; warningText += `⚠ Stickout too high (S/D=${ratio.toFixed(1)})\n`; }
-      else if (ratio > 2.0) { reduction = 0.85; warningText += `⚠ Stickout high (S/D=${ratio.toFixed(1)})\n`; }
+      if (ratio > 3.0) { reduction = 0.7; warningText += `⚠️ Stickout too high (S/D=${ratio.toFixed(1)})\n`; }
+      else if (ratio > 2.0) { reduction = 0.85; warningText += `⚠️ Stickout high (S/D=${ratio.toFixed(1)})\n`; }
 
-      if (stepover > 0.5) warningText += "⚠ Stepover >50% recommended\n";
-      if (depth > dia) warningText += "⚠ Depth > diameter\n";
+      if (stepover > 0.5) warningText += "⚠️ Stepover >50% recommended\n";
+      if (depth > dia) warningText += "⚠️ Depth > diameter\n";
 
       // Tool type modifiers
       if (toolType === "Bull Nose") ipt *= 0.95;
@@ -304,7 +300,7 @@ function calculateEndmill() {
     let rpmLimit = isHsm ? machineMaxRpm : 9000;
     if (isHsm && (stickout / dia > 2.5 || flutes > 4 || stepover > 0.6)) {
       rpmLimit = Math.min(machineMaxRpm, 9500);
-      warningText += "⚠ HSM modifiers limited due to stickout/teeth/stepover\n";
+      warningText += "⚠️ HSM modifiers limited due to stickout/teeth/stepover\n";
     }
 
     // Calculate RPM and feed
@@ -339,7 +335,7 @@ function calculateEndmill() {
     document.getElementById("iptOut").innerText = `Feed per Tooth (IPT): ${ipt.toFixed(5)}`;
     const warn = document.getElementById("warnings");
     warn.innerText = warningText.trim();
-    warn.style.color = warningText.includes("⚠") ? "orange" : "green";
+    warn.style.color = warningText.includes("⚠️") ? "orange" : "green";
 
   } catch (err) {
     alert("Input Error: " + err);
@@ -385,10 +381,10 @@ function calculateDrill() {
     let warningText = "";
     if (ratio > 5) {
       reduction = 0.7;
-      warningText = "⚠ Stickout or depth high (S/D > 5), feed reduced 30%";
+      warningText = "⚠️ Stickout or depth high (S/D > 5), feed reduced 30%";
     } else if (ratio > 3) {
       reduction = 0.85;
-      warningText = "⚠ Stickout moderate (S/D > 3), feed reduced 15%";
+      warningText = "⚠️ Stickout moderate (S/D > 3), feed reduced 15%";
     }
 
     // --- RPM & Feed calculations ---
