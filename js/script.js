@@ -90,7 +90,6 @@ function parseSmartInput(input, isPercent = false) {
 function getDynamicFeed(toolType, material, dia) {
   const t = toolType.toLowerCase();
   const useIpr = ["drill", "reamer", "spot", "center drill"].some(k => t.includes(k));
-
   const source = useIpr ? window.iprData : window.iptData;
   const key = useIpr
     ? (source?.[t] ? t : "drill") // fallback for hole-making tools
@@ -98,26 +97,104 @@ function getDynamicFeed(toolType, material, dia) {
 
   const dataSet = source?.[key]?.[material];
 
-  if (dataSet && Array.isArray(dataSet)) {
-    const match = dataSet.find(entry => dia <= entry.max);
-    if (match) {
-      console.log(
-        `✅ Feed from ${useIpr ? "ipr" : "ipt"}.json → Tool: ${toolType}, Material: ${material}, Dia: ${dia}, Val: ${match.val}`
-      );
-      return match.val;
-    }
-
-    const fallbackVal = dataSet[dataSet.length - 1].val;
+  if (!dataSet || !Array.isArray(dataSet)) {
     console.warn(
-      `⚠ Diameter ${dia}" exceeds all listed ranges for ${material} (${toolType}). Using max feed value ${fallbackVal}.`
+      `⚠ No feed data found for ${toolType} in ${material}. Using safe fallback 0.002.`
     );
-    return fallbackVal;
+    return 0.002;
   }
 
-  console.warn(
-    `⚠ No feed data found for ${toolType} in ${material}. Using safe fallback 0.002.`
+  // Find closest diameter entry
+  let match = dataSet.find(entry => dia <= entry.max) || dataSet[dataSet.length - 1];
+
+  // If the entry has slot/rough/finish (new structure)
+  if (match.slot && match.rough && match.finish) {
+    const stepoverInput = parseSmartInput(document.getElementById("stepover")?.value, true) / 100;
+
+    let feedType = "rough"; // default
+    if (stepoverInput >= 1.0) feedType = "slot";      // 100% stepover = slot
+    else if (stepoverInput <= 0.06) feedType = "finish"; // <=6% stepover = finish
+    else feedType = "rough";                           // 7-99% = roughing
+
+    const iptVal = match[feedType].ipt;
+
+    console.log(
+      `Feed from ${useIpr ? "ipr" : "ipt"}.json → Tool: ${toolType}, Material: ${material}, Dia: ${dia}, Type: ${feedType.toUpperCase()}, IPT: ${iptVal}`
+    );
+    return iptVal;
+  }
+
+  // Old single-val fallback for materials like Stainless, HRS, Nylatron
+  const fallbackVal = match.val;
+  console.log(
+    `Feed from ${useIpr ? "ipr" : "ipt"}.json → Tool: ${toolType}, Material: ${material}, Dia: ${dia}, IPT: ${fallbackVal}`
   );
-  return 0.002;
+  return fallbackVal;
+}
+
+// Helper: format DOC nicely
+function formatDoc(value) {
+  if (value % 1 === 0) return value.toFixed(2);        // whole numbers like 1, 2
+  const str = value.toFixed(4);
+  if (str.endsWith("0")) return value.toFixed(3);       // drop trailing zero
+  return str;                                           // keep 4 decimals if needed
+}
+
+// Helper: find the dataset entry for a given toolType/material/dia
+function _findIptEntry(toolType, material, dia) {
+  const t = toolType.toLowerCase();
+  const useIpr = ["drill", "reamer", "spot", "center drill"].some(k => t.includes(k));
+  const source = useIpr ? window.iprData : window.iptData;
+  const key = useIpr ? (source?.[t] ? t : "drill") : "endmill";
+  const dataSet = source?.[key]?.[material];
+  if (!dataSet || !Array.isArray(dataSet)) return null;
+  return dataSet.find(e => dia <= e.max) || dataSet[dataSet.length - 1];
+}
+
+// Main: compute DOC recommendation based only on dia and milling type
+function getDocRecommendation(toolType, material, dia) {
+  // 1) find the matched IPT entry
+  const entry = _findIptEntry(toolType, material, dia);
+  if (!entry) {
+    return "⚠ No DOC data available.";
+  }
+
+  // 2) determine bucket (slot / rough / finish) from stepover input
+  const spRaw = parseSmartInput(document.getElementById("stepover")?.value, true);
+  const sp = (typeof spRaw === "number") ? spRaw : 100; // percent
+  let bucket;
+  if (Math.abs(sp - 100) < 0.0001) bucket = "slot";
+  else if (sp <= 6) bucket = "finish";
+  else bucket = "rough";
+
+  // 3) determine DOC percentage range
+  let pctMin, pctMax;
+  if (entry[bucket] && entry[bucket].DOC_pct) {
+    pctMin = Number(entry[bucket].DOC_pct.min);
+    pctMax = Number(entry[bucket].DOC_pct.max);
+  } else {
+    if (bucket === "slot") { pctMin = 75; pctMax = 125; }
+    else if (bucket === "rough") { pctMin = 125; pctMax = 200; }
+    else if (bucket === "finish") { pctMin = null; pctMax = null; }
+  }
+
+  // 4) compute DOC range in inches
+  const minDocIn = bucket === "finish" ? 0 : (pctMin / 100) * dia;
+  const maxDocIn = bucket === "finish" ? dia : (pctMax / 100) * dia;
+
+  // 5) format nicely
+  const formatDoc = (v) => {
+    if (v % 1 === 0) return v.toFixed(2);
+    const str = v.toFixed(4);
+    if (str.endsWith("0")) return v.toFixed(3);
+    return str;
+  };
+
+  if (bucket === "finish") {
+    return `Recommended DOC: up to ${formatDoc(maxDocIn)} in.`;
+  } else {
+    return `Recommended DOC: ${formatDoc(minDocIn)} - ${formatDoc(maxDocIn)} in (≈ ${pctMin}% - ${pctMax}% of dia).`;
+  }
 }
 
 // --- Tab switching ---
@@ -140,7 +217,6 @@ function calculateEndmill() {
     const stickout = parseSmartInput(document.getElementById("stickout").value);
     const stepover = parseSmartInput(document.getElementById("stepover").value, true) / 100;
     const depth = parseSmartInput(document.getElementById("depth").value);
-
     const toolType = document.querySelector('input[name="toolType"]:checked').value;
     const mat = document.getElementById("material").value;
 
@@ -152,11 +228,14 @@ function calculateEndmill() {
     // IPT lookup key
     const toolTypeKey =
       toolType === "Shell Mill" ? "shell_mill" : "endmill";
-
     let ipt = getDynamicFeed(toolTypeKey, mat, dia);
-
     let sfm = materialsData[mat].SFM_endmill;
+
     let warningText = "";
+    
+    // DOC recommendation
+    warningText += getDocRecommendation(toolType, mat, dia) + "\n";
+    document.getElementById("warnings").innerText = warningText;
 
     // ==========================================================
     // SHELL MILL LOGIC
@@ -222,24 +301,60 @@ function calculateEndmill() {
     if (toolType === "Bull Nose") ipt *= 0.95;
     if (toolType === "Ball Nose") ipt *= 0.9;
 
-    // HSM adjustments
-    if (isHsm) {
-      if (mat.includes("7075") || mat.includes("6061")) {
-        sfm *= 1.25 + (stepover <= 0.2 ? 0.1 : 0) + (depth <= dia * 0.5 ? 0.05 : 0);
-        ipt *= 1.2 + (stepover <= 0.2 ? 0.05 : 0);
-      } else if (mat.includes("Stainless")) {
-        sfm *= 1.15 + (stepover <= 0.2 ? 0.05 : 0);
-        ipt *= 1.1;
-      } else if (mat.includes("HRS")) {
-        sfm *= 1.1;
-        ipt *= 1.05;
-      }
-      warningText += "HSM active\n";
+    // HSM adjustments (only for dynamic toolpaths)
+if (isHsm) {
+    warningText += "HSM active\n";
+
+    // Base multipliers
+    let sfmBoost = 1.0;
+    let iptBoost = 1.0;
+
+    if (mat.includes("7075") || mat.includes("6061")) {
+        sfmBoost = 1.15; // conservative base SFM increase
+        iptBoost = 1.1;  // base IPT increase
+
+        // Scale boost down if radial engagement (stepover) is high
+        if (stepover > 0.5) {
+            sfmBoost -= 0.05;
+            iptBoost -= 0.05;
+        } else if (stepover <= 0.2) {
+            sfmBoost += 0.05;
+            iptBoost += 0.03;
+        }
+
+        // Scale boost based on depth (DOC)
+        if (depth > dia * 0.5) {
+            sfmBoost -= 0.05;
+            iptBoost -= 0.05;
+        } else if (depth <= dia * 0.25) {
+            sfmBoost += 0.03;
+            iptBoost += 0.02;
+        }
+
+    } else if (mat.includes("Stainless")) {
+        sfmBoost = 1.1;
+        iptBoost = 1.05;
+        if (stepover <= 0.2) sfmBoost += 0.03;
+    } else if (mat.includes("HRS")) {
+        sfmBoost = 1.05;
+        iptBoost = 1.03;
     }
 
-    const rpmLimit = isHsm ? 9500 : 9000;
-    const rpm = Math.min(Math.round((sfm * 3.82) / dia), rpmLimit);
-    const ipm = rpm * flutes * ipt * reduction;
+    sfm *= sfmBoost;
+    ipt *= iptBoost;
+}
+
+// --- Risk-based RPM limit ---
+const machineMaxRpm = 10000;
+let rpmLimit = isHsm ? machineMaxRpm : 9000;
+if (isHsm && (stickout / dia > 2.5 || flutes > 4 || stepover > 0.6)) {
+    rpmLimit = Math.min(machineMaxRpm, 9500);
+    warningText += "⚠ Conservative RPM limit applied due to stickout/teeth/stepover\n";
+}
+
+// Calculate RPM and feed
+const rpm = Math.min(Math.round((sfm * 3.82) / dia), rpmLimit);
+const ipm = rpm * flutes * ipt * reduction;
 
     // Debug summary
     console.groupCollapsed(`CALCULATION SUMMARY → ${toolType} (${mat})`);

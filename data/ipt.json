@@ -1,23 +1,83 @@
 {
   "endmill": {
-    "7075 Aluminum": [
-      { "max": 0.125, "val": 0.001 },
-      { "max": 0.1875, "val": 0.002 },
-      { "max": 0.25, "val": 0.002 },
-      { "max": 0.375, "val": 0.003 },
-      { "max": 0.5, "val": 0.004 },
-      { "max": 0.625, "val": 0.005 },
-      { "max": 0.75, "val": 0.006 }
-    ],
     "6061 Aluminum": [
-      { "max": 0.125, "val": 0.001 },
-      { "max": 0.1875, "val": 0.002 },
-      { "max": 0.25, "val": 0.002 },
-      { "max": 0.375, "val": 0.003 },
-      { "max": 0.5, "val": 0.004 },
-      { "max": 0.625, "val": 0.005 },
-      { "max": 0.75, "val": 0.006 }
+      {
+        "max": 0.125,
+        "slot":   { "ipt": 0.0008, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0016, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0018, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.1875,
+        "slot":   { "ipt": 0.0012, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0023, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0021, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.25,
+        "slot":   { "ipt": 0.0016, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0031, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0023, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.375,
+        "slot":   { "ipt": 0.0024, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0045, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0027, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.5,
+        "slot":   { "ipt": 0.0032, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0059, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0027, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.75,
+        "slot":   { "ipt": 0.0046, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.0085, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.0037, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      }
     ],
+
+    "7075 Aluminum": [
+      {
+        "max": 0.125,
+        "slot":   { "ipt": 0.00072, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00144, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00162, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.1875,
+        "slot":   { "ipt": 0.00108, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00207, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00189, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.25,
+        "slot":   { "ipt": 0.00144, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00279, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00207, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.375,
+        "slot":   { "ipt": 0.00216, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00405, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00243, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.5,
+        "slot":   { "ipt": 0.00288, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00531, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00243, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      },
+      {
+        "max": 0.75,
+        "slot":   { "ipt": 0.00414, "DOC_pct": { "min": 75, "max": 100 }, "stepover_pct": { "min": 100, "max": 100 } },
+        "rough":  { "ipt": 0.00765, "DOC_pct": { "min": 125, "max": 200 }, "stepover_pct": { "min": 7, "max": 99 } },
+        "finish": { "ipt": 0.00333, "DOC_pct": { "min": 100, "max": 100 }, "stepover_pct": { "min": 0, "max": 6 } }
+      }
+    ],
+
     "Stainless Steel": [
       { "max": 0.125, "val": 0.0005 },
       { "max": 0.1875, "val": 0.0005 },
@@ -48,22 +108,22 @@
   },
 
   "shellmill": {
-  "7075 Aluminum": [
+    "7075 Aluminum": [
       { "max": 2.0, "val": 0.006 },
       { "max": 3.0, "val": 0.008 },
       { "max": 4.0, "val": 0.010 }
     ],
-  "6061 Aluminum": [
+    "6061 Aluminum": [
       { "max": 2.0, "val": 0.006 },
       { "max": 3.0, "val": 0.008 },
       { "max": 4.0, "val": 0.010 }
     ],
-  "Stainless Steel": [
+    "Stainless Steel": [
       { "max": 2.0, "val": 0.003 },
       { "max": 3.0, "val": 0.004 },
       { "max": 4.0, "val": 0.005 }
     ],
-  "HRS Steel": [
+    "HRS Steel": [
       { "max": 2.0, "val": 0.0025 },
       { "max": 3.0, "val": 0.0030 },
       { "max": 4.0, "val": 0.0040 }

@@ -1,7 +1,7 @@
 {
   "7075 Aluminum": {
-    "SFM_endmill": 1350,
-    "SFM_shellmill": 1600,
+    "SFM_endmill": 1500,
+    "SFM_shellmill": 2000,
     "SFM_drill": 250,
     "SFM_spot": 600,
     "SFM_reamer": 250,
@@ -9,8 +9,8 @@
     "SFM_countersink": 450
   },
   "6061 Aluminum": {
-    "SFM_endmill": 1000,
-    "SFM_shellmill": 1400,
+    "SFM_endmill": 1400,
+    "SFM_shellmill": 1750,
     "SFM_drill": 220,
     "SFM_spot": 550,
     "SFM_reamer": 220,
