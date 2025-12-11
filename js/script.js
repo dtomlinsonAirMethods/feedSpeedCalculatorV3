@@ -174,7 +174,7 @@ function getDocRecommendation(toolType, material, dia) {
 
   // finish: return max LOC label
   if (bucket === "finish") {
-    return "Recommended DOC: Max LOC";
+    return "💡Recommended DOC: Max LOC";
   }
 
   // for slot/rough: use DOC_pct from JSON if present, otherwise defaults
@@ -190,7 +190,7 @@ function getDocRecommendation(toolType, material, dia) {
   const minDocIn = (pctMin / 100) * dia;
   const maxDocIn = (pctMax / 100) * dia;
 
-  return `Recommended DOC: ${_fmt(minDocIn)} - ${_fmt(maxDocIn)} in (≈ ${pctMin}% - ${pctMax}% of dia).`;
+  return `💡Recommended DOC: ${pctMin}% - ${pctMax}% of Dia.`;
 }
 
 // --- Tab switching ---
@@ -229,6 +229,13 @@ function calculateEndmill() {
 
     let warningText = "";
 
+    // --- Thin wall option & debug collector ---
+    let thinWallReduction = 1.0;
+    const thinWallChecked = !!document.getElementById("thinWall")?.checked;
+    if (thinWallChecked) thinWallReduction = 0.8; // moderate thin-wall penalty (0.06 - 0.125")
+    let debugModifiers = []; // collect modifier messages for console (not UI)
+
+
     // DOC recommendation
     warningText += getDocRecommendation(toolType, mat, dia) + "\n";
 
@@ -251,28 +258,43 @@ function calculateEndmill() {
       if (toolType === "Bull Nose" && cornerRadius > dia / 2) {
         warningText += `⚠️ Corner radius (${cornerRadius}) > half tool dia (${(dia / 2).toFixed(3)})\n`;
       }
-
-      // Stickout reduction
-      const ratio = stickout / dia;
-      var reduction = 1.0;
-      if (ratio > 3.0) { reduction = 0.7; warningText += `⚠️ Stickout too high (S/D=${ratio.toFixed(1)})\n`; }
-      else if (ratio > 2.0) { reduction = 0.85; warningText += `⚠️ Stickout high (S/D=${ratio.toFixed(1)})\n`; }
-
-      if (stepover > 0.5) warningText += "⚠️ Stepover >50% recommended\n";
-      if (depth > dia) warningText += "⚠️ Depth > diameter\n";
-
-      // Tool type modifiers
-      if (toolType === "Bull Nose") ipt *= 0.95;
-      if (toolType === "Ball Nose") ipt *= 0.9;
+    }
+    //----- Stickout & tool type reductions -----
+    const ratio = stickout / dia;
+    let reduction = 1.0;
+    if (ratio > 3.0) {
+      reduction = 0.7;
+      warningText += `⚠️ Stickout too high (S/D=${ratio.toFixed(1)})\n`;
+    } else if (ratio > 2.0) {
+      reduction = 0.85;
+      warningText += `⚠️ Stickout high (S/D=${ratio.toFixed(1)})\n`;
     }
 
+    if (stepover > 0.5) warningText += "⚠️ Stepover >50% recommended\n";
+    if (depth > dia) warningText += "⚠️ Depth > diameter\n";
+
+    // Tool type modifiers
+    let toolTypeReduction = 1.0;
+    if (toolType === "Bull Nose") {
+      toolTypeReduction = 0.95;
+      ipt *= toolTypeReduction;
+    }
+    if (toolType === "Ball Nose") {
+      toolTypeReduction = 0.9;
+      ipt *= toolTypeReduction;
+    }
+
+    // Thin wall/floor reduction (moderately thin 0.06–0.125)
+    if (thinWallChecked) {
+      ipt *= thinWallReduction;
+    }
+    // Base multipliers
+    let sfmBoost = 1.0;
+    let iptBoost = 1.0;
+    
     // HSM adjustments (only for dynamic toolpaths)
     if (isHsm) {
-      warningText += "HSM active\n";
-
-      // Base multipliers
-      let sfmBoost = 1.0;
-      let iptBoost = 1.0;
+      warningText += "⚡HSM Active\n";
 
       if (mat.includes("7075") || mat.includes("6061")) {
         sfmBoost = 1.15; // conservative base SFM increase
@@ -300,14 +322,20 @@ function calculateEndmill() {
     let rpmLimit = isHsm ? machineMaxRpm : 9000;
     if (isHsm && (stickout / dia > 2.5 || flutes > 4 || stepover > 0.6)) {
       rpmLimit = Math.min(machineMaxRpm, 9500);
-      warningText += "⚠️ HSM modifiers limited due to stickout/teeth/stepover\n";
     }
 
     // Calculate RPM and feed
     const rpm = Math.min(Math.round((sfm * 3.82) / dia), rpmLimit);
     const ipm = rpm * effTeeth * ipt * (reduction || 1.0);
 
-    // Debug summary
+    // --- compute "actual" display values (post-clamp) ---
+    const sfm_actual = (rpm * dia) / 3.82; // what the spindle & Mastercam effectively use
+    let ipt_actual = 0;
+    if (rpm > 0 && effTeeth > 0) {
+      ipt_actual = ipm / (rpm * effTeeth); // feed per tooth that Mastercam would see
+    }
+
+    // --- Single Debug Summary (with modifier details) ---
     console.groupCollapsed(`CALCULATION SUMMARY → ${toolType} (${mat})`);
     console.table({
       "Tool Type": toolType,
@@ -317,22 +345,43 @@ function calculateEndmill() {
       "Effective Teeth": effTeeth.toFixed(2),
       "Stickout (in)": stickout,
       "Depth (in)": depth,
-      "Stepover (%)": stepover * 100,
+      "Stepover (%)": (stepover * 100).toFixed(1),
       "Corner Radius (in)": cornerRadius,
-      "SFM Used": sfm.toFixed(2),
-      "IPT Used": ipt.toFixed(5),
-      "Reduction Factor": (reduction || 1.0).toFixed(2),
+      "SFM (requested/pre-clamp)": sfm.toFixed(2),
+      "SFM (actual/post-clamp)": (((rpm) * dia) / 3.82).toFixed(2),
+      "IPT (used/baseline)": ipt.toFixed(5),
       "RPM Final": rpm,
       "Feed Rate (IPM)": ipm.toFixed(2),
       "HSM Mode": isHsm ? "ON" : "OFF"
     });
-    console.groupEnd();
+
+    // Reduction details
+    console.group("Reductions");
+    console.table({
+      "Stickout Reduction": (reduction || 1.0).toFixed(2),
+      "ToolType Reduction": (toolTypeReduction || 1.0).toFixed(2),
+      "ThinWall Reduction": thinWallChecked ? thinWallReduction.toFixed(2) : "1.00"
+    });
+
+    // Modifier details
+    console.group("Modifiers");
+    console.table({
+      "HSM Feed Modifier": iptBoost.toFixed(2),
+      "HSM Speed Modifier": sfmBoost.toFixed(2)
+    });
+
+    // Optional extra debug notes
+    if (debugModifiers.length) {
+      console.log(debugModifiers.join("\n"));
+    }
+    console.groupEnd(); // End Modifiers
+    console.groupEnd(); // End main calculation summary
 
     // Output
     document.getElementById("rpm").innerText = `RPM: ${rpm}`;
     document.getElementById("feedRate").innerText = `Feed Rate (IPM): ${ipm.toFixed(1)}`;
-    document.getElementById("sfmOut").innerText = `SFM: ${sfm.toFixed(1)}`;
-    document.getElementById("iptOut").innerText = `Feed per Tooth (IPT): ${ipt.toFixed(5)}`;
+    document.getElementById("sfmOut").innerText = `SFM: ${sfm_actual.toFixed(1)}`;      // <- show actual SFM
+    document.getElementById("iptOut").innerText = `Feed per Tooth (IPT): ${ipt_actual.toFixed(5)}`; // <- show actual FPT
     const warn = document.getElementById("warnings");
     warn.innerText = warningText.trim();
     warn.style.color = warningText.includes("⚠️") ? "orange" : "green";
@@ -340,7 +389,7 @@ function calculateEndmill() {
   } catch (err) {
     alert("Input Error: " + err);
   }
-}
+ }
 
 // ----- Drill calculation -----
 function calculateDrill() {
@@ -419,7 +468,7 @@ function calculateDrill() {
       if (peckAmount <= 0) peckText = "No pecking";
       else peckText = `Suggested Peck: ${peckAmount.toFixed(3)} in`;
     }
-    // --- Debug summary ---
+    // --- Console summary ---
     console.groupCollapsed(`CALCULATION SUMMARY → ${drillType.toUpperCase()} (${mat})`);
     console.table({
       "Tool Type": drillTypeRaw,

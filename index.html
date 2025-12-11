@@ -62,9 +62,21 @@
         <option>Nylatron</option>
       </select>
 
-    <div class="checkbox-field">
-      <label>High Speed Machining (HSM)<input type="checkbox" id="hsm"></label>
-    </div>
+   <div class="checkbox-row" style="display:flex; align-items:center; gap:20px;">
+  
+  <label class="checkbox-field" style="white-space:nowrap;">
+    High Speed Machining (HSM)
+    <input type="checkbox" id="hsm">
+  </label>
+
+  <label class="checkbox-field" style="white-space:nowrap;">
+    Thin walls/floors
+    <input type="checkbox" id="thinWall">
+  </label>
+
+</div>
+
+
 
       <button onclick="calculateEndmill()">Calculate</button>
 
