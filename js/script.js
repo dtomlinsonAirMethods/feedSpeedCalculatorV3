@@ -236,7 +236,7 @@ function calculateEndmill() {
     let debugModifiers = []; // collect modifier messages for console (not UI)
 
 
-/*     // Stepover recommendation
+    // Stepover recommendation
     let recStepoverPct = null;
 
     if (isHsm && toolType !== "Shell Mill") {
@@ -265,86 +265,7 @@ function calculateEndmill() {
       const recStepoverIn = dia * (recStepoverPct / 100);
 
       warningText += `💡 Recommended Stepover: ${recStepoverPct.toFixed(1)}%\n`;
-    } */
-
-          // ==========================================================
-      // STEPOVER RECOMMENDATION (Dynamic / HSM) — DEBUG ENABLED
-      // ==========================================================
-      let recStepoverPct = null;
-
-      if (isHsm && toolType !== "Shell Mill") {
-
-        console.groupCollapsed("STEPOVER RECOMMENDATION DEBUG");
-
-        // --- Input sanity check ---
-        console.log("Tool Diameter (dia):", dia);
-        console.log("Stickout:", stickout);
-        console.log("Depth of Cut (DOC):", depth);
-        console.log("Tool Type:", toolType);
-        console.log("HSM Enabled:", isHsm);
-
-        // --- Base stepover by diameter ---
-        if (dia <= 0.1875) recStepoverPct = 9;
-        else if (dia <= 0.25) recStepoverPct = 10;
-        else if (dia <= 0.3125) recStepoverPct = 11;
-        else if (dia <= 0.375) recStepoverPct = 12;
-        else if (dia <= 0.5) recStepoverPct = 13;
-        else recStepoverPct = 14;
-
-        console.log("Base Stepover % (by dia):", recStepoverPct);
-
-        // --- DOC adjustment ---
-        const docRatio = depth / dia;
-        console.log("DOC Ratio (depth / dia):", docRatio.toFixed(2));
-
-        if (docRatio > 3.0) {
-          recStepoverPct *= 0.75;
-          console.log("DOC > 3×D → Stepover ×0.75");
-        } else if (docRatio > 2.0) {
-          recStepoverPct *= 0.85;
-          console.log("DOC > 2×D → Stepover ×0.85");
-        } else {
-          console.log("DOC ≤ 2×D → No DOC reduction");
-        }
-
-        // --- Stickout adjustment (strongest factor) ---
-        const stickoutRatio = stickout / dia;
-        console.log("Stickout Ratio (stickout / dia):", stickoutRatio.toFixed(2));
-
-        if (stickoutRatio > 3.0) {
-          recStepoverPct *= 0.70;
-          console.log("Stickout > 3×D → Stepover ×0.70");
-        } else if (stickoutRatio > 2.0) {
-          recStepoverPct *= 0.85;
-          console.log("Stickout > 2×D → Stepover ×0.85");
-        } else if (stickoutRatio > 1.5) {
-          recStepoverPct *= 0.90;
-          console.log("Stickout > 1.5×D → Stepover ×0.90");
-        } else {
-          console.log("Stickout ≤ 1.5×D → No stickout reduction");
-        }
-
-        // --- Clamp to sane dynamic limits ---
-        const unclampedPct = recStepoverPct;
-        recStepoverPct = Math.max(6, Math.min(recStepoverPct, 16));
-
-        if (unclampedPct !== recStepoverPct) {
-          console.log(
-            `Clamped Stepover % from ${unclampedPct.toFixed(2)} → ${recStepoverPct.toFixed(2)}`
-          );
-        } else {
-          console.log("No clamping applied");
-        }
-
-        const recStepoverIn = dia * (recStepoverPct / 100);
-        console.log("Final Recommended Stepover %:", recStepoverPct.toFixed(2));
-        console.log("Final Recommended Stepover (in):", recStepoverIn.toFixed(4));
-
-        console.groupEnd();
-
-        warningText += `💡 Recommended Dynamic Stepover: ${recStepoverPct.toFixed(1)}% (${recStepoverIn.toFixed(4)}")\n`;
-      }
-
+    }
 
     // DOC recommendation
     warningText += getDocRecommendation(toolType, mat, dia) + "\n";
