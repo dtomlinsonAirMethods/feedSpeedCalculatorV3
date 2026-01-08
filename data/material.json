@@ -3,7 +3,7 @@
     "SFM_endmill": 1500,
     "SFM_shellmill": 2000,
     "SFM_drill": 250,
-    "SFM_spot": 600,
+    "SFM_spot": 375,
     "SFM_reamer": 250,
     "SFM_thread": 200,
     "SFM_countersink": 450
@@ -12,7 +12,7 @@
     "SFM_endmill": 1400,
     "SFM_shellmill": 1750,
     "SFM_drill": 220,
-    "SFM_spot": 550,
+    "SFM_spot": 350,
     "SFM_reamer": 220,
     "SFM_thread": 180,
     "SFM_countersink": 400
@@ -21,7 +21,7 @@
     "SFM_endmill": 200,
     "SFM_shellmill": 350,
     "SFM_drill": 60,
-    "SFM_spot": 120,
+    "SFM_spot": 80,
     "SFM_reamer": 80,
     "SFM_thread": 60,
     "SFM_countersink": 120
@@ -30,7 +30,7 @@
     "SFM_endmill": 175,
     "SFM_shellmill": 300,
     "SFM_drill": 50,
-    "SFM_spot": 150,
+    "SFM_spot": 90,
     "SFM_reamer": 70,
     "SFM_thread": 50,
     "SFM_countersink": 100
@@ -39,7 +39,7 @@
     "SFM_endmill": 950,
     "SFM_shellmill": 1050,
     "SFM_drill": 330,
-    "SFM_spot": 250,
+    "SFM_spot": 175,
     "SFM_reamer": 120,
     "SFM_thread": 80,
     "SFM_countersink": 200
