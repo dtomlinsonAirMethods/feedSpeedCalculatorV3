@@ -433,7 +433,18 @@ function calculateDrill() {
 
     // --- Base feed & speed data ---
     let sfm = materialsData[mat]?.SFM_drill || 250;
-    let ipr = getDynamicFeed("drill", mat, dia);
+    let ipr;
+
+    // --- Base IPR selection by tool type ---
+    if (drillType === "reamer") {
+      ipr = getDynamicFeed("reamer", mat, dia);
+    } else if (["spotter", "center drill"].includes(drillType)) {
+      ipr = getDynamicFeed("spot", mat, dia);
+    } else if (drillType === "countersink") {
+      ipr = getDynamicFeed("countersink", mat, dia);
+    } else {
+      ipr = getDynamicFeed("drill", mat, dia);
+    }
 
     // --- Adjust for special drill types ---
     if (["spotter", "center drill"].includes(drillType)) {
@@ -441,7 +452,7 @@ function calculateDrill() {
       ipr *= 0.5; // reduced feed for spotters
     } else if (drillType === "reamer") {
       sfm = materialsData[mat]?.SFM_reamer || sfm * 0.6;
-      ipr *= 0.4; // much lighter feed for reaming
+      // ipr comes directly from reamer table (no scaling)
     } else if (drillType === "countersink") {
       sfm = materialsData[mat]?.SFM_countersink || materialsData[mat]?.SFM_spot || sfm;
       ipr = getDynamicFeed("countersink", mat, dia);
@@ -466,7 +477,10 @@ function calculateDrill() {
     // --- RPM & Feed calculations ---
     let rpm = Math.floor((sfm * 3.82) / dia);
     rpm = Math.min(rpm, 9500);
-    const ipm = rpm * flutes * ipr * reduction;
+
+    // Reamers should NOT get stickout reduction
+    const effectiveReduction = (drillType === "reamer") ? 1.0 : reduction;
+    const ipm = rpm * flutes * ipr * effectiveReduction;
 
     // --- Pecking logic ---
     let peckText = "";
@@ -495,6 +509,7 @@ function calculateDrill() {
       if (peckAmount <= 0) peckText = "No pecking";
       else peckText = `Suggested Peck: ${peckAmount.toFixed(3)} in`;
     }
+
     // --- Console summary ---
     console.groupCollapsed(`CALCULATION SUMMARY → ${drillType.toUpperCase()} (${mat})`);
     console.table({
@@ -505,7 +520,7 @@ function calculateDrill() {
       "Depth (in)": depth,
       "SFM Used": sfm.toFixed(2),
       "IPR Used": ipr.toFixed(5),
-      "Reduction Factor": reduction.toFixed(2),
+      "Reduction Factor": effectiveReduction.toFixed(2),
       "RPM Final": rpm,
       "Feed Rate (IPM)": ipm.toFixed(2)
     });
@@ -528,6 +543,13 @@ function calculateDrill() {
         2
       )}`
     );
+
+    // --- Feed source debug ---
+    console.log("IPR SOURCE CHECK →", {
+      toolType: drillType,
+      iprUsed: ipr
+    });
+
   } catch (err) {
     alert("Input Error: " + err);
   }
