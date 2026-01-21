@@ -89,7 +89,7 @@ function parseSmartInput(input, isPercent = false) {
 // ----- Unified dynamic feed calculator (IPT + IPR) -----
 function getDynamicFeed(toolType, material, dia) {
   const t = toolType.toLowerCase();
-  const useIpr = ["drill", "reamer", "spot", "center drill"].some(k => t.includes(k));
+  const useIpr = ["drill", "reamer", "spotter", "center drill"].some(k => t.includes(k));
   const source = useIpr ? window.iprData : window.iptData;
   const key = useIpr
     ? (source?.[t] ? t : "drill") // fallback for hole-making tools
@@ -143,7 +143,7 @@ function formatDoc(value) {
 // Helper: find the dataset entry for a given toolType/material/dia
 function _findIptEntry(toolType, material, dia) {
   const t = toolType.toLowerCase();
-  const useIpr = ["drill", "reamer", "spot", "center drill"].some(k => t.includes(k));
+  const useIpr = ["drill", "reamer", "spotter", "center drill"].some(k => t.includes(k));
   const source = useIpr ? window.iprData : window.iptData;
   const key = useIpr ? (source?.[t] ? t : "drill") : "endmill";
   const dataSet = source?.[key]?.[material];
@@ -431,6 +431,8 @@ function calculateDrill() {
     const depth = parseSmartInput(document.getElementById("depthDrill").value);
     const pecking = document.getElementById("pecking").checked;
 
+    let peckText = ""; // 🔧 moved up (fix)
+
     // --- Base feed & speed data ---
     let sfm = materialsData[mat]?.SFM_drill || 250;
     let ipr;
@@ -439,7 +441,7 @@ function calculateDrill() {
     if (drillType === "reamer") {
       ipr = getDynamicFeed("reamer", mat, dia);
     } else if (["spotter", "center drill"].includes(drillType)) {
-      ipr = getDynamicFeed("spot", mat, dia);
+      ipr = getDynamicFeed("spotter", mat, dia);
     } else if (drillType === "countersink") {
       ipr = getDynamicFeed("countersink", mat, dia);
     } else {
@@ -449,7 +451,7 @@ function calculateDrill() {
     // --- Adjust for special drill types ---
     if (["spotter", "center drill"].includes(drillType)) {
       sfm = materialsData[mat]?.SFM_spot || sfm;
-      ipr *= 0.5; // reduced feed for spotters
+      // 🔴 FIX: removed ipr *= 0.5; (was double-reducing spotter feed)
     } else if (drillType === "reamer") {
       sfm = materialsData[mat]?.SFM_reamer || sfm * 0.6;
       // ipr comes directly from reamer table (no scaling)
@@ -483,7 +485,6 @@ function calculateDrill() {
     const ipm = rpm * flutes * ipr * effectiveReduction;
 
     // --- Pecking logic ---
-    let peckText = "";
     let peckAmount = 0;
     const depthToDia = depth / dia;
 
@@ -536,19 +537,6 @@ function calculateDrill() {
     const warn = document.getElementById("drillWarn");
     warn.innerText = warningText;
     warn.style.color = warningText ? "orange" : "green";
-
-    // --- Debug summary ---
-    console.log(
-      `Drill Calc → Type: ${drillType}, Mat: ${mat}, Dia: ${dia}, Stickout: ${stickout}, Depth: ${depth}, SFM: ${sfm}, IPR: ${ipr}, RPM: ${rpm}, IPM: ${ipm.toFixed(
-        2
-      )}`
-    );
-
-    // --- Feed source debug ---
-    console.log("IPR SOURCE CHECK →", {
-      toolType: drillType,
-      iprUsed: ipr
-    });
 
   } catch (err) {
     alert("Input Error: " + err);
