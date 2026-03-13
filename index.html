@@ -62,6 +62,16 @@
         <option>Nylatron</option>
       </select>
 
+      <label>Machine</label>
+      <select id="machineSelect">
+        <option>Haas DM-1</option>
+        <option>Brother</option>
+        <option>Okuma Genos M660</option>
+        <option>Haas VF-5</option>
+        <option>Haas VF-9</option>
+        <option>Haas Horizontal</option>
+      </select>
+
    <div class="checkbox-row" style="display:flex; align-items:center; gap:20px;">
   
   <label class="checkbox-field" style="white-space:nowrap;">
@@ -75,8 +85,6 @@
   </label>
 
 </div>
-
-
 
       <button onclick="calculateEndmill()">Calculate</button>
 
@@ -201,36 +209,41 @@
     fetch("data/material.json").then(r => r.json()),
     fetch("data/thread.json").then(r => r.json()),
     fetch("data/ipt.json").then(r => r.json()),
-    fetch("data/ipr.json").then(r => r.json()) // ⬅ added
+    fetch("data/ipr.json").then(r => r.json()),
+    fetch("data/machines.json").then(r => r.json()) // ⬅ added
   ])
-    .then(([materials, threads, ipt, ipr]) => {
-      // Attach all loaded data to the window
+    .then(([materials, threads, ipt, ipr, machines]) => {
       window.materialsData = materials;
       window.threadsData = threads;
       window.iptData = ipt;
       window.iprData = ipr;
-
+      window.machinesData = machines; // ⬅ attach machines
       console.log("✅ JSON data loaded:", {
         materials: Object.keys(materials),
         threads: Object.keys(threads),
         ipt: Object.keys(ipt),
-        ipr: Object.keys(ipr)
+        ipr: Object.keys(ipr),
+        machines: Object.keys(machines)
       });
+
+      // Populate machine dropdown
+      const machineSelect = document.getElementById("machineSelect");
+      if (machineSelect) {
+        machineSelect.innerHTML = Object.keys(machines)
+          .map(m => `<option>${m}</option>`).join("");
+      }
+
+      // Enable calculate button only after all JSONs are loaded
+      const calculateBtn = document.getElementById("calculateBtn");
+      if (calculateBtn) calculateBtn.disabled = false;
     })
     .catch(err => {
       console.error("⚠ Failed to load JSON data:", err);
       alert("Error loading data files. Check console for details.");
     })
     .finally(() => {
-      // Inject main script AFTER all data is ready
       const script = document.createElement("script");
       script.src = "js/script.js";
-      script.onload = () => {
-        console.log("📘 script.js loaded — initializing thread dropdowns...");
-        if (document.getElementById("threadType")) {
-          updateThreadSizes();
-        }
-      };
       document.body.appendChild(script);
     });
 </script>
@@ -241,7 +254,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("js/service-worker.js")
+        .register("/service-worker.js")
         .then((reg) => console.log("✅ Service Worker registered:", reg.scope))
         .catch((err) => console.error("⚠ Service Worker registration failed:", err));
     });

@@ -1,0 +1,8 @@
+{
+  "Haas DM-1": { "maxRPM": 10000 },
+  "Brother": { "maxRPM": 10000 },
+  "Okuma Genos M660": { "maxRPM": 15000 },
+  "Haas VF-5": { "maxRPM": 10000 },
+  "Haas VF-9": { "maxRPM": 10000 },
+  "Haas Horizontal": { "maxRPM": 10000 }
+}
