@@ -1,147 +1,409 @@
 {
   "UNC": {
     "2-56": {
-      "pitch": 0.01786,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.017857,
       "2A": { "type": "external", "allowance": 0.0006, "major_dia_min": 0.0813, "major_dia_max": 0.0854, "pitch_dia_min": 0.0717, "pitch_dia_max": 0.0738, "unr_minor_dia_max": 0.0641 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.0819, "major_dia_max": 0.0860, "pitch_dia_min": 0.0728, "pitch_dia_max": 0.0744, "unr_minor_dia_max": 0.0647 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0006, "major_dia_min": 0.0860, "minor_dia_min": 0.0667, "minor_dia_max": 0.0737, "pitch_dia_min": 0.0744, "pitch_dia_max": 0.0772 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.0860, "minor_dia_min": 0.0667, "minor_dia_max": 0.0737, "pitch_dia_min": 0.0744, "pitch_dia_max": 0.0765 }
     },
     "4-40": {
-      "pitch": 0.025,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.025000,
       "2A": { "type": "external", "allowance": 0.0008, "major_dia_min": 0.1061, "major_dia_max": 0.1112, "pitch_dia_min": 0.0925, "pitch_dia_max": 0.0950, "unr_minor_dia_max": 0.0814 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1069, "major_dia_max": 0.1120, "pitch_dia_min": 0.0939, "pitch_dia_max": 0.0958, "unr_minor_dia_max": 0.0822 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0008, "major_dia_min": 0.1120, "minor_dia_min": 0.0849, "minor_dia_max": 0.0939, "pitch_dia_min": 0.0958, "pitch_dia_max": 0.0991 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1120, "minor_dia_min": 0.0849, "minor_dia_max": 0.0939, "pitch_dia_min": 0.0958, "pitch_dia_max": 0.0982 }
     },
     "6-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0008, "major_dia_min": 0.1312, "major_dia_max": 0.1372, "pitch_dia_min": 0.1141, "pitch_dia_max": 0.1169, "unr_minor_dia_max": 0.1000 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1320, "major_dia_max": 0.1380, "pitch_dia_min": 0.1156, "pitch_dia_max": 0.1177, "unr_minor_dia_max": 0.1008 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0008, "major_dia_min": 0.1380, "minor_dia_min": 0.1040, "minor_dia_max": 0.1140, "pitch_dia_min": 0.1177, "pitch_dia_max": 0.1214 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1380, "minor_dia_min": 0.1040, "minor_dia_max": 0.1139, "pitch_dia_min": 0.1177, "pitch_dia_max": 0.1204 }
     },
     "8-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0009, "major_dia_min": 0.1571, "major_dia_max": 0.1631, "pitch_dia_min": 0.1399, "pitch_dia_max": 0.1428, "unr_minor_dia_max": 0.1259 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1580, "major_dia_max": 0.1640, "pitch_dia_min": 0.1415, "pitch_dia_max": 0.1437, "unr_minor_dia_max": 0.1268 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0009, "major_dia_min": 0.1640, "minor_dia_min": 0.1300, "minor_dia_max": 0.1390, "pitch_dia_min": 0.1437, "pitch_dia_max": 0.1475 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1640, "minor_dia_min": 0.1300, "minor_dia_max": 0.1388, "pitch_dia_min": 0.1437, "pitch_dia_max": 0.1465 }
     },
     "10-24": {
-      "pitch": 0.04167,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.041667,
       "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.1818, "major_dia_max": 0.1890, "pitch_dia_min": 0.1586, "pitch_dia_max": 0.1619, "unr_minor_dia_max": 0.1394 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1828, "major_dia_max": 0.1900, "pitch_dia_min": 0.1604, "pitch_dia_max": 0.1629, "unr_minor_dia_max": 0.1404 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.1900, "minor_dia_min": 0.1450, "minor_dia_max": 0.1550, "pitch_dia_min": 0.1629, "pitch_dia_max": 0.1672 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1900, "minor_dia_min": 0.1450, "minor_dia_max": 0.1555, "pitch_dia_min": 0.1629, "pitch_dia_max": 0.1661 }
     },
     "1/4-20": {
-      "pitch": 0.0500,
-      "1A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.2367, "major_dia_max": 0.2489, "pitch_dia_min": 0.2108, "pitch_dia_max": 0.2164, "unr_minor_dia_max": 0.1894 },
+      "pitch": 0.050000,
       "2A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.2408, "major_dia_max": 0.2489, "pitch_dia_min": 0.2127, "pitch_dia_max": 0.2164, "unr_minor_dia_max": 0.1894 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2419, "major_dia_max": 0.2500, "pitch_dia_min": 0.2147, "pitch_dia_max": 0.2175, "unr_minor_dia_max": 0.1905 },
-      "1B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.2500, "minor_dia_min": 0.1960, "minor_dia_max": 0.2070, "pitch_dia_min": 0.2175, "pitch_dia_max": 0.2248 },
       "2B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.2500, "minor_dia_min": 0.1960, "minor_dia_max": 0.2070, "pitch_dia_min": 0.2175, "pitch_dia_max": 0.2224 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2500, "minor_dia_min": 0.1960, "minor_dia_max": 0.2067, "pitch_dia_min": 0.2175, "pitch_dia_max": 0.2211 }
     },
     "5/16-18": {
-      "pitch": 0.05556,
-      "1A": { "type": "external", "allowance": 0.0012, "major_dia_min": 0.2982, "major_dia_max": 0.3113, "pitch_dia_min": 0.2691, "pitch_dia_max": 0.2752, "unr_minor_dia_max": 0.2451 },
+      "pitch": 0.055556,
       "2A": { "type": "external", "allowance": 0.0012, "major_dia_min": 0.3026, "major_dia_max": 0.3113, "pitch_dia_min": 0.2712, "pitch_dia_max": 0.2752, "unr_minor_dia_max": 0.2451 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3038, "major_dia_max": 0.3125, "pitch_dia_min": 0.2734, "pitch_dia_max": 0.2764, "unr_minor_dia_max": 0.2463 },
-      "1B": { "type": "internal", "allowance": 0.0012, "major_dia_min": 0.3125, "minor_dia_min": 0.2520, "minor_dia_max": 0.2650, "pitch_dia_min": 0.2764, "pitch_dia_max": 0.2843 },
       "2B": { "type": "internal", "allowance": 0.0012, "major_dia_min": 0.3125, "minor_dia_min": 0.2520, "minor_dia_max": 0.2650, "pitch_dia_min": 0.2764, "pitch_dia_max": 0.2817 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3125, "minor_dia_min": 0.2520, "minor_dia_max": 0.2630, "pitch_dia_min": 0.2764, "pitch_dia_max": 0.2803 }
     },
     "3/8-16": {
-      "pitch": 0.0625,
-      "1A": { "type": "external", "allowance": 0.0013, "major_dia_min": 0.3595, "major_dia_max": 0.3737, "pitch_dia_min": 0.3266, "pitch_dia_max": 0.3331, "unr_minor_dia_max": 0.2993 },
+      "pitch": 0.062500,
       "2A": { "type": "external", "allowance": 0.0013, "major_dia_min": 0.3643, "major_dia_max": 0.3737, "pitch_dia_min": 0.3287, "pitch_dia_max": 0.3331, "unr_minor_dia_max": 0.2993 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3656, "major_dia_max": 0.3750, "pitch_dia_min": 0.3311, "pitch_dia_max": 0.3344, "unr_minor_dia_max": 0.3006 },
-      "1B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.3750, "minor_dia_min": 0.3070, "minor_dia_max": 0.3210, "pitch_dia_min": 0.3344, "pitch_dia_max": 0.3429 },
-      "2B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.3750, "minor_dia_min": 0.3070, "minor_dia_max": 0.3210, "pitch_dia_min": 0.3344, "pitch_dia_max": 0.3401 },
-      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3750, "minor_dia_min": 0.3070, "minor_dia_max": 0.3182, "pitch_dia_min": 0.3344, "pitch_dia_max": 0.3387 }
+      "2B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.3750, "minor_dia_min": 0.3070, "minor_dia_max": 0.3210, "pitch_dia_min": 0.3344, "pitch_dia_max": 0.3400 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3750, "minor_dia_min": 0.3070, "minor_dia_max": 0.3190, "pitch_dia_min": 0.3344, "pitch_dia_max": 0.3386 }
+    },
+    "7/16-14": {
+      "pitch": 0.071429,
+      "2A": { "type": "external", "allowance": 0.0014, "major_dia_min": 0.4258, "major_dia_max": 0.4361, "pitch_dia_min": 0.3837, "pitch_dia_max": 0.3885, "unr_minor_dia_max": 0.3482 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4272, "major_dia_max": 0.4375, "pitch_dia_min": 0.3864, "pitch_dia_max": 0.3899, "unr_minor_dia_max": 0.3496 },
+      "2B": { "type": "internal", "allowance": 0.0014, "major_dia_min": 0.4375, "minor_dia_min": 0.3560, "minor_dia_max": 0.3720, "pitch_dia_min": 0.3899, "pitch_dia_max": 0.3961 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.4375, "minor_dia_min": 0.3560, "minor_dia_max": 0.3700, "pitch_dia_min": 0.3899, "pitch_dia_max": 0.3946 }
     },
     "1/2-13": {
-      "pitch": 0.07692,
-      "1A": { "type": "external", "allowance": 0.0015, "major_dia_min": 0.4822, "major_dia_max": 0.4985, "pitch_dia_min": 0.4411, "pitch_dia_max": 0.4485, "unr_minor_dia_max": 0.4069 },
+      "pitch": 0.076923,
       "2A": { "type": "external", "allowance": 0.0015, "major_dia_min": 0.4876, "major_dia_max": 0.4985, "pitch_dia_min": 0.4435, "pitch_dia_max": 0.4485, "unr_minor_dia_max": 0.4069 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4891, "major_dia_max": 0.5000, "pitch_dia_min": 0.4463, "pitch_dia_max": 0.4500, "unr_minor_dia_max": 0.4069 },
-      "1B": { "type": "internal", "allowance": 0.0015, "major_dia_min": 0.5000, "minor_dia_min": 0.4170, "minor_dia_max": 0.4340, "pitch_dia_min": 0.4500, "pitch_dia_max": 0.4597 },
       "2B": { "type": "internal", "allowance": 0.0015, "major_dia_min": 0.5000, "minor_dia_min": 0.4170, "minor_dia_max": 0.4340, "pitch_dia_min": 0.4500, "pitch_dia_max": 0.4565 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5000, "minor_dia_min": 0.4170, "minor_dia_max": 0.4284, "pitch_dia_min": 0.4500, "pitch_dia_max": 0.4548 }
+    },
+    "9/16-12": {
+      "pitch": 0.083333,
+      "2A": { "type": "external", "allowance": 0.0016, "major_dia_min": 0.5489, "major_dia_max": 0.5609, "pitch_dia_min": 0.4997, "pitch_dia_max": 0.5050, "unr_minor_dia_max": 0.4611 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.5505, "major_dia_max": 0.5625, "pitch_dia_min": 0.5024, "pitch_dia_max": 0.5066, "unr_minor_dia_max": 0.4627 },
+      "2B": { "type": "internal", "allowance": 0.0016, "major_dia_min": 0.5625, "minor_dia_min": 0.4720, "minor_dia_max": 0.4900, "pitch_dia_min": 0.5066, "pitch_dia_max": 0.5135 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5625, "minor_dia_min": 0.4720, "minor_dia_max": 0.4876, "pitch_dia_min": 0.5066, "pitch_dia_max": 0.5117 }
+    },
+    "5/8-11": {
+      "pitch": 0.090909,
+      "2A": { "type": "external", "allowance": 0.0016, "major_dia_min": 0.6084, "major_dia_max": 0.6234, "pitch_dia_min": 0.5528, "pitch_dia_max": 0.5585, "unr_minor_dia_max": 0.5135 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.6100, "major_dia_max": 0.6250, "pitch_dia_min": 0.5557, "pitch_dia_max": 0.5601, "unr_minor_dia_max": 0.5152 },
+      "2B": { "type": "internal", "allowance": 0.0016, "major_dia_min": 0.6250, "minor_dia_min": 0.5260, "minor_dia_max": 0.5460, "pitch_dia_min": 0.5601, "pitch_dia_max": 0.5676 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.6250, "minor_dia_min": 0.5260, "minor_dia_max": 0.5440, "pitch_dia_min": 0.5601, "pitch_dia_max": 0.5657 }
+    },
+    "3/4-10": {
+      "pitch": 0.100000,
+      "2A": { "type": "external", "allowance": 0.0017, "major_dia_min": 0.7264, "major_dia_max": 0.7433, "pitch_dia_min": 0.6612, "pitch_dia_max": 0.6674, "unr_minor_dia_max": 0.6201 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.7281, "major_dia_max": 0.7500, "pitch_dia_min": 0.6644, "pitch_dia_max": 0.6691, "unr_minor_dia_max": 0.6219 },
+      "2B": { "type": "internal", "allowance": 0.0017, "major_dia_min": 0.7500, "minor_dia_min": 0.6420, "minor_dia_max": 0.6620, "pitch_dia_min": 0.6691, "pitch_dia_max": 0.6773 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.7500, "minor_dia_min": 0.6420, "minor_dia_max": 0.6594, "pitch_dia_min": 0.6691, "pitch_dia_max": 0.6752 }
+    },
+    "7/8-9": {
+      "pitch": 0.111111,
+      "2A": { "type": "external", "allowance": 0.0018, "major_dia_min": 0.8491, "major_dia_max": 0.8682, "pitch_dia_min": 0.7707, "pitch_dia_max": 0.7773, "unr_minor_dia_max": 0.7274 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.8509, "major_dia_max": 0.8750, "pitch_dia_min": 0.7740, "pitch_dia_max": 0.7791, "unr_minor_dia_max": 0.7295 },
+      "2B": { "type": "internal", "allowance": 0.0018, "major_dia_min": 0.8750, "minor_dia_min": 0.7490, "minor_dia_max": 0.7710, "pitch_dia_min": 0.7791, "pitch_dia_max": 0.7878 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.8750, "minor_dia_min": 0.7490, "minor_dia_max": 0.7683, "pitch_dia_min": 0.7791, "pitch_dia_max": 0.7857 }
+    },
+    "1-8": {
+      "pitch": 0.125000,
+      "2A": { "type": "external", "allowance": 0.0019, "major_dia_min": 0.9710, "major_dia_max": 0.9981, "pitch_dia_min": 0.8795, "pitch_dia_max": 0.8867, "unr_minor_dia_max": 0.8286 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.9729, "major_dia_max": 1.0000, "pitch_dia_min": 0.8832, "pitch_dia_max": 0.8886, "unr_minor_dia_max": 0.8308 },
+      "2B": { "type": "internal", "allowance": 0.0019, "major_dia_min": 1.0000, "minor_dia_min": 0.8500, "minor_dia_max": 0.8750, "pitch_dia_min": 0.8886, "pitch_dia_max": 0.8978 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 1.0000, "minor_dia_min": 0.8500, "minor_dia_max": 0.8724, "pitch_dia_min": 0.8886, "pitch_dia_max": 0.8955 }
     }
   },
 
   "UNF": {
+    "2-64": {
+      "pitch": 0.015625,
+      "2A": { "type": "external", "allowance": 0.0006, "major_dia_min": 0.0724, "major_dia_max": 0.0764, "pitch_dia_min": 0.0641, "pitch_dia_max": 0.0659, "unr_minor_dia_max": 0.0573 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.0730, "major_dia_max": 0.0770, "pitch_dia_min": 0.0651, "pitch_dia_max": 0.0665, "unr_minor_dia_max": 0.0579 },
+      "2B": { "type": "internal", "allowance": 0.0006, "major_dia_min": 0.0770, "minor_dia_min": 0.0595, "minor_dia_max": 0.0655, "pitch_dia_min": 0.0665, "pitch_dia_max": 0.0690 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.0770, "minor_dia_min": 0.0595, "minor_dia_max": 0.0650, "pitch_dia_min": 0.0665, "pitch_dia_max": 0.0682 }
+    },
+    "4-48": {
+      "pitch": 0.020833,
+      "2A": { "type": "external", "allowance": 0.0007, "major_dia_min": 0.1073, "major_dia_max": 0.1113, "pitch_dia_min": 0.0955, "pitch_dia_max": 0.0978, "unr_minor_dia_max": 0.0864 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1080, "major_dia_max": 0.1120, "pitch_dia_min": 0.0967, "pitch_dia_max": 0.0985, "unr_minor_dia_max": 0.0871 },
+      "2B": { "type": "internal", "allowance": 0.0007, "major_dia_min": 0.1120, "minor_dia_min": 0.0894, "minor_dia_max": 0.0968, "pitch_dia_min": 0.0985, "pitch_dia_max": 0.1016 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1120, "minor_dia_min": 0.0894, "minor_dia_max": 0.0963, "pitch_dia_min": 0.0985, "pitch_dia_max": 0.1006 }
+    },
+    "6-40": {
+      "pitch": 0.025000,
+      "2A": { "type": "external", "allowance": 0.0008, "major_dia_min": 0.1332, "major_dia_max": 0.1372, "pitch_dia_min": 0.1195, "pitch_dia_max": 0.1220, "unr_minor_dia_max": 0.1082 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1340, "major_dia_max": 0.1380, "pitch_dia_min": 0.1208, "pitch_dia_max": 0.1228, "unr_minor_dia_max": 0.1090 },
+      "2B": { "type": "internal", "allowance": 0.0008, "major_dia_min": 0.1380, "minor_dia_min": 0.1120, "minor_dia_max": 0.1196, "pitch_dia_min": 0.1228, "pitch_dia_max": 0.1263 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1380, "minor_dia_min": 0.1120, "minor_dia_max": 0.1190, "pitch_dia_min": 0.1228, "pitch_dia_max": 0.1252 }
+    },
+    "8-36": {
+      "pitch": 0.027778,
+      "2A": { "type": "external", "allowance": 0.0009, "major_dia_min": 0.1591, "major_dia_max": 0.1631, "pitch_dia_min": 0.1437, "pitch_dia_max": 0.1463, "unr_minor_dia_max": 0.1309 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1600, "major_dia_max": 0.1640, "pitch_dia_min": 0.1451, "pitch_dia_max": 0.1472, "unr_minor_dia_max": 0.1318 },
+      "2B": { "type": "internal", "allowance": 0.0009, "major_dia_min": 0.1640, "minor_dia_min": 0.1350, "minor_dia_max": 0.1432, "pitch_dia_min": 0.1472, "pitch_dia_max": 0.1509 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1640, "minor_dia_min": 0.1350, "minor_dia_max": 0.1425, "pitch_dia_min": 0.1472, "pitch_dia_max": 0.1497 }
+    },
     "10-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0009, "major_dia_min": 0.1831, "major_dia_max": 0.1891, "pitch_dia_min": 0.1658, "pitch_dia_max": 0.1688, "unr_minor_dia_max": 0.1519 },
-      "3A": { "type": "external", "allowance": 0.000, "major_dia_min": 0.1840, "major_dia_max": 0.1900, "pitch_dia_min": 0.1674, "pitch_dia_max": 0.1697, "unr_minor_dia_max": 0.1528 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1840, "major_dia_max": 0.1900, "pitch_dia_min": 0.1674, "pitch_dia_max": 0.1697, "unr_minor_dia_max": 0.1528 },
       "2B": { "type": "internal", "allowance": 0.0009, "major_dia_min": 0.1900, "minor_dia_min": 0.1560, "minor_dia_max": 0.1640, "pitch_dia_min": 0.1697, "pitch_dia_max": 0.1736 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1900, "minor_dia_min": 0.1560, "minor_dia_max": 0.1641, "pitch_dia_min": 0.1697, "pitch_dia_max": 0.1726 }
+    },
+    "1/4-28": {
+      "pitch": 0.035714,
+      "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.2440, "major_dia_max": 0.2490, "pitch_dia_min": 0.2246, "pitch_dia_max": 0.2275, "unr_minor_dia_max": 0.2094 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2450, "major_dia_max": 0.2500, "pitch_dia_min": 0.2263, "pitch_dia_max": 0.2286, "unr_minor_dia_max": 0.2104 },
+      "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.2500, "minor_dia_min": 0.2130, "minor_dia_max": 0.2210, "pitch_dia_min": 0.2286, "pitch_dia_max": 0.2322 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2500, "minor_dia_min": 0.2130, "minor_dia_max": 0.2204, "pitch_dia_min": 0.2286, "pitch_dia_max": 0.2311 }
+    },
+    "5/16-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.3053, "major_dia_max": 0.3114, "pitch_dia_min": 0.2822, "pitch_dia_max": 0.2856, "unr_minor_dia_max": 0.2661 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3064, "major_dia_max": 0.3125, "pitch_dia_min": 0.2840, "pitch_dia_max": 0.2867, "unr_minor_dia_max": 0.2672 },
+      "2B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.3125, "minor_dia_min": 0.2690, "minor_dia_max": 0.2800, "pitch_dia_min": 0.2867, "pitch_dia_max": 0.2912 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3125, "minor_dia_min": 0.2690, "minor_dia_max": 0.2794, "pitch_dia_min": 0.2867, "pitch_dia_max": 0.2898 }
+    },
+    "3/8-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0012, "major_dia_min": 0.3678, "major_dia_max": 0.3739, "pitch_dia_min": 0.3447, "pitch_dia_max": 0.3481, "unr_minor_dia_max": 0.3286 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3690, "major_dia_max": 0.3750, "pitch_dia_min": 0.3465, "pitch_dia_max": 0.3492, "unr_minor_dia_max": 0.3297 },
+      "2B": { "type": "internal", "allowance": 0.0012, "major_dia_min": 0.3750, "minor_dia_min": 0.3310, "minor_dia_max": 0.3430, "pitch_dia_min": 0.3492, "pitch_dia_max": 0.3539 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3750, "minor_dia_min": 0.3310, "minor_dia_max": 0.3421, "pitch_dia_min": 0.3492, "pitch_dia_max": 0.3524 }
+    },
+    "7/16-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0013, "major_dia_min": 0.4306, "major_dia_max": 0.4362, "pitch_dia_min": 0.4025, "pitch_dia_max": 0.4063, "unr_minor_dia_max": 0.3802 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4319, "major_dia_max": 0.4375, "pitch_dia_min": 0.4046, "pitch_dia_max": 0.4076, "unr_minor_dia_max": 0.3814 },
+      "2B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.4375, "minor_dia_min": 0.3850, "minor_dia_max": 0.3980, "pitch_dia_min": 0.4076, "pitch_dia_max": 0.4126 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.4375, "minor_dia_min": 0.3850, "minor_dia_max": 0.3972, "pitch_dia_min": 0.4076, "pitch_dia_max": 0.4111 }
+    },
+    "1/2-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0014, "major_dia_min": 0.4930, "major_dia_max": 0.4986, "pitch_dia_min": 0.4649, "pitch_dia_max": 0.4688, "unr_minor_dia_max": 0.4426 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4944, "major_dia_max": 0.5000, "pitch_dia_min": 0.4670, "pitch_dia_max": 0.4702, "unr_minor_dia_max": 0.4439 },
+      "2B": { "type": "internal", "allowance": 0.0014, "major_dia_min": 0.5000, "minor_dia_min": 0.4480, "minor_dia_max": 0.4600, "pitch_dia_min": 0.4702, "pitch_dia_max": 0.4753 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5000, "minor_dia_min": 0.4480, "minor_dia_max": 0.4590, "pitch_dia_min": 0.4702, "pitch_dia_max": 0.4737 }
+    },
+    "9/16-18": {
+      "pitch": 0.055556,
+      "2A": { "type": "external", "allowance": 0.0014, "major_dia_min": 0.5549, "major_dia_max": 0.5611, "pitch_dia_min": 0.5248, "pitch_dia_max": 0.5289, "unr_minor_dia_max": 0.5009 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.5563, "major_dia_max": 0.5625, "pitch_dia_min": 0.5269, "pitch_dia_max": 0.5303, "unr_minor_dia_max": 0.5023 },
+      "2B": { "type": "internal", "allowance": 0.0014, "major_dia_min": 0.5625, "minor_dia_min": 0.5050, "minor_dia_max": 0.5190, "pitch_dia_min": 0.5303, "pitch_dia_max": 0.5357 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5625, "minor_dia_min": 0.5050, "minor_dia_max": 0.5180, "pitch_dia_min": 0.5303, "pitch_dia_max": 0.5341 }
+    },
+    "5/8-18": {
+      "pitch": 0.055556,
+      "2A": { "type": "external", "allowance": 0.0015, "major_dia_min": 0.6174, "major_dia_max": 0.6236, "pitch_dia_min": 0.5873, "pitch_dia_max": 0.5914, "unr_minor_dia_max": 0.5634 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.6189, "major_dia_max": 0.6250, "pitch_dia_min": 0.5894, "pitch_dia_max": 0.5929, "unr_minor_dia_max": 0.5649 },
+      "2B": { "type": "internal", "allowance": 0.0015, "major_dia_min": 0.6250, "minor_dia_min": 0.5680, "minor_dia_max": 0.5820, "pitch_dia_min": 0.5929, "pitch_dia_max": 0.5985 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.6250, "minor_dia_min": 0.5680, "minor_dia_max": 0.5808, "pitch_dia_min": 0.5929, "pitch_dia_max": 0.5967 }
+    },
+    "3/4-16": {
+      "pitch": 0.062500,
+      "2A": { "type": "external", "allowance": 0.0016, "major_dia_min": 0.7327, "major_dia_max": 0.7484, "pitch_dia_min": 0.7001, "pitch_dia_max": 0.7046, "unr_minor_dia_max": 0.6733 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.7343, "major_dia_max": 0.7500, "pitch_dia_min": 0.7023, "pitch_dia_max": 0.7062, "unr_minor_dia_max": 0.6749 },
+      "2B": { "type": "internal", "allowance": 0.0016, "major_dia_min": 0.7500, "minor_dia_min": 0.6790, "minor_dia_max": 0.6940, "pitch_dia_min": 0.7062, "pitch_dia_max": 0.7122 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.7500, "minor_dia_min": 0.6790, "minor_dia_max": 0.6928, "pitch_dia_min": 0.7062, "pitch_dia_max": 0.7102 }
+    },
+    "7/8-14": {
+      "pitch": 0.071429,
+      "2A": { "type": "external", "allowance": 0.0017, "major_dia_min": 0.8533, "major_dia_max": 0.8733, "pitch_dia_min": 0.8147, "pitch_dia_max": 0.8196, "unr_minor_dia_max": 0.7842 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.8550, "major_dia_max": 0.8750, "pitch_dia_min": 0.8171, "pitch_dia_max": 0.8213, "unr_minor_dia_max": 0.7860 },
+      "2B": { "type": "internal", "allowance": 0.0017, "major_dia_min": 0.8750, "minor_dia_min": 0.7900, "minor_dia_max": 0.8070, "pitch_dia_min": 0.8213, "pitch_dia_max": 0.8278 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.8750, "minor_dia_min": 0.7900, "minor_dia_max": 0.8055, "pitch_dia_min": 0.8213, "pitch_dia_max": 0.8257 }
+    },
+    "1-12": {
+      "pitch": 0.083333,
+      "2A": { "type": "external", "allowance": 0.0018, "major_dia_min": 0.9732, "major_dia_max": 0.9982, "pitch_dia_min": 0.9276, "pitch_dia_max": 0.9331, "unr_minor_dia_max": 0.8912 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.9750, "major_dia_max": 1.0000, "pitch_dia_min": 0.9299, "pitch_dia_max": 0.9349, "unr_minor_dia_max": 0.8930 },
+      "2B": { "type": "internal", "allowance": 0.0018, "major_dia_min": 1.0000, "minor_dia_min": 0.8960, "minor_dia_max": 0.9160, "pitch_dia_min": 0.9349, "pitch_dia_max": 0.9420 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 1.0000, "minor_dia_min": 0.8960, "minor_dia_max": 0.9143, "pitch_dia_min": 0.9349, "pitch_dia_max": 0.9400 }
     }
   },
 
   "UNEF": {
     "12-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.2090, "major_dia_max": 0.2150, "pitch_dia_min": 0.1915, "pitch_dia_max": 0.1947, "unr_minor_dia_max": 0.1778 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2100, "major_dia_max": 0.2160, "pitch_dia_min": 0.1933, "pitch_dia_max": 0.1957, "unr_minor_dia_max": 0.1788 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.2160, "minor_dia_min": 0.1820, "minor_dia_max": 0.1900, "pitch_dia_min": 0.1957, "pitch_dia_max": 0.1998 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2160, "minor_dia_min": 0.1820, "minor_dia_max": 0.1895, "pitch_dia_min": 0.1957, "pitch_dia_max": 0.1988 }
     },
     "1/4-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.2430, "major_dia_max": 0.2490, "pitch_dia_min": 0.2255, "pitch_dia_max": 0.2287, "unr_minor_dia_max": 0.2118 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2440, "major_dia_max": 0.2500, "pitch_dia_min": 0.2273, "pitch_dia_max": 0.2297, "unr_minor_dia_max": 0.2128 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.2500, "minor_dia_min": 0.2160, "minor_dia_max": 0.2240, "pitch_dia_min": 0.2297, "pitch_dia_max": 0.2339 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2500, "minor_dia_min": 0.2160, "minor_dia_max": 0.2229, "pitch_dia_min": 0.2297, "pitch_dia_max": 0.2328 }
     },
     "5/16-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
+      "pitch": 0.031250,
       "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.3055, "major_dia_max": 0.3115, "pitch_dia_min": 0.2879, "pitch_dia_max": 0.2912, "unr_minor_dia_max": 0.2743 },
       "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3065, "major_dia_max": 0.3125, "pitch_dia_min": 0.2897, "pitch_dia_max": 0.2922, "unr_minor_dia_max": 0.2753 },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
       "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.3125, "minor_dia_min": 0.2790, "minor_dia_max": 0.2860, "pitch_dia_min": 0.2922, "pitch_dia_max": 0.2965 },
       "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3125, "minor_dia_min": 0.2790, "minor_dia_max": 0.2846, "pitch_dia_min": 0.2922, "pitch_dia_max": 0.2954 }
+    },
+    "3/8-32": {
+      "pitch": 0.031250,
+      "2A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.3679, "major_dia_max": 0.3739, "pitch_dia_min": 0.3503, "pitch_dia_max": 0.3536, "unr_minor_dia_max": 0.3368 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3690, "major_dia_max": 0.3750, "pitch_dia_min": 0.3521, "pitch_dia_max": 0.3547, "unr_minor_dia_max": 0.3379 },
+      "2B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.3750, "minor_dia_min": 0.3420, "minor_dia_max": 0.3490, "pitch_dia_min": 0.3547, "pitch_dia_max": 0.3591 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3750, "minor_dia_min": 0.3420, "minor_dia_max": 0.3475, "pitch_dia_min": 0.3547, "pitch_dia_max": 0.3580 }
+    },
+    "7/16-28": {
+      "pitch": 0.035714,
+      "2A": { "type": "external", "allowance": 0.0012, "major_dia_min": 0.4238, "major_dia_max": 0.4363, "pitch_dia_min": 0.4044, "pitch_dia_max": 0.4073, "unr_minor_dia_max": 0.3892 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4250, "major_dia_max": 0.4375, "pitch_dia_min": 0.4061, "pitch_dia_max": 0.4085, "unr_minor_dia_max": 0.3904 },
+      "2B": { "type": "internal", "allowance": 0.0012, "major_dia_min": 0.4375, "minor_dia_min": 0.3930, "minor_dia_max": 0.4020, "pitch_dia_min": 0.4085, "pitch_dia_max": 0.4124 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.4375, "minor_dia_min": 0.3930, "minor_dia_max": 0.4010, "pitch_dia_min": 0.4085, "pitch_dia_max": 0.4113 }
+    },
+    "1/2-28": {
+      "pitch": 0.035714,
+      "2A": { "type": "external", "allowance": 0.0013, "major_dia_min": 0.4863, "major_dia_max": 0.4987, "pitch_dia_min": 0.4669, "pitch_dia_max": 0.4699, "unr_minor_dia_max": 0.4517 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4876, "major_dia_max": 0.5000, "pitch_dia_min": 0.4687, "pitch_dia_max": 0.4712, "unr_minor_dia_max": 0.4530 },
+      "2B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.5000, "minor_dia_min": 0.4560, "minor_dia_max": 0.4650, "pitch_dia_min": 0.4712, "pitch_dia_max": 0.4753 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5000, "minor_dia_min": 0.4560, "minor_dia_max": 0.4638, "pitch_dia_min": 0.4712, "pitch_dia_max": 0.4742 }
+    },
+    "9/16-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0013, "major_dia_min": 0.5487, "major_dia_max": 0.5612, "pitch_dia_min": 0.5256, "pitch_dia_max": 0.5290, "unr_minor_dia_max": 0.5095 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.5500, "major_dia_max": 0.5625, "pitch_dia_min": 0.5274, "pitch_dia_max": 0.5303, "unr_minor_dia_max": 0.5108 },
+      "2B": { "type": "internal", "allowance": 0.0013, "major_dia_min": 0.5625, "minor_dia_min": 0.5130, "minor_dia_max": 0.5230, "pitch_dia_min": 0.5303, "pitch_dia_max": 0.5351 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5625, "minor_dia_min": 0.5130, "minor_dia_max": 0.5220, "pitch_dia_min": 0.5303, "pitch_dia_max": 0.5337 }
+    },
+    "5/8-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0014, "major_dia_min": 0.6111, "major_dia_max": 0.6236, "pitch_dia_min": 0.5880, "pitch_dia_max": 0.5914, "unr_minor_dia_max": 0.5719 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.6125, "major_dia_max": 0.6250, "pitch_dia_min": 0.5899, "pitch_dia_max": 0.5928, "unr_minor_dia_max": 0.5733 },
+      "2B": { "type": "internal", "allowance": 0.0014, "major_dia_min": 0.6250, "minor_dia_min": 0.5760, "minor_dia_max": 0.5860, "pitch_dia_min": 0.5928, "pitch_dia_max": 0.5978 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.6250, "minor_dia_min": 0.5760, "minor_dia_max": 0.5846, "pitch_dia_min": 0.5928, "pitch_dia_max": 0.5964 }
+    },
+    "3/4-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0015, "major_dia_min": 0.7335, "major_dia_max": 0.7485, "pitch_dia_min": 0.7054, "pitch_dia_max": 0.7092, "unr_minor_dia_max": 0.6831 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.7350, "major_dia_max": 0.7500, "pitch_dia_min": 0.7075, "pitch_dia_max": 0.7107, "unr_minor_dia_max": 0.6845 },
+      "2B": { "type": "internal", "allowance": 0.0015, "major_dia_min": 0.7500, "minor_dia_min": 0.6880, "minor_dia_max": 0.7010, "pitch_dia_min": 0.7107, "pitch_dia_max": 0.7160 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.7500, "minor_dia_min": 0.6880, "minor_dia_max": 0.6996, "pitch_dia_min": 0.7107, "pitch_dia_max": 0.7144 }
+    },
+    "7/8-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0016, "major_dia_min": 0.8584, "major_dia_max": 0.8734, "pitch_dia_min": 0.8303, "pitch_dia_max": 0.8342, "unr_minor_dia_max": 0.8080 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.8600, "major_dia_max": 0.8750, "pitch_dia_min": 0.8325, "pitch_dia_max": 0.8357, "unr_minor_dia_max": 0.8095 },
+      "2B": { "type": "internal", "allowance": 0.0016, "major_dia_min": 0.8750, "minor_dia_min": 0.8130, "minor_dia_max": 0.8260, "pitch_dia_min": 0.8357, "pitch_dia_max": 0.8412 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.8750, "minor_dia_min": 0.8130, "minor_dia_max": 0.8244, "pitch_dia_min": 0.8357, "pitch_dia_max": 0.8394 }
+    },
+    "1-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0017, "major_dia_min": 0.9833, "major_dia_max": 0.9983, "pitch_dia_min": 0.9552, "pitch_dia_max": 0.9591, "unr_minor_dia_max": 0.9329 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.9850, "major_dia_max": 1.0000, "pitch_dia_min": 0.9574, "pitch_dia_max": 0.9608, "unr_minor_dia_max": 0.9345 },
+      "2B": { "type": "internal", "allowance": 0.0017, "major_dia_min": 1.0000, "minor_dia_min": 0.9380, "minor_dia_max": 0.9510, "pitch_dia_min": 0.9608, "pitch_dia_max": 0.9664 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 1.0000, "minor_dia_min": 0.9380, "minor_dia_max": 0.9495, "pitch_dia_min": 0.9608, "pitch_dia_max": 0.9647 }
     }
   },
 
   "UNJ": {
     "6-32": {
-      "pitch": 0.03125,
-      "1A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
-      "2A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
-      "3A": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
-      "1B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
-      "2B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null },
-      "3B": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null }
+      "pitch": 0.031250,
+      "2A": { "type": "external", "allowance": 0.0008, "major_dia_min": 0.1312, "major_dia_max": 0.1372, "pitch_dia_min": 0.1141, "pitch_dia_max": 0.1169, "unr_minor_dia_max": 0.1019 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1320, "major_dia_max": 0.1380, "pitch_dia_min": 0.1156, "pitch_dia_max": 0.1177, "unr_minor_dia_max": 0.1027 },
+      "2B": { "type": "internal", "allowance": 0.0008, "major_dia_min": 0.1380, "minor_dia_min": 0.1057, "minor_dia_max": 0.1157, "pitch_dia_min": 0.1177, "pitch_dia_max": 0.1214 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1380, "minor_dia_min": 0.1057, "minor_dia_max": 0.1147, "pitch_dia_min": 0.1177, "pitch_dia_max": 0.1204 }
+    },
+    "8-32": {
+      "pitch": 0.031250,
+      "2A": { "type": "external", "allowance": 0.0009, "major_dia_min": 0.1571, "major_dia_max": 0.1631, "pitch_dia_min": 0.1399, "pitch_dia_max": 0.1428, "unr_minor_dia_max": 0.1278 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1580, "major_dia_max": 0.1640, "pitch_dia_min": 0.1415, "pitch_dia_max": 0.1437, "unr_minor_dia_max": 0.1287 },
+      "2B": { "type": "internal", "allowance": 0.0009, "major_dia_min": 0.1640, "minor_dia_min": 0.1315, "minor_dia_max": 0.1407, "pitch_dia_min": 0.1437, "pitch_dia_max": 0.1475 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1640, "minor_dia_min": 0.1315, "minor_dia_max": 0.1397, "pitch_dia_min": 0.1437, "pitch_dia_max": 0.1465 }
+    },
+    "10-32": {
+      "pitch": 0.031250,
+      "2A": { "type": "external", "allowance": 0.0009, "major_dia_min": 0.1831, "major_dia_max": 0.1891, "pitch_dia_min": 0.1658, "pitch_dia_max": 0.1688, "unr_minor_dia_max": 0.1537 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.1840, "major_dia_max": 0.1900, "pitch_dia_min": 0.1674, "pitch_dia_max": 0.1697, "unr_minor_dia_max": 0.1546 },
+      "2B": { "type": "internal", "allowance": 0.0009, "major_dia_min": 0.1900, "minor_dia_min": 0.1577, "minor_dia_max": 0.1657, "pitch_dia_min": 0.1697, "pitch_dia_max": 0.1736 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.1900, "minor_dia_min": 0.1577, "minor_dia_max": 0.1648, "pitch_dia_min": 0.1697, "pitch_dia_max": 0.1726 }
+    },
+    "1/4-28": {
+      "pitch": 0.035714,
+      "2A": { "type": "external", "allowance": 0.0010, "major_dia_min": 0.2440, "major_dia_max": 0.2490, "pitch_dia_min": 0.2246, "pitch_dia_max": 0.2275, "unr_minor_dia_max": 0.2113 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2450, "major_dia_max": 0.2500, "pitch_dia_min": 0.2263, "pitch_dia_max": 0.2286, "unr_minor_dia_max": 0.2123 },
+      "2B": { "type": "internal", "allowance": 0.0010, "major_dia_min": 0.2500, "minor_dia_min": 0.2148, "minor_dia_max": 0.2228, "pitch_dia_min": 0.2286, "pitch_dia_max": 0.2322 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2500, "minor_dia_min": 0.2148, "minor_dia_max": 0.2217, "pitch_dia_min": 0.2286, "pitch_dia_max": 0.2311 }
+    },
+    "1/4-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.2408, "major_dia_max": 0.2489, "pitch_dia_min": 0.2127, "pitch_dia_max": 0.2164, "unr_minor_dia_max": 0.1924 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.2419, "major_dia_max": 0.2500, "pitch_dia_min": 0.2147, "pitch_dia_max": 0.2175, "unr_minor_dia_max": 0.1935 },
+      "2B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.2500, "minor_dia_min": 0.1979, "minor_dia_max": 0.2089, "pitch_dia_min": 0.2175, "pitch_dia_max": 0.2224 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.2500, "minor_dia_min": 0.1979, "minor_dia_max": 0.2076, "pitch_dia_min": 0.2175, "pitch_dia_max": 0.2211 }
+    },
+    "5/16-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0011, "major_dia_min": 0.3053, "major_dia_max": 0.3114, "pitch_dia_min": 0.2822, "pitch_dia_max": 0.2856, "unr_minor_dia_max": 0.2681 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3064, "major_dia_max": 0.3125, "pitch_dia_min": 0.2840, "pitch_dia_max": 0.2867, "unr_minor_dia_max": 0.2692 },
+      "2B": { "type": "internal", "allowance": 0.0011, "major_dia_min": 0.3125, "minor_dia_min": 0.2709, "minor_dia_max": 0.2819, "pitch_dia_min": 0.2867, "pitch_dia_max": 0.2912 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3125, "minor_dia_min": 0.2709, "minor_dia_max": 0.2803, "pitch_dia_min": 0.2867, "pitch_dia_max": 0.2898 }
+    },
+    "3/8-24": {
+      "pitch": 0.041667,
+      "2A": { "type": "external", "allowance": 0.0012, "major_dia_min": 0.3678, "major_dia_max": 0.3739, "pitch_dia_min": 0.3447, "pitch_dia_max": 0.3481, "unr_minor_dia_max": 0.3306 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.3690, "major_dia_max": 0.3750, "pitch_dia_min": 0.3465, "pitch_dia_max": 0.3492, "unr_minor_dia_max": 0.3317 },
+      "2B": { "type": "internal", "allowance": 0.0012, "major_dia_min": 0.3750, "minor_dia_min": 0.3329, "minor_dia_max": 0.3449, "pitch_dia_min": 0.3492, "pitch_dia_max": 0.3539 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.3750, "minor_dia_min": 0.3329, "minor_dia_max": 0.3430, "pitch_dia_min": 0.3492, "pitch_dia_max": 0.3524 }
+    },
+    "1/2-20": {
+      "pitch": 0.050000,
+      "2A": { "type": "external", "allowance": 0.0014, "major_dia_min": 0.4930, "major_dia_max": 0.4986, "pitch_dia_min": 0.4649, "pitch_dia_max": 0.4688, "unr_minor_dia_max": 0.4447 },
+      "3A": { "type": "external", "allowance": 0.0000, "major_dia_min": 0.4944, "major_dia_max": 0.5000, "pitch_dia_min": 0.4670, "pitch_dia_max": 0.4702, "unr_minor_dia_max": 0.4461 },
+      "2B": { "type": "internal", "allowance": 0.0014, "major_dia_min": 0.5000, "minor_dia_min": 0.4499, "minor_dia_max": 0.4619, "pitch_dia_min": 0.4702, "pitch_dia_max": 0.4753 },
+      "3B": { "type": "internal", "allowance": 0.0000, "major_dia_min": 0.5000, "minor_dia_min": 0.4499, "minor_dia_max": 0.4605, "pitch_dia_min": 0.4702, "pitch_dia_max": 0.4737 }
     }
   },
 
   "ISO": {
+    "M3x0.5": {
+      "pitch": 0.5,
+      "6g": { "type": "external", "allowance": 0.018, "major_dia_min": 2.874, "major_dia_max": 2.980, "pitch_dia_min": 2.580, "pitch_dia_max": 2.655, "unr_minor_dia_max": 2.387 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 3.000, "minor_dia_min": 2.459, "minor_dia_max": 2.599, "pitch_dia_min": 2.675, "pitch_dia_max": 2.775 }
+    },
     "M4x0.7": {
       "pitch": 0.7,
-      "6g": { "type": "external", "allowance": null, "major_dia_min": null, "major_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null, "unr_minor_dia_max": null },
-      "6H": { "type": "internal", "allowance": null, "major_dia_min": null, "minor_dia_min": null, "minor_dia_max": null, "pitch_dia_min": null, "pitch_dia_max": null }
+      "6g": { "type": "external", "allowance": 0.022, "major_dia_min": 3.838, "major_dia_max": 3.978, "pitch_dia_min": 3.433, "pitch_dia_max": 3.523, "unr_minor_dia_max": 3.141 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 4.000, "minor_dia_min": 3.242, "minor_dia_max": 3.422, "pitch_dia_min": 3.545, "pitch_dia_max": 3.663 }
+    },
+    "M5x0.8": {
+      "pitch": 0.8,
+      "6g": { "type": "external", "allowance": 0.022, "major_dia_min": 4.826, "major_dia_max": 4.976, "pitch_dia_min": 4.361, "pitch_dia_max": 4.456, "unr_minor_dia_max": 4.019 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 5.000, "minor_dia_min": 4.134, "minor_dia_max": 4.334, "pitch_dia_min": 4.480, "pitch_dia_max": 4.605 }
+    },
+    "M6x1.0": {
+      "pitch": 1.0,
+      "6g": { "type": "external", "allowance": 0.026, "major_dia_min": 5.794, "major_dia_max": 5.974, "pitch_dia_min": 5.212, "pitch_dia_max": 5.324, "unr_minor_dia_max": 4.773 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 6.000, "minor_dia_min": 4.917, "minor_dia_max": 5.153, "pitch_dia_min": 5.350, "pitch_dia_max": 5.500 }
+    },
+    "M8x1.25": {
+      "pitch": 1.25,
+      "6g": { "type": "external", "allowance": 0.028, "major_dia_min": 7.760, "major_dia_max": 7.972, "pitch_dia_min": 6.994, "pitch_dia_max": 7.130, "unr_minor_dia_max": 6.466 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 8.000, "minor_dia_min": 6.647, "minor_dia_max": 6.912, "pitch_dia_min": 7.160, "pitch_dia_max": 7.348 }
+    },
+    "M10x1.5": {
+      "pitch": 1.5,
+      "6g": { "type": "external", "allowance": 0.032, "major_dia_min": 9.732, "major_dia_max": 9.968, "pitch_dia_min": 8.676, "pitch_dia_max": 8.832, "unr_minor_dia_max": 8.160 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 10.000, "minor_dia_min": 8.376, "minor_dia_max": 8.676, "pitch_dia_min": 8.862, "pitch_dia_max": 9.072 }
+    },
+    "M12x1.75": {
+      "pitch": 1.75,
+      "6g": { "type": "external", "allowance": 0.034, "major_dia_min": 11.701, "major_dia_max": 11.966, "pitch_dia_min": 10.441, "pitch_dia_max": 10.619, "unr_minor_dia_max": 9.853 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 12.000, "minor_dia_min": 10.106, "minor_dia_max": 10.441, "pitch_dia_min": 10.679, "pitch_dia_max": 10.917 }
+    },
+    "M16x2.0": {
+      "pitch": 2.0,
+      "6g": { "type": "external", "allowance": 0.038, "major_dia_min": 15.682, "major_dia_max": 15.962, "pitch_dia_min": 14.210, "pitch_dia_max": 14.418, "unr_minor_dia_max": 13.546 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 16.000, "minor_dia_min": 13.835, "minor_dia_max": 14.210, "pitch_dia_min": 14.503, "pitch_dia_max": 14.751 }
+    },
+    "M20x2.5": {
+      "pitch": 2.5,
+      "6g": { "type": "external", "allowance": 0.042, "major_dia_min": 19.623, "major_dia_max": 19.958, "pitch_dia_min": 17.744, "pitch_dia_max": 17.980, "unr_minor_dia_max": 16.933 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 20.000, "minor_dia_min": 17.294, "minor_dia_max": 17.744, "pitch_dia_min": 18.048, "pitch_dia_max": 18.334 }
+    },
+    "M24x3.0": {
+      "pitch": 3.0,
+      "6g": { "type": "external", "allowance": 0.048, "major_dia_min": 23.577, "major_dia_max": 23.952, "pitch_dia_min": 21.278, "pitch_dia_max": 21.542, "unr_minor_dia_max": 20.319 },
+      "6H": { "type": "internal", "allowance": 0.000, "major_dia_min": 24.000, "minor_dia_min": 20.752, "minor_dia_max": 21.252, "pitch_dia_min": 21.630, "pitch_dia_max": 21.952 }
     }
   }
 }

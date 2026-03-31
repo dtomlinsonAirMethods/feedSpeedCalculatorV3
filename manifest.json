@@ -1,11 +1,11 @@
 {
   "name": "Feed & Speed Calculator",
   "short_name": "FeedSpeedCalc",
-  "start_url": "/",
+  "start_url": "/feedSpeed.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#1e1e1e",
-  "theme_color": "#00b050",
+  "background_color": "#0a0c0f",
+  "theme_color": "#00e676",
   "icons": [
     {
       "src": "/img/favicon.ico",

@@ -1,11 +1,14 @@
-const CACHE_NAME = "feedSpeedCalculator-v2";
+const CACHE_NAME = "feedSpeedCalculator-v3";
 
 const FILES_TO_CACHE = [
   "/",
-  "/index.html",
+  "/feedSpeed.html",
+  "/converter.html",
   "/manifest.json",
   "/styles/style.css",
+  "/styles/converter.css",
   "/js/script.js",
+  "/js/app.js",
   "/data/material.json",
   "/data/machines.json",
   "/data/thread.json",
@@ -16,64 +19,38 @@ const FILES_TO_CACHE = [
   "/img/favicon.ico"
 ];
 
-// INSTALL
-self.addEventListener("install", (event) => {
-  console.log("📦 Installing Service Worker...");
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
   );
   self.skipWaiting();
 });
 
-// ACTIVATE
-self.addEventListener("activate", (event) => {
-  console.log("✅ Service Worker Activated");
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("🗑 Deleting old cache:", key);
-            return caches.delete(key);
-          }
-        })
-      )
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => key !== CACHE_NAME && caches.delete(key)))
     )
   );
   self.clients.claim();
 });
 
-// FETCH
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
+self.addEventListener("fetch", event => {
+  // Skip cross-origin (CDN fonts etc.)
+  if (!event.request.url.startsWith(self.location.origin)) return;
 
-      return fetch(event.request)
-        .then((response) => {
-          // Only cache successful GET requests
-          if (
-            event.request.method === "GET" &&
-            response.status === 200 &&
-            response.type === "basic"
-          ) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Optional: fallback to index for SPA
-          if (event.request.mode === "navigate") {
-            return caches.match("/index.html");
-          }
-        });
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (event.request.method === "GET" && response.status === 200 && response.type === "basic") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => {
+        if (event.request.mode === "navigate") return caches.match("/feedSpeed.html");
+      });
     })
   );
 });

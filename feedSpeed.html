@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed &amp; Speed Calculator</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='10' fill='%230a0c0f'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-size='36' font-family='Arial Black,sans-serif' font-weight='900' fill='%2300e676'>F</text><text x='50%25' y='82%25' dominant-baseline='middle' text-anchor='middle' font-size='13' font-family='Arial,sans-serif' font-weight='700' fill='%234a5568' letter-spacing='1'>SPEED</text></svg>">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-name">FEED <span>&amp;</span> SPEED</div>
+      <div class="brand-sub">MACHINING CALCULATOR // OKUMA GENOS M660</div>
+    </div>
+    <div class="status-pill" id="statusPill">● LOADING</div>
+  </header>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="openAppTab('endmill',this)">⬡ ENDMILL</button>
+    <button class="tab-btn" onclick="openAppTab('drill',this)">↓ DRILL</button>
+    <button class="tab-btn" onclick="openAppTab('tapping',this)">⌘ TAPPING</button>
+    <button class="tab-btn" onclick="openAppTab('library',this)">☰ TOOL LIBRARY</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       ENDMILL TAB
+  ══════════════════════════════ -->
+  <div class="tab-pane active" id="tab-endmill">
+    <div class="calc-grid">
+
+      <div class="input-col">
+
+        <!-- Selected tool banner -->
+        <div class="sel-banner" id="em-sel-banner">
+          <div class="sel-banner-left">
+            <div class="sel-banner-label">ACTIVE TOOL</div>
+            <div class="sel-banner-title" id="em-sel-name">No tool selected</div>
+            <div class="sel-banner-props" id="em-sel-props"></div>
+          </div>
+          <button class="sel-banner-clear" onclick="clearSelectedTool('endmill')">✕</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>TOOL PARAMETERS</div>
+          <div class="panel-body">
+
+            <div class="field-group">
+              <div class="field-label">Tool Type</div>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input type="radio" name="toolType" value="Flat Endmill" checked>FLAT
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="toolType" value="Bull Nose">BULL
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="toolType" value="Ball Nose">BALL
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="toolType" value="Shell Mill">SHELL
+                </label>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="dia">Diameter (in)</label>
+              <input class="field-input" id="dia" type="text" value="0.500">
+            </div>
+            <div class="field-group">
+              <label class="field-label" id="flutesLabel" for="flutes">Flutes</label>
+              <input class="field-input" id="flutes" type="text" value="4">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="stickout">Stickout (in)</label>
+              <input class="field-input" id="stickout" type="text" value="1.500">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cornerRadius">Corner Radius (in)</label>
+              <input class="field-input" id="cornerRadius" type="text" value="0.000">
+            </div>
+            <div class="field-group" id="engagedTeethGroup" style="display:none;">
+              <label class="field-label" id="engagedTeethLabel" for="engagedTeeth">Engaged Teeth (%)</label>
+              <input class="field-input" id="engagedTeeth" type="text" value="65" data-percent="true">
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>CUT PARAMETERS</div>
+          <div class="panel-body">
+
+            <div class="field-group">
+              <label class="field-label" for="stepover">Stepover (%)</label>
+              <input class="field-input" id="stepover" type="text" value="25" data-percent="true">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="depth">Depth of Cut (in)</label>
+              <input class="field-input" id="depth" type="text" value="0.500">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="material">Material</label>
+              <select class="field-select" id="material">
+                <option>7075 Aluminum</option>
+                <option>6061 Aluminum</option>
+                <option>Stainless Steel</option>
+                <option>HRS Steel</option>
+                <option>Nylatron</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="machineSelect">Machine</label>
+              <select class="field-select" id="machineSelect"></select>
+            </div>
+
+            <div class="field-divider"></div>
+
+            <label class="check-row">
+              <input type="checkbox" id="hsm" class="check-native">
+              <div class="check-box-ui"></div>
+              <span class="check-label">High Speed Machining (HSM)</span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" id="thinWall" class="check-native">
+              <div class="check-box-ui"></div>
+              <span class="check-label">Thin Walls / Floors</span>
+            </label>
+
+          </div>
+        </div>
+
+        <button class="btn-calc" onclick="calculateEndmill()">⚡ CALCULATE</button>
+      </div>
+
+      <div class="results-col">
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>RESULTS</div>
+          <div class="panel-body">
+            <div class="results-grid">
+              <div class="result-box">
+                <div class="result-label">Spindle Speed</div>
+                <div class="result-val" id="rpm-val">—</div>
+                <div class="result-unit">RPM</div>
+              </div>
+              <div class="result-box">
+                <div class="result-label">Feed Rate</div>
+                <div class="result-val accent" id="feed-val">—</div>
+                <div class="result-unit">IPM</div>
+              </div>
+              <div class="result-box">
+                <div class="result-label">Surface Speed</div>
+                <div class="result-val orange" id="sfm-val">—</div>
+                <div class="result-unit">SFM</div>
+              </div>
+              <div class="result-box">
+                <div class="result-label">Feed / Tooth</div>
+                <div class="result-val" id="ipt-val">—</div>
+                <div class="result-unit">IPT</div>
+              </div>
+            </div>
+            <div class="warn-box" id="em-warn-box"></div>
+            <!-- Legacy hidden outputs script.js writes to -->
+            <p id="rpm"      style="display:none;"></p>
+            <p id="feedRate" style="display:none;"></p>
+            <p id="sfmOut"   style="display:none;"></p>
+            <p id="iptOut"   style="display:none;"></p>
+            <p id="warnings" style="display:none;" class="warn"></p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="dot"></div>QUICK TOOL SELECT
+            <span class="panel-head-sub">FROM LIBRARY</span>
+          </div>
+          <div class="panel-body panel-body-flush">
+            <div class="quick-cards" id="em-quick-cards">
+              <div class="empty-quick">No endmill tools in library yet.<br>Add tools in the Tool Library tab.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       DRILL TAB
+  ══════════════════════════════ -->
+  <div class="tab-pane" id="tab-drill">
+    <div class="calc-grid">
+      <div class="input-col">
+
+        <div class="sel-banner" id="dr-sel-banner">
+          <div class="sel-banner-left">
+            <div class="sel-banner-label">ACTIVE TOOL</div>
+            <div class="sel-banner-title" id="dr-sel-name">No tool selected</div>
+            <div class="sel-banner-props" id="dr-sel-props"></div>
+          </div>
+          <button class="sel-banner-clear" onclick="clearSelectedTool('drill')">✕</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>DRILL PARAMETERS</div>
+          <div class="panel-body">
+
+            <div class="field-group">
+              <label class="field-label" for="drillType">Drill Type</label>
+              <select class="field-select" id="drillType">
+                <option>Drill</option>
+                <option>Spotter</option>
+                <option>Reamer</option>
+                <option>Countersink</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="diaDrill">Diameter (in)</label>
+              <input class="field-input" id="diaDrill" type="text" value="0.250">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="flutesDrill">Flutes</label>
+              <input class="field-input" id="flutesDrill" type="text" value="2">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="stickoutDrill">Stickout (in)</label>
+              <input class="field-input" id="stickoutDrill" type="text" value="1.000">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="depthDrill">Depth (in)</label>
+              <input class="field-input" id="depthDrill" type="text" value="1.000">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="drillMaterial">Material</label>
+              <select class="field-select" id="drillMaterial">
+                <option>7075 Aluminum</option>
+                <option>6061 Aluminum</option>
+                <option>Stainless Steel</option>
+                <option>HRS Steel</option>
+                <option>Nylatron</option>
+              </select>
+            </div>
+            <label class="check-row">
+              <input type="checkbox" id="pecking" class="check-native">
+              <div class="check-box-ui"></div>
+              <span class="check-label">Pecking Cycle</span>
+            </label>
+
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calculateDrill()">⚡ CALCULATE</button>
+      </div>
+
+      <div class="results-col">
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>RESULTS</div>
+          <div class="panel-body">
+            <div class="results-grid">
+              <div class="result-box">
+                <div class="result-label">Spindle Speed</div>
+                <div class="result-val" id="drill-rpm-val">—</div>
+                <div class="result-unit">RPM</div>
+              </div>
+              <div class="result-box">
+                <div class="result-label">Feed Rate</div>
+                <div class="result-val accent" id="drill-feed-val">—</div>
+                <div class="result-unit">IPM</div>
+              </div>
+            </div>
+            <div class="result-peck" id="drill-peck-val"></div>
+            <div class="warn-box" id="drill-warn-box"></div>
+            <p id="rpmDrill"  style="display:none;"></p>
+            <p id="feedDrill" style="display:none;"></p>
+            <p id="peckOut"   style="display:none;"></p>
+            <p id="drillWarn" style="display:none;"></p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="dot"></div>QUICK TOOL SELECT
+            <span class="panel-head-sub">FROM LIBRARY</span>
+          </div>
+          <div class="panel-body panel-body-flush">
+            <div class="quick-cards" id="dr-quick-cards">
+              <div class="empty-quick">No drill tools in library yet.<br>Add tools in the Tool Library tab.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       TAPPING TAB
+  ══════════════════════════════ -->
+  <div class="tab-pane" id="tab-tapping">
+    <div class="calc-grid">
+      <div class="input-col">
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>THREAD PARAMETERS</div>
+          <div class="panel-body">
+
+            <div class="field-group">
+              <label class="field-label" for="threadType">Thread Type</label>
+              <select class="field-select" id="threadType"
+                onchange="updateThreadSizes();updateThreadClasses();">
+                <option>UNC</option><option>UNF</option>
+                <option>UNEF</option><option>UNJ</option><option>ISO</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="threadSize">Thread Size</label>
+              <select class="field-select" id="threadSize"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="threadClass">Thread Class</label>
+              <select class="field-select" id="threadClass"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="threadDepth">Thread Depth (in)</label>
+              <input class="field-input" id="threadDepth" type="text" value="0.500">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="tapType">Tap Type</label>
+              <select class="field-select" id="tapType">
+                <option>Cut Tap</option>
+                <option>Form Tap</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="holeType">Hole Type</label>
+              <select class="field-select" id="holeType">
+                <option>Through</option>
+                <option>Blind</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="threadMaterial">Material</label>
+              <select class="field-select" id="threadMaterial">
+                <option>7075 Aluminum</option>
+                <option>6061 Aluminum</option>
+                <option>Stainless Steel</option>
+                <option>HRS Steel</option>
+                <option>Nylatron</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calculateTapping()">⚡ CALCULATE</button>
+      </div>
+
+      <div class="results-col">
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>RESULTS</div>
+          <div class="panel-body">
+            <div class="results-grid">
+              <div class="result-box">
+                <div class="result-label">Spindle Speed</div>
+                <div class="result-val" id="tap-rpm-val">—</div>
+                <div class="result-unit">RPM</div>
+              </div>
+              <div class="result-box">
+                <div class="result-label">Feed Rate</div>
+                <div class="result-val accent" id="tap-feed-val">—</div>
+                <div class="result-unit">IPM</div>
+              </div>
+            </div>
+            <div class="result-peck" id="tap-peck-val"></div>
+            <p id="rpmThread"  style="display:none;"></p>
+            <p id="feedThread" style="display:none;"></p>
+            <p id="threadPeck" style="display:none;"></p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>THREAD GEOMETRY</div>
+          <div class="panel-body">
+            <div id="threadGeometry" class="geometry-box">
+              <div class="geometry-empty">Calculate to see thread geometry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       TOOL LIBRARY TAB
+  ══════════════════════════════ -->
+  <div class="tab-pane" id="tab-library">
+    <div class="lib-grid">
+
+      <div class="input-col">
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>ADD TOOL</div>
+          <div class="panel-body">
+
+            <div class="field-group">
+              <div class="field-label">Tool Type</div>
+              <div class="radio-pill-group">
+                <label class="radio-pill"><input type="radio" name="addType" value="EM" checked>EM</label>
+                <label class="radio-pill"><input type="radio" name="addType" value="DRILL">DRILL</label>
+                <label class="radio-pill"><input type="radio" name="addType" value="TAP">TAP</label>
+                <label class="radio-pill"><input type="radio" name="addType" value="CSINK">CSINK</label>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="add-name">Tool Name</label>
+              <input class="field-input" id="add-name" type="text" placeholder="e.g. Helical 1/2 EM 48410">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="add-tnum">Tool # (Okuma)</label>
+              <input class="field-input" id="add-tnum" type="text" placeholder="e.g. 39">
+            </div>
+            <div class="field-divider"></div>
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label" for="add-dia">Diameter (in)</label>
+                <input class="field-input" id="add-dia" type="text" placeholder="0.500">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="add-flutes">Flutes</label>
+                <input class="field-input" id="add-flutes" type="text" placeholder="4">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label" for="add-stickout">Stickout (in)</label>
+                <input class="field-input" id="add-stickout" type="text" placeholder="1.500">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="add-loc">LOC (in)</label>
+                <input class="field-input" id="add-loc" type="text" placeholder="1.250">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label" for="add-rad">Corner Radius</label>
+                <input class="field-input" id="add-rad" type="text" placeholder="0.000">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="add-mat">Default Material</label>
+                <select class="field-select" id="add-mat">
+                  <option value="">— None —</option>
+                  <option>7075 Aluminum</option>
+                  <option>6061 Aluminum</option>
+                  <option>Stainless Steel</option>
+                  <option>HRS Steel</option>
+                  <option>Nylatron</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-calc" onclick="addFSTool()" style="margin-top:4px;">+ ADD TO LIBRARY</button>
+
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="dot"></div>LIBRARY ACTIONS</div>
+          <div class="panel-body">
+            <div class="btn-row">
+              <button class="btn-sm" onclick="exportFSLib()">⬇ EXPORT</button>
+              <button class="btn-sm" onclick="document.getElementById('importFSInput').click()">⬆ IMPORT</button>
+              <input type="file" id="importFSInput" accept=".json" style="display:none" onchange="importFSLib(event)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="dot"></div>TOOL LIBRARY
+            <span style="color:var(--dim);font-size:10px;margin-left:auto;" id="lib-count">0 TOOLS</span>
+          </div>
+          <div class="panel-body">
+            <div class="lib-toolbar">
+              <input class="lib-search" id="lib-search" type="text" placeholder="Search tools...">
+              <button class="sort-btn active" onclick="setFSSort('tnum',this)">T#</button>
+              <button class="sort-btn" onclick="setFSSort('name',this)">NAME</button>
+              <button class="sort-btn" onclick="setFSSort('dia',this)">DIA</button>
+              <button class="sort-btn" onclick="setFSSort('type',this)">TYPE</button>
+            </div>
+            <div class="tool-cards" id="lib-tool-cards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- FLOATING APP SWITCHER -->
+<div class="app-switcher">
+  <button class="switcher-btn switcher-current">&#9889; FEED &amp; SPEED</button>
+  <button class="switcher-btn switcher-other" id="goConverter">&#9881; CONVERTER</button>
+</div>
+
+<style>
+.app-switcher {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9998;
+  display: flex; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 50px; padding: 5px; gap: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+.switcher-btn {
+  padding: 9px 18px; border-radius: 40px; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; white-space: nowrap;
+}
+.switcher-current { background: var(--accent); color: #000; cursor: default; }
+.switcher-other   { background: transparent; color: var(--dim); cursor: pointer; transition: color .2s; }
+.switcher-other:hover { color: #00c8ff; }
+@media(max-width:600px) {
+  .app-switcher { bottom: 16px; right: 16px; }
+  .switcher-btn { padding: 8px 12px; font-size: 11px; letter-spacing: 1px; }
+}
+</style>
+
+<script>
+(function () {
+  /* ── Wipe overlay ── */
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;transform:translateX(-100%);transition:none;';
+  document.body.appendChild(overlay);
+
+  /* ── Reveal on arrival ── */
+  var arrivedColor = sessionStorage.getItem('wipe-color');
+  if (arrivedColor) {
+    sessionStorage.removeItem('wipe-color');
+    overlay.style.backgroundColor = arrivedColor;
+    overlay.style.transform = 'translateX(0%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        overlay.style.transition = 'transform 0.55s cubic-bezier(0.76,0,0.24,1)';
+        overlay.style.transform  = 'translateX(100%)';
+        overlay.addEventListener('transitionend', function () {
+          overlay.style.pointerEvents = 'none';
+        }, { once: true });
+      });
+    });
+  }
+
+  /* ── Exit wipe ── */
+  document.getElementById('goConverter').addEventListener('click', function () {
+    overlay.style.backgroundColor = '#00c8ff';
+    overlay.style.transition = 'none';
+    overlay.style.transform  = 'translateX(-100%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        overlay.style.transition = 'transform 0.5s cubic-bezier(0.76,0,0.24,1)';
+        overlay.style.transform  = 'translateX(0%)';
+        overlay.addEventListener('transitionend', function () {
+          sessionStorage.setItem('wipe-color', '#00c8ff');
+          window.location.href = 'converter.html';
+        }, { once: true });
+      });
+    });
+  });
+}());
+</script>
+
+<!-- INSTALL BANNER -->
+<div id="installBanner" class="install-banner hidden">
+  <p>Install <strong>Feed &amp; Speed Calculator</strong> for offline access.</p>
+  <div class="banner-buttons">
+    <button id="installBtn">Install</button>
+    <button id="dismissBtn">Dismiss</button>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+  Promise.all([
+    fetch("data/material.json").then(r => r.json()),
+    fetch("data/thread.json").then(r => r.json()),
+    fetch("data/ipt.json").then(r => r.json()),
+    fetch("data/ipr.json").then(r => r.json()),
+    fetch("data/machines.json").then(r => r.json())
+  ])
+  .then(([materials, threads, ipt, ipr, machines]) => {
+    window.materialsData = materials;
+    window.threadsData   = threads;
+    window.iptData       = ipt;
+    window.iprData       = ipr;
+    window.machinesData  = machines;
+    const ms = document.getElementById("machineSelect");
+    if (ms) ms.innerHTML = Object.keys(machines).map(m => `<option>${m}</option>`).join("");
+    const pill = document.getElementById("statusPill");
+    pill.textContent = "● READY";
+    pill.style.cssText = "border-color:var(--accent);color:var(--accent)";
+  })
+  .catch(err => {
+    console.error("Failed to load data:", err);
+    const pill = document.getElementById("statusPill");
+    pill.textContent = "● DATA ERROR";
+    pill.style.cssText = "border-color:#ff3b3b;color:#ff3b3b";
+  })
+  .finally(() => {
+    const s1 = document.createElement("script"); s1.src = "js/script.js"; document.body.appendChild(s1);
+    const s2 = document.createElement("script"); s2.src = "js/app.js";    document.body.appendChild(s2);
+  });
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(r => console.log("SW:", r.scope))
+        .catch(e => console.error("SW failed:", e));
+    });
+  }
+  let deferredPrompt;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault(); deferredPrompt = e;
+    const d = localStorage.getItem("pwaDismissedUntil");
+    if (!window.matchMedia("(display-mode:standalone)").matches && (!d || Date.now() > +d)) {
+      setTimeout(() => {
+        document.getElementById("installBanner").classList.replace("hidden","show");
+      }, 2000);
+    }
+  });
+  document.getElementById("installBtn").addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    document.getElementById("installBanner").classList.replace("show","hidden");
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  });
+  document.getElementById("dismissBtn").addEventListener("click", () => {
+    document.getElementById("installBanner").classList.replace("show","hidden");
+    localStorage.setItem("pwaDismissedUntil", Date.now() + 7*24*60*60*1000);
+  });
+  window.addEventListener("appinstalled", () => {
+    localStorage.removeItem("pwaDismissedUntil");
+    document.getElementById("installBanner").classList.replace("show","hidden");
+  });
+</script>
+
+</body>
+</html>

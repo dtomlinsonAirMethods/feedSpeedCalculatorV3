@@ -1,289 +1,744 @@
+/* ============================================================
+   FEED & SPEED CALCULATOR — DARK INDUSTRIAL THEME
+   Replaces original style.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap');
+
 :root {
-  --bg: #101010;          /* full-page background */
-  --panel: #1a1a1a;       /* floating window background */
-  --text: #f2f2f2;
-  --accent: #2b2b2b;      /* separators / hover */
-  --brand: #00c46a;       /* primary accent green */
-  --border: #333;
+  --bg:      #0a0c0f;
+  --panel:   #111418;
+  --panel2:  #161b22;
+  --border:  #1e2530;
+  --accent:  #00e676;   /* GREEN — Feed & Speed identity */
+  --accent2: #00ff9d;
+  --orange:  #ff6b00;
+  --red:     #ff3b3b;
+  --yellow:  #ffd600;
+  --text:    #cdd6e0;
+  --dim:     #4a5568;
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Barlow Condensed', sans-serif;
 }
 
-/* ------------------------------
-   Base layout
------------------------------- */
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BASE ── */
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-header {
-  background: var(--accent);
-  padding: 0.6rem 1rem;
-  text-align: center;
-}
-
-header h1 {
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: #ccc;
-  margin: 0;
-  opacity: 0.8;
-}
-
-/* Floating main panel */
-main {
-  max-width: 640px;
-  margin: 1.6rem auto;
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 1.4rem;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.55);
-}
-
-/* ------------------------------
-   Tabs (folder style)
------------------------------- */
-.tabs {
-  display: flex;
-  justify-content: flex-start;
-  background: var(--panel);
-  padding-left: 1rem;
-  border-bottom: 2px solid var(--accent);
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-
-.tablink {
-  background: var(--panel);
-  color: #aaa;
-  border: 1px solid var(--accent);
-  border-bottom: none;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  padding: 0.6rem 1.1rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  margin-right: 0.25rem;
-}
-
-.tablink:hover {
-  color: #fff;
-  background: #242424;
-}
-
-.tablink.active {
-  background: var(--brand);
-  color: #fff;
-  box-shadow: 0 -2px 10px rgba(0, 196, 106, 0.4);
-}
-
-/* ------------------------------
-   Form Layout
------------------------------- */
-.tabcontent {
-  display: none;
-  padding: 0.1rem;
-  margin-top: 0.1rem;
-}
-
-label {
-  display: block;
-  margin-top: 0.4rem;
-  font-weight: 500;
-  color: #dcdcdc;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 0.35rem;
-  margin-top: 0.15rem;
-  background: #181818;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-}
-
-/* ------------------------------
-   Tool Type (radios inline)
------------------------------- */
-.radio-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1rem;
-  margin-top: 0.4rem;
-  margin-bottom: 0.3rem;
-}
-
-.radio-row label.main {
-  width: 110px;
-  text-align: left;
-  margin: 0;
-}
-
-.radio-group-inline {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-
-.radio-group-inline label {
-  display: flex;
-  align-items: center;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-input[type="radio"],
-input[type="checkbox"] {
-  width: auto;
-  accent-color: var(--brand);
-}
-
-/* ------------------------------
-   HSM Checkbox (aligned neatly)
------------------------------- */
-.checkbox-field {
-  display: flex;
-  align-items: center;
-  margin-top: 0.4rem;
-  margin-bottom: 0.6rem;
-}
-
-.checkbox-field label {
-  display: flex;
-  align-items: center;
-  font-size: 0.95rem;
-  font-weight: 500;
-  gap: 1.8rem; /* tweak this spacing to align checkbox with tool-type radios */
-}
-
-.checkbox-field input[type="checkbox"] {
-  accent-color: var(--brand);
-  transform: scale(1.1);
-}
-
-/* ------------------------------
-   Calculate Button
------------------------------- */
-button {
-  display: block;
-  margin: 0.5rem auto 0.4rem;
-  width: 65%;
-  background: var(--brand);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.25s ease;
-}
-
-button:hover {
-  background: #00e07b;
-  box-shadow: 0 0 15px rgba(0, 224, 123, 0.45);
-}
-
-/* ------------------------------
-   Warnings
------------------------------- */
-.warn {
-  margin-top: 0.8rem;
-  white-space: pre-line;
-  color: #ffcc66;
-}
-
-/* ------------------------------
-   Install Banner
------------------------------- */
-.install-banner {
+/* Grid background texture */
+body::before {
+  content: '';
   position: fixed;
-  bottom: -150px;
-  left: 0;
-  width: 100%;
-  background: var(--brand);
-  color: white;
-  text-align: center;
-  padding: 16px 10px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.4);
-  font-size: 1rem;
-  z-index: 9999;
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  transform: translateY(100%);
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,230,118,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,230,118,0.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.install-banner.show {
-  opacity: 1;
-  transform: translateY(0);
-  bottom: 0;
+/* ── WRAPPER ── */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
 }
 
-.install-banner.hidden {
-  display: none;
-}
-
-.install-banner p {
-  margin: 0;
-  font-weight: 500;
-}
-
-.banner-buttons {
-  margin-top: 8px;
+/* ── HEADER ── */
+header {
+  padding: 24px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
-.banner-buttons button {
-  padding: 6px 14px;
-  font-weight: bold;
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+
+.brand-name {
+  font-family: var(--sans);
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1;
+}
+.brand-name span { color: var(--accent); }
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+.status-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--dim);
+  color: var(--dim);
+  letter-spacing: 1px;
+  animation: pulse 2.5s ease-in-out infinite;
+  transition: border-color .3s, color .3s;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 10px 20px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   border: none;
-  border-radius: 6px;
+  background: transparent;
+  color: var(--dim);
   cursor: pointer;
-  background: white;
-  color: var(--brand);
-  transition: background 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── LAYOUT GRIDS ── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
 }
 
-.banner-buttons button:hover {
-  background: #e0e0e0;
+.lib-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
 }
 
-/* ------------------------------
-   Animation
------------------------------- */
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.input-col  { display: flex; flex-direction: column; gap: 16px; }
+.results-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* Stack to single column on narrow screens */
+@media (max-width: 820px) {
+  .calc-grid,
+  .lib-grid { grid-template-columns: 1fr; }
 }
 
-/* ------------------------------
-   Responsive tweaks
------------------------------- */
+/* ── PANELS ── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.panel-head {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-head .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.panel-head-sub {
+  color: var(--dim);
+  font-size: 9px;
+  margin-left: auto;
+  letter-spacing: 1px;
+}
+
+.panel-body { padding: 16px; }
+.panel-body-flush { padding: 10px; }
+
+/* ── SELECTED TOOL BANNER ── */
+.sel-banner {
+  background: rgba(0,230,118,0.05);
+  border: 1px solid rgba(0,230,118,0.2);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: none;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sel-banner.show { display: flex; }
+.sel-banner-left { flex: 1; min-width: 0; }
+.sel-banner-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.sel-banner-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sel-banner-props {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+.sel-banner-clear {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  border-radius: 3px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s;
+  padding: 0;
+  /* Override global button styles */
+  width: 28px !important;
+  margin: 0 !important;
+  font-weight: normal !important;
+}
+.sel-banner-clear:hover { border-color: var(--red); color: var(--red); }
+
+/* ── FORM FIELDS ── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.field-group:last-child { margin-bottom: 0; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.field-input,
+.field-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 9px 11px;
+  border-radius: 3px;
+  outline: none;
+  width: 100%;
+  transition: border-color .15s;
+  /* Override global input/select */
+  margin-top: 0;
+}
+.field-input:focus,
+.field-select:focus { border-color: var(--accent); }
+.field-select option { background: var(--panel); }
+.field-input:disabled { color: var(--dim); cursor: not-allowed; }
+
+.field-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+/* ── RADIO PILLS ── */
+/* Hide native radio, style the label as a pill button */
+.radio-pill-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.radio-pill {
+  position: relative;
+  display: inline-block;
+}
+
+.radio-pill input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-pill {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+  /* remove global label styles */
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0;
+  font-weight: 700;
+}
+
+.radio-pill:hover { border-color: var(--text); color: var(--text); }
+
+.radio-pill:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,230,118,0.07);
+}
+
+/* ── CHECKBOXES ── */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  cursor: pointer;
+  user-select: none;
+  /* override global label */
+  margin-top: 0;
+  font-weight: normal;
+  color: var(--text);
+}
+
+.check-native {
+  /* Hide real checkbox */
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.check-box-ui {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+
+/* When the hidden checkbox is checked, style the sibling UI box */
+.check-native:checked ~ .check-box-ui {
+  border-color: var(--accent);
+  background: rgba(0,230,118,0.12);
+}
+.check-native:checked ~ .check-box-ui::after {
+  content: '✓';
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.check-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
+}
+
+/* ── CALCULATE BUTTON ── */
+/* Override global button styles completely */
+button.btn-calc {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 15px !important;
+  background: var(--accent) !important;
+  color: #000 !important;
+  border: none !important;
+  border-radius: 3px !important;
+  font-family: var(--sans) !important;
+  font-size: 19px !important;
+  font-weight: 900 !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: background .15s, transform .1s !important;
+  box-shadow: none !important;
+}
+button.btn-calc:hover { background: var(--accent2) !important; box-shadow: none !important; }
+button.btn-calc:active { transform: scale(.98) !important; }
+
+/* Small utility buttons */
+.btn-sm {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  /* override global */
+  display: inline-block !important;
+  width: auto !important;
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); box-shadow: none !important; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── RESULTS ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 480px) { .results-grid { grid-template-columns: 1fr; } }
+
+.result-box {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 12px 14px;
+}
+
+.result-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 6px;
+}
+
+.result-val {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: bold;
+  color: var(--accent);
+  line-height: 1;
+}
+.result-val.accent { color: var(--accent); }
+.result-val.orange { color: var(--orange); }
+
+.result-unit {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+.result-peck {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  display: none;
+}
+.result-peck.show { display: block; }
+
+/* Warnings */
+.warn-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(255,214,0,0.05);
+  border: 1px solid rgba(255,214,0,0.2);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--yellow);
+  white-space: pre-line;
+  line-height: 1.7;
+  display: none;
+}
+.warn-box.show { display: block; }
+
+/* ── THREAD GEOMETRY ── */
+.geometry-box {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2;
+  color: var(--text);
+  min-height: 60px;
+}
+.geometry-empty {
+  color: var(--dim);
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* ── QUICK TOOL SELECT ── */
+.quick-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.quick-cards::-webkit-scrollbar { width: 4px; }
+.quick-cards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.empty-quick {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+/* ── TOOL CARDS ── */
+.tool-card {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tool-card:hover { border-color: var(--accent); background: rgba(0,230,118,0.04); }
+.tool-card.selected { border-color: var(--accent); background: rgba(0,230,118,0.07); }
+
+.tc-num {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--accent);
+  min-width: 42px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.tc-info { flex: 1; min-width: 0; }
+.tc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+.tc-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.badge-em    { border-color: var(--accent); color: var(--accent); }
+.badge-drill { border-color: var(--orange); color: var(--orange); }
+.badge-tap   { border-color: var(--yellow); color: var(--yellow); }
+.badge-csink { border-color: var(--dim);    color: var(--dim); }
+
+.tc-delete {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s;
+  padding: 0;
+  /* override global button */
+  width: 24px !important;
+  margin: 0 !important;
+  font-weight: normal !important;
+}
+.tc-delete:hover { border-color: var(--red) !important; color: var(--red) !important; box-shadow: none !important; }
+
+/* ── TOOL LIBRARY ── */
+.lib-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.lib-search {
+  flex: 1;
+  min-width: 100px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 7px 11px;
+  outline: none;
+  transition: border-color .15s;
+  /* override global */
+  width: auto;
+  margin-top: 0;
+}
+.lib-search:focus { border-color: var(--accent); }
+
+.sort-btn {
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  /* override */
+  display: inline-block !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+.sort-btn.active { border-color: var(--accent); color: var(--accent); }
+.sort-btn:hover:not(.active) { border-color: var(--text); color: var(--text); box-shadow: none !important; }
+
+.tool-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.tool-cards::-webkit-scrollbar { width: 4px; }
+.tool-cards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--accent);
+  color: #000;
+  text-align: center;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: var(--sans);
+  font-weight: 600;
+  z-index: 9999;
+  transform: translateY(100%);
+  transition: transform .4s ease;
+}
+.install-banner.show { transform: translateY(0); }
+.install-banner.hidden { display: none; }
+.install-banner p { margin: 0; }
+.banner-buttons { margin-top: 8px; display: flex; justify-content: center; gap: 10px; }
+.banner-buttons button {
+  padding: 6px 16px !important;
+  font-size: 14px !important;
+  border-radius: 4px !important;
+  border: none !important;
+  background: rgba(0,0,0,0.2) !important;
+  color: #000 !important;
+  cursor: pointer !important;
+  width: auto !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  font-weight: 700 !important;
+}
+.banner-buttons button:hover { background: rgba(0,0,0,0.35) !important; box-shadow: none !important; }
+
+/* ── RESPONSIVE ── */
 @media (max-width: 600px) {
-  main {
-    margin: 1.2rem;
-    padding: 1.2rem;
-  }
+  .wrapper { padding: 0 14px 80px; }
+  .brand-name { font-size: 26px; }
+  .result-val { font-size: 24px; }
+  .tab-btn { padding: 9px 14px; font-size: 12px; letter-spacing: 1px; }
+  .field-row { grid-template-columns: 1fr; }
+}
 
-  .radio-row label.main {
-    width: 90px;
-  }
-
-  button {
-    width: 80%;
-  }
+@media (max-width: 380px) {
+  .brand-name { font-size: 22px; }
+  .results-grid { grid-template-columns: 1fr; }
 }

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Okuma Genos Converter</title>
+<link rel="stylesheet" href="styles/converter.css">
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="brand">
+      <div class="brand-name">OKUMA <span>GENOS</span> CONVERTER</div>
+      <div class="brand-sub">HAAS &rarr; OKUMA // POST PROCESSOR</div>
+    </div>
+    <div class="status-pill">&#9679; SYSTEM READY</div>
+  </header>
+
+  <div class="main-grid">
+
+    <!-- ══════════ LEFT COLUMN ══════════ -->
+    <div class="left-col">
+
+      <!-- FILE UPLOAD -->
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>INPUT FILE (.MIN)</div>
+        <div class="panel-body">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt">
+            <div class="drop-icon">&#128194;</div>
+            <div class="drop-label">DROP .MIN FILE HERE</div>
+            <div class="drop-sub">or click to browse</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>CONVERSION SETTINGS</div>
+        <div class="panel-body">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">WCS OFFSET INCREMENT</div>
+              <div class="setting-desc">Added to G15 H# &nbsp;(H1 &rarr; H2)</div>
+            </div>
+            <input type="number" class="num-input" id="wcsIncrement" value="1" min="0" max="99">
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL LIBRARY -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="dot"></div>TOOL LIBRARY
+          <span class="panel-head-count" id="toolCount">0 TOOLS</span>
+        </div>
+        <div class="panel-body">
+          <input type="text" class="tool-search" id="toolSearch"
+            placeholder="Search serial # or description...">
+          <div class="tool-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SERIAL #</th><th>OKUMA T#</th><th>DESCRIPTION</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="toolBody"></tbody>
+            </table>
+          </div>
+          <div class="btn-row">
+            <button class="btn-sm" onclick="toggleAddForm()">+ ADD TOOL</button>
+            <button class="btn-sm" onclick="exportLibrary()">EXPORT</button>
+            <button class="btn-sm" onclick="document.getElementById('importInput').click()">IMPORT</button>
+            <input type="file" id="importInput" accept=".json"
+              style="display:none" onchange="importLibrary(event)">
+          </div>
+          <div class="add-tool-form" id="addToolForm">
+            <div class="form-group">
+              <label>Serial Number</label>
+              <input type="text" id="newSerial" placeholder="e.g. 48410">
+            </div>
+            <div class="form-group">
+              <label>Okuma Tool #</label>
+              <input type="number" id="newOkuma" placeholder="39" min="1">
+            </div>
+            <div class="form-group" style="flex:2">
+              <label>Description (optional)</label>
+              <input type="text" id="newDesc" placeholder="1/2 Helical EM">
+            </div>
+            <button class="btn-add-confirm" onclick="addTool()">ADD</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-convert" id="convertBtn" onclick="runConversion()" disabled>
+        &#9881; CONVERT FILE
+      </button>
+
+    </div><!-- /left -->
+
+    <!-- ══════════ RIGHT COLUMN ══════════ -->
+    <div class="right-col">
+
+      <div class="download-bar" id="downloadBar">
+        <div class="dl-info">
+          CONVERSION COMPLETE
+          <span id="dlMeta"></span>
+        </div>
+        <a class="btn-download" id="downloadBtn" href="#" download>&#11015; DOWNLOAD .MIN</a>
+      </div>
+
+      <div class="stats-row" id="statsRow" style="display:none;">
+        <div class="stat-box">
+          <div class="stat-val ok" id="statLines">0</div>
+          <div class="stat-label">Total Lines</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statWcs">0</div>
+          <div class="stat-label">WCS Changed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statTools">0</div>
+          <div class="stat-label">Tools Remapped</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val warn" id="statUnmapped">0</div>
+          <div class="stat-label">Unmapped Tools</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>CONVERSION LOG</div>
+        <div class="panel-body" style="padding:0;">
+          <div class="log-box" id="logBox">
+            <span class="log-info">// Ready. Upload a .MIN file and click CONVERT FILE.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="previewPanel" style="display:none;">
+        <div class="panel-head">
+          <div class="dot"></div>SIDE-BY-SIDE PREVIEW
+          <span style="color:var(--dim);font-size:10px;margin-left:8px;">(CHANGED LINES HIGHLIGHTED)</span>
+        </div>
+        <div class="code-compare">
+          <div class="code-pane">
+            <div class="code-pane-head orig">&#9658; ORIGINAL (HAAS)</div>
+            <div class="code-scroll" id="origCode"></div>
+          </div>
+          <div class="code-pane">
+            <div class="code-pane-head conv">&#9658; CONVERTED (OKUMA)</div>
+            <div class="code-scroll" id="convCode"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="big">&#9881;</div>
+        <p>Upload a .MIN file and click CONVERT FILE</p>
+      </div>
+
+    </div><!-- /right -->
+  </div><!-- /grid -->
+</div><!-- /wrapper -->
+
+<!-- FLOATING APP SWITCHER -->
+<div class="app-switcher">
+  <button class="switcher-btn other" id="goFeedSpeed">&#9889; FEED &amp; SPEED</button>
+  <button class="switcher-btn current">&#9881; CONVERTER</button>
+</div>
+
+<script>
+let toolLibrary = [
+  { serial: "48410", okuma: 39,  desc: "1/2 DIA X 1.25 LOC X 0.06 RAD Helical EM" },
+  { serial: "03690", okuma: 12,  desc: "3/4 DIA X 3.25 LOC Helical EM" },
+  { serial: "48470", okuma: 41,  desc: "1/2 DIA X 2.0 LOC X 0.06 RAD Helical EM" },
+  { serial: "82397", okuma: 25,  desc: "1/2 DIA X 3.125 LOC Helical EM" },
+  // ADD MORE: { serial: "XXXXX", okuma: ##, desc: "description" },
+];
+
+let fileContent = null;
+let fileName    = null;
+
+function saveLibrary() {
+  try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e){}
+}
+function loadLibrary() {
+  try { const s = localStorage.getItem('okumaToolLibrary'); if (s) toolLibrary = JSON.parse(s); } catch(e){}
+}
+
+function renderToolTable(filter) {
+  const q = (filter||'').toLowerCase();
+  const rows = toolLibrary.filter(t =>
+    t.serial.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q) || String(t.okuma).includes(q)
+  );
+  document.getElementById('toolBody').innerHTML = rows.length
+    ? rows.map(t => `
+        <tr>
+          <td class="serial">${esc(t.serial)}</td>
+          <td class="okuma-num">T${t.okuma}</td>
+          <td class="desc" title="${esc(t.desc||'')}">${esc(t.desc||'—')}</td>
+          <td><button class="btn-remove" onclick="removeTool('${esc(t.serial)}')" title="Remove">&#10005;</button></td>
+        </tr>`).join('')
+    : `<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+  document.getElementById('toolCount').textContent = toolLibrary.length + ' TOOLS';
+}
+
+function removeTool(serial) {
+  toolLibrary = toolLibrary.filter(t => t.serial !== serial);
+  saveLibrary();
+  renderToolTable(document.getElementById('toolSearch').value);
+  log('warn', 'Removed: ' + serial);
+}
+
+function toggleAddForm() { document.getElementById('addToolForm').classList.toggle('open'); }
+
+function addTool() {
+  const serial = document.getElementById('newSerial').value.trim();
+  const okuma  = parseInt(document.getElementById('newOkuma').value);
+  const desc   = document.getElementById('newDesc').value.trim();
+  if (!serial)           { alert('Serial number is required.'); return; }
+  if (!okuma || okuma<1) { alert('Okuma tool number is required.'); return; }
+  if (toolLibrary.find(t => t.serial === serial)) { alert('Serial ' + serial + ' already exists.'); return; }
+  toolLibrary.push({ serial, okuma, desc });
+  saveLibrary();
+  renderToolTable(document.getElementById('toolSearch').value);
+  ['newSerial','newOkuma','newDesc'].forEach(id => document.getElementById(id).value = '');
+  log('ok', 'Added: ' + serial + ' → T' + okuma + (desc ? '  ' + desc : ''));
+}
+
+function exportLibrary() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(toolLibrary, null, 2)], { type: 'application/json' }));
+  a.download = 'okuma_tool_library.json'; a.click();
+}
+
+function importLibrary(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('Expected JSON array');
+      toolLibrary = data; saveLibrary(); renderToolTable('');
+      log('ok', 'Imported ' + data.length + ' tools from ' + file.name);
+    } catch(err) { log('error', 'Import failed: ' + err.message); }
+  };
+  reader.readAsText(file); e.target.value = '';
+}
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  fileName = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    fileContent = ev.target.result;
+    const lines = fileContent.split('\n').length;
+    document.getElementById('dropZone').innerHTML = `
+      <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt">
+      <div class="file-loaded">
+        <div class="file-name">&#10004; ${esc(file.name)}</div>
+        <div class="file-meta">${lines.toLocaleString()} lines &nbsp;&middot;&nbsp; ${(file.size/1024).toFixed(1)} KB</div>
+        <div class="file-change">Click to change file</div>
+      </div>`;
+    document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+    document.getElementById('convertBtn').disabled = false;
+    log('ok', 'Loaded: ' + file.name + ' (' + lines.toLocaleString() + ' lines)');
+    clearResults();
+  };
+  reader.readAsText(file);
+}
+
+function log(type, msg) {
+  const box = document.getElementById('logBox');
+  const span = document.createElement('span');
+  span.className = 'log-' + type;
+  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
+  box.appendChild(span); box.scrollTop = box.scrollHeight;
+}
+
+function clearResults() {
+  document.getElementById('downloadBar').classList.remove('show');
+  document.getElementById('statsRow').style.display    = 'none';
+  document.getElementById('previewPanel').style.display = 'none';
+  document.getElementById('emptyState').style.display   = 'block';
+}
+
+function runConversion() {
+  if (!fileContent) { alert('Please upload a .MIN file first.'); return; }
+  document.getElementById('logBox').innerHTML = '';
+  log('info', '══════════════════════════════════════════');
+  log('info', ' STARTING CONVERSION');
+  log('info', '══════════════════════════════════════════');
+
+  const wcsInc   = parseInt(document.getElementById('wcsIncrement').value) || 1;
+  const lines    = fileContent.split('\n');
+  const toolMap  = {}, unmapped = [];
+  const headerRe = /^\(T(\d+)\s*[-–]/i;
+
+  log('info', 'Scanning header for tool definitions...');
+  for (const line of lines) {
+    const s = line.trim();
+    if (!s.startsWith('(')) continue;
+    const m = s.match(headerRe); if (!m) continue;
+    const tNum = m[1];
+    let matched = false;
+    for (const entry of toolLibrary) {
+      if (s.includes(entry.serial)) {
+        toolMap[tNum] = entry.okuma;
+        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + entry.serial + ']  ' + (entry.desc||''));
+        matched = true; break;
+      }
+    }
+    if (!matched && /T\d+\s*[-–].{4,}/.test(s)) unmapped.push({ tNum, line: s });
+  }
+  if (unmapped.length) {
+    log('warn', unmapped.length + ' tool(s) NOT in library — keeping original T#:');
+    unmapped.forEach(u => log('warn', '  T' + u.tNum + ': ' + u.line));
+  }
+
+  log('info', 'Converting lines... (WCS +' + wcsInc + ')');
+  const origLines = [], convLines = [];
+  let wcsCount = 0, toolCount = 0;
+
+  for (const rawLine of lines) {
+    const orig = rawLine.replace(/\r$/, '');
+    let conv = orig;
+    conv = conv.replace(/G15\s+H(\d+)/g, (_, h) => { wcsCount++; return 'G15 H' + (parseInt(h) + wcsInc); });
+    if (!orig.trim().startsWith('(')) {
+      conv = conv.replace(/\bT(\d+)\b/g, (match, tNum) => {
+        if (toolMap[tNum] !== undefined) { toolCount++; return 'T' + toolMap[tNum]; }
+        return match;
+      });
+    }
+    const changed = conv !== orig;
+    origLines.push({ text: orig, changed });
+    convLines.push({ text: conv, changed });
+  }
+
+  const convertedText = convLines.map(l => l.text).join('\n');
+  const changedCount  = convLines.filter(l => l.changed).length;
+
+  log('ok', '══════════════════════════════════════════');
+  log('ok', ' DONE — ' + lines.length.toLocaleString() + ' lines processed');
+  log('ok', '   WCS offsets changed : ' + wcsCount);
+  log('ok', '   Tool numbers changed: ' + toolCount);
+  log('ok', '   Total lines changed : ' + changedCount);
+  if (unmapped.length) log('warn', '   Unmapped tools      : ' + unmapped.length);
+  log('ok', '══════════════════════════════════════════');
+
+  document.getElementById('statLines').textContent    = lines.length.toLocaleString();
+  document.getElementById('statWcs').textContent      = wcsCount;
+  document.getElementById('statTools').textContent    = toolCount;
+  document.getElementById('statUnmapped').textContent = unmapped.length;
+  document.getElementById('statsRow').style.display   = 'flex';
+
+  const outName = fileName.replace(/\.[^.]+$/, '') + '_OKUMA.MIN';
+  const url = URL.createObjectURL(new Blob([convertedText], { type: 'text/plain' }));
+  document.getElementById('downloadBtn').href = url;
+  document.getElementById('downloadBtn').download = outName;
+  document.getElementById('dlMeta').textContent = outName + '  ·  ' + changedCount + ' lines modified';
+  document.getElementById('downloadBar').classList.add('show');
+
+  const buildHtml = arr => arr.slice(0, 300).map(l =>
+    '<span class="' + (l.changed ? 'line-changed' : 'line-normal') + '">' + esc(l.text) + '</span>'
+  ).join('');
+  document.getElementById('origCode').innerHTML = buildHtml(origLines);
+  document.getElementById('convCode').innerHTML = buildHtml(convLines);
+  document.getElementById('previewPanel').style.display = 'block';
+  document.getElementById('emptyState').style.display   = 'none';
+
+  const panes = document.querySelectorAll('.code-scroll');
+  panes.forEach(p => { p.onscroll = () => panes.forEach(o => { if (o !== p) o.scrollTop = p.scrollTop; }); });
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('toolSearch').addEventListener('input', e => renderToolTable(e.target.value));
+loadLibrary();
+renderToolTable('');
+</script>
+
+<script>
+(function () {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;transform:translateX(-100%);transition:none;';
+  document.body.appendChild(overlay);
+
+  var arrivedColor = sessionStorage.getItem('wipe-color');
+  if (arrivedColor) {
+    sessionStorage.removeItem('wipe-color');
+    overlay.style.backgroundColor = arrivedColor;
+    overlay.style.transform = 'translateX(0%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        overlay.style.transition = 'transform 0.55s cubic-bezier(0.76,0,0.24,1)';
+        overlay.style.transform  = 'translateX(100%)';
+        overlay.addEventListener('transitionend', function () {
+          overlay.style.pointerEvents = 'none';
+        }, { once: true });
+      });
+    });
+  }
+
+  document.getElementById('goFeedSpeed').addEventListener('click', function () {
+    overlay.style.backgroundColor = '#00e676';
+    overlay.style.transition = 'none';
+    overlay.style.transform  = 'translateX(-100%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        overlay.style.transition = 'transform 0.5s cubic-bezier(0.76,0,0.24,1)';
+        overlay.style.transform  = 'translateX(0%)';
+        overlay.addEventListener('transitionend', function () {
+          sessionStorage.setItem('wipe-color', '#00e676');
+          window.location.href = 'feedSpeed.html';
+        }, { once: true });
+      });
+    });
+  });
+}());
+</script>
+</body>
+</html>
