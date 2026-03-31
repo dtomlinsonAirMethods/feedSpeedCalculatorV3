@@ -1,22 +1,24 @@
-const CACHE_NAME = "feedSpeedCalculator-v3";
+const CACHE_NAME = "feedSpeedCalculator-v4";
+const BASE = "/feedSpeedCalculatorV3";
 
 const FILES_TO_CACHE = [
-  "/",
-  "/feedSpeed.html",
-  "/converter.html",
-  "/manifest.json",
-  "/styles/style.css",
-  "/styles/converter.css",
-  "/js/script.js",
-  "/js/app.js",
-  "/data/material.json",
-  "/data/machines.json",
-  "/data/thread.json",
-  "/data/ipt.json",
-  "/data/ipr.json",
-  "/img/icon-192.png",
-  "/img/icon-512.png",
-  "/img/favicon.ico"
+  BASE + "/",
+  BASE + "/index.html",
+  BASE + "/feedSpeed.html",
+  BASE + "/converter.html",
+  BASE + "/manifest.json",
+  BASE + "/styles/style.css",
+  BASE + "/styles/converter.css",
+  BASE + "/js/script.js",
+  BASE + "/js/app.js",
+  BASE + "/data/material.json",
+  BASE + "/data/machines.json",
+  BASE + "/data/thread.json",
+  BASE + "/data/ipt.json",
+  BASE + "/data/ipr.json",
+  BASE + "/img/icon-192.png",
+  BASE + "/img/icon-512.png",
+  BASE + "/img/favicon.ico"
 ];
 
 self.addEventListener("install", event => {
@@ -36,7 +38,6 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  // Skip cross-origin (CDN fonts etc.)
   if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
@@ -49,7 +50,9 @@ self.addEventListener("fetch", event => {
         }
         return response;
       }).catch(() => {
-        if (event.request.mode === "navigate") return caches.match("/feedSpeed.html");
+        if (event.request.mode === "navigate") {
+          return caches.match(BASE + "/feedSpeed.html");
+        }
       });
     })
   );

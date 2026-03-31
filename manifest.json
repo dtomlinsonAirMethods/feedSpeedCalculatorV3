@@ -1,24 +1,24 @@
 {
   "name": "Feed & Speed Calculator",
-  "short_name": "FeedSpeedCalc",
-  "start_url": "/feedSpeed.html",
-  "scope": "/",
+  "short_name": "Feed & Speed",
+  "start_url": "/feedSpeedCalculatorV3/feedSpeed.html",
+  "scope": "/feedSpeedCalculatorV3/",
   "display": "standalone",
   "background_color": "#0a0c0f",
   "theme_color": "#00e676",
   "icons": [
     {
-      "src": "/img/favicon.ico",
+      "src": "/feedSpeedCalculatorV3/img/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "/img/icon-192.png",
+      "src": "/feedSpeedCalculatorV3/img/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/img/icon-512.png",
+      "src": "/feedSpeedCalculatorV3/img/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

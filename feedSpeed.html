@@ -526,12 +526,10 @@
 
 <script>
 (function () {
-  /* ── Wipe overlay ── */
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;transform:translateX(-100%);transition:none;';
   document.body.appendChild(overlay);
 
-  /* ── Reveal on arrival ── */
   var arrivedColor = sessionStorage.getItem('wipe-color');
   if (arrivedColor) {
     sessionStorage.removeItem('wipe-color');
@@ -549,7 +547,6 @@
     });
   }
 
-  /* ── Exit wipe ── */
   document.getElementById('goConverter').addEventListener('click', function () {
     overlay.style.backgroundColor = '#00c8ff';
     overlay.style.transition = 'none';
@@ -614,7 +611,7 @@
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js")
+      navigator.serviceWorker.register("./service-worker.js")
         .then(r => console.log("SW:", r.scope))
         .catch(e => console.error("SW failed:", e));
     });
