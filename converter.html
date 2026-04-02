@@ -17,6 +17,14 @@
     <div class="status-pill">&#9679; SYSTEM READY</div>
   </header>
 
+  <!-- CONVERTER SUB-TABS -->
+  <div class="conv-tab-bar">
+    <button class="conv-tab-btn active" id="ctab-gcode" onclick="switchConvTab('gcode')">&#9881; G-CODE</button>
+    <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">&#128196; PDF SETUP SHEET</button>
+  </div>
+
+  <!-- G-CODE TAB -->
+  <div class="conv-tab-pane active" id="ctab-gcode-pane">
   <div class="main-grid">
 
     <!-- ══════════ LEFT COLUMN ══════════ -->
@@ -162,6 +170,111 @@
 
     </div><!-- /right -->
   </div><!-- /grid -->
+  </div><!-- /ctab-gcode-pane -->
+
+  <!-- PDF SETUP SHEET TAB -->
+  <div class="conv-tab-pane" id="ctab-pdf-pane">
+  <div class="main-grid">
+
+    <div class="left-col">
+
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>INPUT FILE (.PDF)</div>
+        <div class="panel-body">
+          <div class="drop-zone" id="pdfDropZone">
+            <input type="file" id="pdfFileInput" accept=".pdf,.PDF">
+            <div class="drop-icon">&#128196;</div>
+            <div class="drop-label">DROP PDF SETUP SHEET HERE</div>
+            <div class="drop-sub">or click to browse</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>PDF SETTINGS</div>
+        <div class="panel-body">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">WO: INCREMENT</div>
+              <div class="setting-desc">Increments WO: value in PDF &nbsp;(WO: 0 &rarr; WO: 1)</div>
+            </div>
+            <input type="number" class="num-input" id="pdfWoIncrement" value="1" min="0" max="99">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>HOW IT WORKS</div>
+        <div class="panel-body">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2;">
+            Uses the same tool library as the G-code tab.<br>
+            Finds tool numbers in the PDF by matching<br>
+            serial numbers and keywords to descriptions,<br>
+            whites out old numbers and stamps corrected ones.<br>
+            Also increments <span style="color:var(--orange);">WO:</span> values by the setting above.<br>
+            Images and layout are preserved exactly.
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-convert" id="pdfConvertBtn" onclick="runPdfConversion()" disabled>
+        &#128196; CONVERT PDF
+      </button>
+
+    </div><!-- /left -->
+
+    <div class="right-col">
+
+      <div class="download-bar" id="pdfDownloadBar">
+        <div class="dl-info">
+          PDF CONVERSION COMPLETE
+          <span id="pdfDlMeta"></span>
+        </div>
+        <a class="btn-download" id="pdfDownloadBtn" href="#" download>&#11015; DOWNLOAD PDF</a>
+      </div>
+
+      <div class="stats-row" id="pdfStatsRow" style="display:none;">
+        <div class="stat-box">
+          <div class="stat-val ok" id="pdfStatPages">0</div>
+          <div class="stat-label">Pages</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="pdfStatTools">0</div>
+          <div class="stat-label">Tools Mapped</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="pdfStatNums">0</div>
+          <div class="stat-label">Numbers Updated</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val warn" id="pdfStatUnmapped">0</div>
+          <div class="stat-label">Unmapped Tools</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="dot"></div>CONVERSION LOG</div>
+        <div class="panel-body" style="padding:0;">
+          <div class="log-box" id="pdfLogBox">
+            <span class="log-info">// Ready. Upload a Mastercam setup sheet PDF.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="pdfPreviewPanel" style="display:none;">
+        <div class="panel-head"><div class="dot"></div>PREVIEW <span style="color:var(--dim);font-size:10px;margin-left:8px;">(CONVERTED)</span></div>
+        <div class="pdf-preview-wrap" id="pdfPreviewWrap"></div>
+      </div>
+
+      <div class="empty-state" id="pdfEmptyState">
+        <div class="big">&#128196;</div>
+        <p>Upload a Mastercam setup sheet PDF and click CONVERT PDF</p>
+      </div>
+
+    </div><!-- /right -->
+  </div><!-- /main-grid -->
+  </div><!-- /ctab-pdf-pane -->
+
 </div><!-- /wrapper -->
 
 <!-- FLOATING APP SWITCHER -->
@@ -389,8 +502,324 @@ renderToolTable('');
 </script>
 
 <script>
-(function () {
-  var overlay = document.createElement('div');
+// ── Converter sub-tab switching ──
+function switchConvTab(name) {
+  document.querySelectorAll('.conv-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.conv-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ctab-' + name + '-pane').classList.add('active');
+  document.getElementById('ctab-' + name).classList.add('active');
+}
+
+// ── PDF logging ──
+function pdfLog(type, msg) {
+  const box  = document.getElementById('pdfLogBox');
+  const span = document.createElement('span');
+  span.className = 'log-' + type;
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  span.textContent = '[' + ts + '] ' + msg + '\n';
+  box.appendChild(span);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── PDF file drop/select ──
+let pdfBytes    = null;
+let pdfFileName = null;
+
+(function() {
+  const dz = document.getElementById('pdfDropZone');
+  const fi = document.getElementById('pdfFileInput');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handlePdfFile(e.dataTransfer.files[0]);
+  });
+  fi.addEventListener('change', e => { if (e.target.files[0]) handlePdfFile(e.target.files[0]); });
+})();
+
+function handlePdfFile(file) {
+  pdfFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pdfBytes = new Uint8Array(ev.target.result);
+    const dz = document.getElementById('pdfDropZone');
+    dz.innerHTML = `
+      <input type="file" id="pdfFileInput" accept=".pdf,.PDF">
+      <div class="file-loaded">
+        <div class="file-name">&#10004; ${esc(file.name)}</div>
+        <div class="file-meta">${(file.size/1024).toFixed(1)} KB</div>
+        <div class="file-change">Click to change file</div>
+      </div>`;
+    document.getElementById('pdfFileInput').addEventListener('change', e => {
+      if (e.target.files[0]) handlePdfFile(e.target.files[0]);
+    });
+    document.getElementById('pdfConvertBtn').disabled = false;
+    document.getElementById('pdfLogBox').innerHTML = '';
+    pdfLog('ok', 'Loaded: ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)');
+    // Reset results
+    document.getElementById('pdfDownloadBar').classList.remove('show');
+    document.getElementById('pdfStatsRow').style.display = 'none';
+    document.getElementById('pdfPreviewPanel').style.display = 'none';
+    document.getElementById('pdfEmptyState').style.display = 'block';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── PDF Conversion Engine ──
+// Uses pdf-lib (write) + pdf.js (preview) loaded from CDN on demand
+async function runPdfConversion() {
+  if (!pdfBytes) { alert('Please upload a PDF first.'); return; }
+
+  const btn = document.getElementById('pdfConvertBtn');
+  btn.disabled = true;
+  btn.textContent = 'PROCESSING...';
+  document.getElementById('pdfLogBox').innerHTML = '';
+  pdfLog('info', '══════════════════════════════════════════');
+  pdfLog('info', ' STARTING PDF CONVERSION');
+  pdfLog('info', '══════════════════════════════════════════');
+
+  try {
+    // ── Load CDN libraries on first use ──
+    if (!window.PDFLib) {
+      pdfLog('info', 'Loading pdf-lib...');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
+    }
+    if (!window.pdfjsLib) {
+      pdfLog('info', 'Loading pdf.js...');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
+    const woInc = parseInt(document.getElementById('pdfWoIncrement').value) || 0;
+
+    // ── Step 1: Load PDF with pdf.js to extract text positions ──
+    pdfLog('info', 'Extracting text from PDF...');
+    const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice() });
+    const jsDoc = await loadingTask.promise;
+    const numPages = jsDoc.numPages;
+    pdfLog('info', 'Pages: ' + numPages);
+
+    // ── Step 2: Build tool map from library ──
+    pdfLog('info', 'Building tool map...');
+    // toolLibrary is defined in the main script block above
+    const toolMap = {}; // originalT# -> okumaT#
+    let unmappedCount = 0;
+
+    // Collect all text across pages to find tool associations
+    const allPageText = [];
+    for (let pn = 1; pn <= numPages; pn++) {
+      const page  = await jsDoc.getPage(pn);
+      const items = (await page.getTextContent()).items;
+      allPageText.push(items);
+    }
+
+    // Find tool number associations by scanning each page's text
+    // Mastercam setup sheets have lines like:
+    //   "# 1  HELICAL - 48410 ..." in the tool list
+    //   "#1 - 0.5000 Bull endmill - HELICAL - 48410" in operations
+    // We look for "#N" or "# N" tokens then check nearby text for serial/keyword
+    const replacements = []; // { pageIdx, x, y, oldText, newText, fontSize }
+    let toolsMapped = 0;
+
+    for (let pi = 0; pi < allPageText.length; pi++) {
+      const items = allPageText[pi];
+      const fullText = items.map(i => i.str).join(' ');
+
+      // Build a map of original tool# -> okuma# for this page context
+      const pageToolMap = {};
+
+      // Scan for tool definitions: "# N" or "#N" followed by description containing serial/keyword
+      for (let ii = 0; ii < items.length; ii++) {
+        const str = items[ii].str.trim();
+
+        // Match "# N" or "#N" patterns
+        const hashMatch = str.match(/^#\s*(\d+)\s*$/) || str.match(/^#(\d+)$/);
+        if (!hashMatch) continue;
+
+        const origTNum = parseInt(hashMatch[1]);
+        if (origTNum === 0 || pageToolMap[origTNum] !== undefined) continue;
+
+        // Look at surrounding text (next ~15 items) for a library match
+        const context = items.slice(ii, Math.min(ii + 20, items.length))
+          .map(i => i.str).join(' ').toUpperCase();
+
+        let matched = false;
+        for (const entry of toolLibrary) {
+          const matchVal = (entry.matchVal || entry.serial || '').toUpperCase();
+          if (!matchVal) continue;
+
+          let hit = false;
+          if (entry.matchType === 'keyword') {
+            // All tokens must appear in context
+            hit = matchVal.split(/\s+/).every(tok => context.includes(tok));
+          } else {
+            // Serial — exact string match
+            hit = context.includes(matchVal);
+          }
+
+          if (hit) {
+            pageToolMap[origTNum] = entry.okuma;
+            if (!Object.values(toolMap).includes(entry.okuma)) {
+              pdfLog('map', '  T' + origTNum + ' → Okuma T' + entry.okuma +
+                '  [' + matchVal + ']  ' + (entry.desc || ''));
+              toolsMapped++;
+            }
+            toolMap[origTNum] = entry.okuma;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          unmappedCount++;
+          pdfLog('warn', '  T' + origTNum + ' not in library — keeping original');
+        }
+      }
+
+      // Now find all number tokens that need replacing on this page
+      for (let ii = 0; ii < items.length; ii++) {
+        const item = items[ii];
+        const str  = item.str.trim();
+
+        // Tool number tokens: "#N", "# N", "H: N", "D: N" patterns
+        const numMatch = str.match(/^(\d+)$/)  ||   // bare number
+                         str.match(/^#(\d+)$/);     // #N
+
+        if (numMatch) {
+          const n = parseInt(numMatch[1]);
+          if (pageToolMap[n] !== undefined && n !== pageToolMap[n]) {
+            const tx = item.transform;
+            replacements.push({
+              pageIdx:  pi,
+              x:        tx[4],
+              y:        tx[5],
+              oldText:  str,
+              newText:  str.startsWith('#') ? '#' + pageToolMap[n] : String(pageToolMap[n]),
+              fontSize: Math.abs(tx[0]) || Math.abs(tx[3]) || 10
+            });
+          }
+        }
+
+        // WO: N pattern — increment by pdfWoIncrement
+        if (str === 'WO:' && woInc > 0) {
+          // Look at next item for the number
+          const nextItem = items[ii + 1];
+          if (nextItem) {
+            const woNum = parseInt(nextItem.str.trim());
+            if (!isNaN(woNum)) {
+              const tx = nextItem.transform;
+              replacements.push({
+                pageIdx:  pi,
+                x:        tx[4],
+                y:        tx[5],
+                oldText:  nextItem.str.trim(),
+                newText:  String(woNum + woInc),
+                fontSize: Math.abs(tx[0]) || Math.abs(tx[3]) || 10
+              });
+            }
+          }
+        }
+      }
+    }
+
+    pdfLog('info', 'Found ' + replacements.length + ' values to update');
+    if (unmappedCount > 0) pdfLog('warn', unmappedCount + ' tool(s) not in library');
+
+    // ── Step 3: Apply replacements with pdf-lib ──
+    pdfLog('info', 'Applying replacements to PDF...');
+    const libDoc = await PDFDocument.load(pdfBytes);
+    const font   = await libDoc.embedFont(StandardFonts.Helvetica);
+    const pages  = libDoc.getPages();
+    let repCount = 0;
+
+    for (const rep of replacements) {
+      const pg   = pages[rep.pageIdx];
+      const { height } = pg.getSize();
+      const fs   = Math.max(6, Math.min(rep.fontSize, 14));
+
+      // White-out box
+      const oldW = font.widthOfTextAtSize(rep.oldText, fs);
+      const newW = font.widthOfTextAtSize(rep.newText, fs);
+      const boxW = Math.max(oldW, newW) + 4;
+      const boxH = fs + 4;
+
+      pg.drawRectangle({
+        x:      rep.x - 1,
+        y:      rep.y - 2,
+        width:  boxW,
+        height: boxH,
+        color:  rgb(1, 1, 1),
+      });
+
+      // Stamp new text
+      pg.drawText(rep.newText, {
+        x:     rep.x,
+        y:     rep.y,
+        size:  fs,
+        font:  font,
+        color: rgb(0, 0, 0),
+      });
+      repCount++;
+    }
+
+    pdfLog('ok', '══════════════════════════════════════════');
+    pdfLog('ok', ' DONE — ' + repCount + ' replacements applied');
+    pdfLog('ok', '══════════════════════════════════════════');
+
+    // ── Step 4: Stats ──
+    document.getElementById('pdfStatPages').textContent    = numPages;
+    document.getElementById('pdfStatTools').textContent    = toolsMapped;
+    document.getElementById('pdfStatNums').textContent     = repCount;
+    document.getElementById('pdfStatUnmapped').textContent = unmappedCount;
+    document.getElementById('pdfStatsRow').style.display   = 'flex';
+
+    // ── Step 5: Save + download ──
+    const outBytes = await libDoc.save();
+    const blob     = new Blob([outBytes], { type: 'application/pdf' });
+    const url      = URL.createObjectURL(blob);
+    const outName  = pdfFileName.replace(/\.[^.]+$/, '') + '_OKUMA.pdf';
+    document.getElementById('pdfDownloadBtn').href     = url;
+    document.getElementById('pdfDownloadBtn').download = outName;
+    document.getElementById('pdfDlMeta').textContent   = outName + '  ·  ' + repCount + ' numbers updated';
+    document.getElementById('pdfDownloadBar').classList.add('show');
+
+    // ── Step 6: Preview ──
+    pdfLog('info', 'Rendering preview...');
+    const previewDoc  = await pdfjsLib.getDocument({ data: outBytes }).promise;
+    const wrap        = document.getElementById('pdfPreviewWrap');
+    wrap.innerHTML    = '';
+    for (let pi = 0; pi < previewDoc.numPages; pi++) {
+      const pg     = await previewDoc.getPage(pi + 1);
+      const vp     = pg.getViewport({ scale: 1.4 });
+      const canvas = document.createElement('canvas');
+      canvas.className = 'pdf-page-canvas';
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      wrap.appendChild(canvas);
+      await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    }
+    document.getElementById('pdfPreviewPanel').style.display = 'block';
+    document.getElementById('pdfEmptyState').style.display   = 'none';
+    pdfLog('ok', 'Preview rendered. Ready to download.');
+
+  } catch(err) {
+    pdfLog('error', 'ERROR: ' + err.message);
+    console.error(err);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '&#128196; CONVERT PDF';
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+</script>
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;transform:translateX(-100%);transition:none;';
   document.body.appendChild(overlay);
 
