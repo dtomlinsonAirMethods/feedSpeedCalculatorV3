@@ -23,14 +23,14 @@
     <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">&#128196; PDF SETUP SHEET</button>
   </div>
 
-  <!-- G-CODE TAB -->
+  <!-- ══════════════════════════════════════════
+       G-CODE TAB
+  ══════════════════════════════════════════ -->
   <div class="conv-tab-pane active" id="ctab-gcode-pane">
   <div class="main-grid">
 
-    <!-- ══════════ LEFT COLUMN ══════════ -->
     <div class="left-col">
 
-      <!-- FILE UPLOAD -->
       <div class="panel">
         <div class="panel-head"><div class="dot"></div>INPUT FILE (.MIN)</div>
         <div class="panel-body">
@@ -43,7 +43,6 @@
         </div>
       </div>
 
-      <!-- SETTINGS -->
       <div class="panel">
         <div class="panel-head"><div class="dot"></div>CONVERSION SETTINGS</div>
         <div class="panel-body">
@@ -57,21 +56,18 @@
         </div>
       </div>
 
-      <!-- TOOL LIBRARY -->
+      <!-- TOOL LIBRARY — G-CODE TAB -->
       <div class="panel">
         <div class="panel-head">
           <div class="dot"></div>TOOL LIBRARY
           <span class="panel-head-count" id="toolCount">0 TOOLS</span>
         </div>
         <div class="panel-body">
-          <input type="text" class="tool-search" id="toolSearch"
-            placeholder="Search serial # or description...">
+          <input type="text" class="tool-search" id="toolSearch" placeholder="Search serial, keyword or description...">
           <div class="tool-table-wrap">
             <table>
               <thead>
-                <tr>
-                  <th>SERIAL #</th><th>OKUMA T#</th><th>DESCRIPTION</th><th></th>
-                </tr>
+                <tr><th>TYPE</th><th>MATCH VALUE</th><th>OKUMA T#</th><th>DESCRIPTION</th><th></th></tr>
               </thead>
               <tbody id="toolBody"></tbody>
             </table>
@@ -80,12 +76,19 @@
             <button class="btn-sm" onclick="toggleAddForm()">+ ADD TOOL</button>
             <button class="btn-sm" onclick="exportLibrary()">EXPORT</button>
             <button class="btn-sm" onclick="document.getElementById('importInput').click()">IMPORT</button>
-            <input type="file" id="importInput" accept=".json"
-              style="display:none" onchange="importLibrary(event)">
+            <input type="file" id="importInput" accept=".json" style="display:none" onchange="importLibrary(event)">
           </div>
           <div class="add-tool-form" id="addToolForm">
+            <!-- Match type toggle -->
+            <div class="match-type-row">
+              <button class="match-type-btn active" id="btnSerial" onclick="setMatchType('serial')">SERIAL #</button>
+              <button class="match-type-btn" id="btnKeyword" onclick="setMatchType('keyword')">KEYWORD</button>
+            </div>
+            <div class="match-type-hint" id="matchHint">
+              SERIAL: exact number found in tool comment (e.g. 48410)
+            </div>
             <div class="form-group">
-              <label>Serial Number</label>
+              <label id="matchValLabel">Serial Number</label>
               <input type="text" id="newSerial" placeholder="e.g. 48410">
             </div>
             <div class="form-group">
@@ -107,34 +110,18 @@
 
     </div><!-- /left -->
 
-    <!-- ══════════ RIGHT COLUMN ══════════ -->
     <div class="right-col">
 
       <div class="download-bar" id="downloadBar">
-        <div class="dl-info">
-          CONVERSION COMPLETE
-          <span id="dlMeta"></span>
-        </div>
+        <div class="dl-info">CONVERSION COMPLETE<span id="dlMeta"></span></div>
         <a class="btn-download" id="downloadBtn" href="#" download>&#11015; DOWNLOAD .MIN</a>
       </div>
 
       <div class="stats-row" id="statsRow" style="display:none;">
-        <div class="stat-box">
-          <div class="stat-val ok" id="statLines">0</div>
-          <div class="stat-label">Total Lines</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="statWcs">0</div>
-          <div class="stat-label">WCS Changed</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="statTools">0</div>
-          <div class="stat-label">Tools Remapped</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val warn" id="statUnmapped">0</div>
-          <div class="stat-label">Unmapped Tools</div>
-        </div>
+        <div class="stat-box"><div class="stat-val ok" id="statLines">0</div><div class="stat-label">Total Lines</div></div>
+        <div class="stat-box"><div class="stat-val" id="statWcs">0</div><div class="stat-label">WCS Changed</div></div>
+        <div class="stat-box"><div class="stat-val" id="statTools">0</div><div class="stat-label">Tools Remapped</div></div>
+        <div class="stat-box"><div class="stat-val warn" id="statUnmapped">0</div><div class="stat-label">Unmapped Tools</div></div>
       </div>
 
       <div class="panel">
@@ -169,10 +156,12 @@
       </div>
 
     </div><!-- /right -->
-  </div><!-- /grid -->
+  </div><!-- /main-grid -->
   </div><!-- /ctab-gcode-pane -->
 
-  <!-- PDF SETUP SHEET TAB -->
+  <!-- ══════════════════════════════════════════
+       PDF TAB
+  ══════════════════════════════════════════ -->
   <div class="conv-tab-pane" id="ctab-pdf-pane">
   <div class="main-grid">
 
@@ -196,23 +185,56 @@
           <div class="setting-row">
             <div>
               <div class="setting-label">WO: INCREMENT</div>
-              <div class="setting-desc">Increments WO: value in PDF &nbsp;(WO: 0 &rarr; WO: 1)</div>
+              <div class="setting-desc">Increments WO: value &nbsp;(WO: 0 &rarr; WO: 1)</div>
             </div>
             <input type="number" class="num-input" id="pdfWoIncrement" value="1" min="0" max="99">
           </div>
         </div>
       </div>
 
+      <!-- TOOL LIBRARY — PDF TAB (same library, read-only view + shared add form) -->
       <div class="panel">
-        <div class="panel-head"><div class="dot"></div>HOW IT WORKS</div>
+        <div class="panel-head">
+          <div class="dot"></div>TOOL LIBRARY
+          <span class="panel-head-count" id="pdfToolCount">0 TOOLS</span>
+        </div>
         <div class="panel-body">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2;">
-            Uses the same tool library as the G-code tab.<br>
-            Finds tool numbers in the PDF by matching<br>
-            serial numbers and keywords to descriptions,<br>
-            whites out old numbers and stamps corrected ones.<br>
-            Also increments <span style="color:var(--orange);">WO:</span> values by the setting above.<br>
-            Images and layout are preserved exactly.
+          <input type="text" class="tool-search" id="pdfToolSearch" placeholder="Search serial, keyword or description...">
+          <div class="tool-table-wrap">
+            <table>
+              <thead>
+                <tr><th>TYPE</th><th>MATCH VALUE</th><th>OKUMA T#</th><th>DESCRIPTION</th><th></th></tr>
+              </thead>
+              <tbody id="pdfToolBody"></tbody>
+            </table>
+          </div>
+          <div class="btn-row">
+            <button class="btn-sm" onclick="togglePdfAddForm()">+ ADD TOOL</button>
+            <button class="btn-sm" onclick="exportLibrary()">EXPORT</button>
+            <button class="btn-sm" onclick="document.getElementById('pdfImportInput').click()">IMPORT</button>
+            <input type="file" id="pdfImportInput" accept=".json" style="display:none" onchange="importLibrary(event)">
+          </div>
+          <div class="add-tool-form" id="pdfAddToolForm">
+            <div class="match-type-row">
+              <button class="match-type-btn active" id="pdfBtnSerial" onclick="setPdfMatchType('serial')">SERIAL #</button>
+              <button class="match-type-btn" id="pdfBtnKeyword" onclick="setPdfMatchType('keyword')">KEYWORD</button>
+            </div>
+            <div class="match-type-hint" id="pdfMatchHint">
+              SERIAL: exact number found in tool comment (e.g. 48410)
+            </div>
+            <div class="form-group">
+              <label id="pdfMatchValLabel">Serial Number</label>
+              <input type="text" id="pdfNewSerial" placeholder="e.g. 48410">
+            </div>
+            <div class="form-group">
+              <label>Okuma Tool #</label>
+              <input type="number" id="pdfNewOkuma" placeholder="39" min="1">
+            </div>
+            <div class="form-group" style="flex:2">
+              <label>Description (optional)</label>
+              <input type="text" id="pdfNewDesc" placeholder="1/2 Helical EM">
+            </div>
+            <button class="btn-add-confirm" onclick="addToolFromPdfTab()">ADD</button>
           </div>
         </div>
       </div>
@@ -226,30 +248,15 @@
     <div class="right-col">
 
       <div class="download-bar" id="pdfDownloadBar">
-        <div class="dl-info">
-          PDF CONVERSION COMPLETE
-          <span id="pdfDlMeta"></span>
-        </div>
+        <div class="dl-info">PDF CONVERSION COMPLETE<span id="pdfDlMeta"></span></div>
         <a class="btn-download" id="pdfDownloadBtn" href="#" download>&#11015; DOWNLOAD PDF</a>
       </div>
 
       <div class="stats-row" id="pdfStatsRow" style="display:none;">
-        <div class="stat-box">
-          <div class="stat-val ok" id="pdfStatPages">0</div>
-          <div class="stat-label">Pages</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="pdfStatTools">0</div>
-          <div class="stat-label">Tools Mapped</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="pdfStatNums">0</div>
-          <div class="stat-label">Numbers Updated</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val warn" id="pdfStatUnmapped">0</div>
-          <div class="stat-label">Unmapped Tools</div>
-        </div>
+        <div class="stat-box"><div class="stat-val ok" id="pdfStatPages">0</div><div class="stat-label">Pages</div></div>
+        <div class="stat-box"><div class="stat-val" id="pdfStatTools">0</div><div class="stat-label">Tools Mapped</div></div>
+        <div class="stat-box"><div class="stat-val" id="pdfStatNums">0</div><div class="stat-label">Numbers Updated</div></div>
+        <div class="stat-box"><div class="stat-val warn" id="pdfStatUnmapped">0</div><div class="stat-label">Unmapped Tools</div></div>
       </div>
 
       <div class="panel">
@@ -284,70 +291,148 @@
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════
+//  TOOL LIBRARY
+//  matchType: 'serial'  — exact number in comment
+//  matchType: 'keyword' — all words must appear in comment
+// ══════════════════════════════════════════════════════
 let toolLibrary = [
-  { serial: "48410", okuma: 39,  desc: "1/2 DIA X 1.25 LOC X 0.06 RAD Helical EM" },
-  { serial: "03690", okuma: 12,  desc: "3/4 DIA X 3.25 LOC Helical EM" },
-  { serial: "48470", okuma: 41,  desc: "1/2 DIA X 2.0 LOC X 0.06 RAD Helical EM" },
-  { serial: "82397", okuma: 25,  desc: "1/2 DIA X 3.125 LOC Helical EM" },
-  // ADD MORE: { serial: "XXXXX", okuma: ##, desc: "description" },
+  { matchType: 'serial',  matchVal: '48410', okuma: 39,  desc: '1/2 DIA X 1.25 LOC X 0.06 RAD Helical EM' },
+  { matchType: 'serial',  matchVal: '03690', okuma: 12,  desc: '3/4 DIA X 3.25 LOC Helical EM' },
+  { matchType: 'serial',  matchVal: '48470', okuma: 41,  desc: '1/2 DIA X 2.0 LOC X 0.06 RAD Helical EM' },
+  { matchType: 'serial',  matchVal: '82397', okuma: 25,  desc: '1/2 DIA X 3.125 LOC Helical EM' },
+  { matchType: 'serial',  matchVal: '48115', okuma: 52,  desc: '1/4 DIA X 3/4 LOC' },
+  { matchType: 'keyword', matchVal: '1/4 90 DEGREE SPOTDRILL', okuma: 12,  desc: '1/4 90 Degree Spot Drill' },
+  { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL', okuma: 13,  desc: 'NO. 40 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '1/4 -90 DEG CHAMFER MILL', okuma: 11,  desc: '1/4 -90 DEG CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/4 - 100 DEGREE COUNTERSINK', okuma: 160, desc: '1/4 - 100 DEGREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: 'LTR. H STUB DRILL', okuma: 174, desc: 'LTR. H STUB DRILL' },
 ];
 
 let fileContent = null;
 let fileName    = null;
+let currentMatchType    = 'serial';
+let pdfCurrentMatchType = 'serial';
 
 function saveLibrary() {
-  try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e){}
+  try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
 }
 function loadLibrary() {
-  try { const s = localStorage.getItem('okumaToolLibrary'); if (s) toolLibrary = JSON.parse(s); } catch(e){}
+  try {
+    const s = localStorage.getItem('okumaToolLibrary');
+    if (s) toolLibrary = JSON.parse(s);
+  } catch(e) {}
 }
 
-function renderToolTable(filter) {
-  const q = (filter||'').toLowerCase();
+// ── Render tool table (shared by both tabs) ──
+function renderToolTable(bodyId, countId, filter) {
+  const q = (filter || '').toLowerCase();
   const rows = toolLibrary.filter(t =>
-    t.serial.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q) || String(t.okuma).includes(q)
+    (t.matchVal || '').toLowerCase().includes(q) ||
+    (t.desc || '').toLowerCase().includes(q) ||
+    String(t.okuma).includes(q)
   );
-  document.getElementById('toolBody').innerHTML = rows.length
-    ? rows.map(t => `
-        <tr>
-          <td class="serial">${esc(t.serial)}</td>
-          <td class="okuma-num">T${t.okuma}</td>
-          <td class="desc" title="${esc(t.desc||'')}">${esc(t.desc||'—')}</td>
-          <td><button class="btn-remove" onclick="removeTool('${esc(t.serial)}')" title="Remove">&#10005;</button></td>
-        </tr>`).join('')
-    : `<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
-  document.getElementById('toolCount').textContent = toolLibrary.length + ' TOOLS';
+  const badgeHtml = t => {
+    const isSerial = t.matchType !== 'keyword';
+    const col = isSerial ? 'var(--orange)' : 'var(--accent)';
+    const lbl = isSerial ? 'SERIAL' : 'KEYWORD';
+    return `<span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;border:1px solid ${col};color:${col};">${lbl}</span>`;
+  };
+  const uid = t => esc(t.matchVal + '|' + t.okuma);
+  document.getElementById(bodyId).innerHTML = rows.length
+    ? rows.map(t => `<tr>
+        <td>${badgeHtml(t)}</td>
+        <td class="serial">${esc(t.matchVal || '')}</td>
+        <td class="okuma-num">T${t.okuma}</td>
+        <td class="desc" title="${esc(t.desc || '')}">${esc(t.desc || '—')}</td>
+        <td><button class="btn-remove" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button></td>
+      </tr>`).join('')
+    : `<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+  if (document.getElementById(countId))
+    document.getElementById(countId).textContent = toolLibrary.length + ' TOOLS';
 }
 
-function removeTool(serial) {
-  toolLibrary = toolLibrary.filter(t => t.serial !== serial);
-  saveLibrary();
-  renderToolTable(document.getElementById('toolSearch').value);
-  log('warn', 'Removed: ' + serial);
+function renderAllTables() {
+  renderToolTable('toolBody',    'toolCount',    document.getElementById('toolSearch')?.value    || '');
+  renderToolTable('pdfToolBody', 'pdfToolCount', document.getElementById('pdfToolSearch')?.value || '');
 }
 
+function removeTool(uid) {
+  const [matchVal, okumaStr] = uid.split('|');
+  const okuma = parseInt(okumaStr);
+  toolLibrary = toolLibrary.filter(t => !(t.matchVal === matchVal && t.okuma === okuma));
+  saveLibrary(); renderAllTables();
+  log('warn', 'Removed: ' + matchVal + ' (T' + okuma + ')');
+}
+
+// ── Match type toggles — G-code tab ──
+function setMatchType(type) {
+  currentMatchType = type;
+  const isSerial = type === 'serial';
+  document.getElementById('btnSerial').classList.toggle('active', isSerial);
+  document.getElementById('btnKeyword').classList.toggle('active', !isSerial);
+  document.getElementById('matchHint').textContent = isSerial
+    ? 'SERIAL: exact number found in tool comment (e.g. 48410)'
+    : 'KEYWORD: all words must appear in tool comment (e.g. NO. 40 STUB DRILL)';
+  document.getElementById('matchValLabel').textContent = isSerial ? 'Serial Number' : 'Keyword / Phrase';
+  document.getElementById('newSerial').placeholder = isSerial ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
+}
+
+// ── Match type toggles — PDF tab ──
+function setPdfMatchType(type) {
+  pdfCurrentMatchType = type;
+  const isSerial = type === 'serial';
+  document.getElementById('pdfBtnSerial').classList.toggle('active', isSerial);
+  document.getElementById('pdfBtnKeyword').classList.toggle('active', !isSerial);
+  document.getElementById('pdfMatchHint').textContent = isSerial
+    ? 'SERIAL: exact number found in tool comment (e.g. 48410)'
+    : 'KEYWORD: all words must appear in tool comment (e.g. NO. 40 STUB DRILL)';
+  document.getElementById('pdfMatchValLabel').textContent = isSerial ? 'Serial Number' : 'Keyword / Phrase';
+  document.getElementById('pdfNewSerial').placeholder = isSerial ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
+}
+
+// ── Add tool — G-code tab form ──
 function toggleAddForm() { document.getElementById('addToolForm').classList.toggle('open'); }
 
 function addTool() {
-  const serial = document.getElementById('newSerial').value.trim();
-  const okuma  = parseInt(document.getElementById('newOkuma').value);
-  const desc   = document.getElementById('newDesc').value.trim();
-  if (!serial)           { alert('Serial number is required.'); return; }
+  const matchVal = document.getElementById('newSerial').value.trim();
+  const okuma    = parseInt(document.getElementById('newOkuma').value);
+  const desc     = document.getElementById('newDesc').value.trim();
+  if (!matchVal)         { alert('Serial number or keyword is required.'); return; }
   if (!okuma || okuma<1) { alert('Okuma tool number is required.'); return; }
-  if (toolLibrary.find(t => t.serial === serial)) { alert('Serial ' + serial + ' already exists.'); return; }
-  toolLibrary.push({ serial, okuma, desc });
-  saveLibrary();
-  renderToolTable(document.getElementById('toolSearch').value);
+  if (toolLibrary.find(t => t.matchVal === matchVal && t.okuma === okuma)) {
+    alert('This entry already exists.'); return;
+  }
+  toolLibrary.push({ matchType: currentMatchType, matchVal, okuma, desc });
+  saveLibrary(); renderAllTables();
   ['newSerial','newOkuma','newDesc'].forEach(id => document.getElementById(id).value = '');
-  log('ok', 'Added: ' + serial + ' → T' + okuma + (desc ? '  ' + desc : ''));
+  log('ok', 'Added: ' + matchVal + ' → T' + okuma);
 }
 
+// ── Add tool — PDF tab form ──
+function togglePdfAddForm() { document.getElementById('pdfAddToolForm').classList.toggle('open'); }
+
+function addToolFromPdfTab() {
+  const matchVal = document.getElementById('pdfNewSerial').value.trim();
+  const okuma    = parseInt(document.getElementById('pdfNewOkuma').value);
+  const desc     = document.getElementById('pdfNewDesc').value.trim();
+  if (!matchVal)         { alert('Serial number or keyword is required.'); return; }
+  if (!okuma || okuma<1) { alert('Okuma tool number is required.'); return; }
+  if (toolLibrary.find(t => t.matchVal === matchVal && t.okuma === okuma)) {
+    alert('This entry already exists.'); return;
+  }
+  toolLibrary.push({ matchType: pdfCurrentMatchType, matchVal, okuma, desc });
+  saveLibrary(); renderAllTables();
+  ['pdfNewSerial','pdfNewOkuma','pdfNewDesc'].forEach(id => document.getElementById(id).value = '');
+  pdfLog('ok', 'Added: ' + matchVal + ' → T' + okuma);
+}
+
+// ── Export / Import ──
 function exportLibrary() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(toolLibrary, null, 2)], { type: 'application/json' }));
   a.download = 'okuma_tool_library.json'; a.click();
 }
-
 function importLibrary(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -355,18 +440,34 @@ function importLibrary(e) {
     try {
       const data = JSON.parse(ev.target.result);
       if (!Array.isArray(data)) throw new Error('Expected JSON array');
-      toolLibrary = data; saveLibrary(); renderToolTable('');
+      toolLibrary = data; saveLibrary(); renderAllTables();
       log('ok', 'Imported ' + data.length + ' tools from ' + file.name);
     } catch(err) { log('error', 'Import failed: ' + err.message); }
   };
   reader.readAsText(file); e.target.value = '';
 }
 
-const dropZone = document.getElementById('dropZone');
+// ── Search listeners ──
+document.addEventListener('input', e => {
+  if (e.target.id === 'toolSearch')    renderToolTable('toolBody',    'toolCount',    e.target.value);
+  if (e.target.id === 'pdfToolSearch') renderToolTable('pdfToolBody', 'pdfToolCount', e.target.value);
+});
+
+// ── Converter sub-tab switching ──
+function switchConvTab(name) {
+  document.querySelectorAll('.conv-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.conv-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ctab-' + name + '-pane').classList.add('active');
+  document.getElementById('ctab-' + name).classList.add('active');
+}
+
+// ── G-code file handling ──
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
 function handleFile(file) {
   fileName = file.name;
@@ -389,6 +490,7 @@ function handleFile(file) {
   reader.readAsText(file);
 }
 
+// ── G-code logging ──
 function log(type, msg) {
   const box = document.getElementById('logBox');
   const span = document.createElement('span');
@@ -396,7 +498,6 @@ function log(type, msg) {
   span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
   box.appendChild(span); box.scrollTop = box.scrollHeight;
 }
-
 function clearResults() {
   document.getElementById('downloadBar').classList.remove('show');
   document.getElementById('statsRow').style.display    = 'none';
@@ -404,6 +505,7 @@ function clearResults() {
   document.getElementById('emptyState').style.display   = 'block';
 }
 
+// ── G-code conversion ──
 function runConversion() {
   if (!fileContent) { alert('Please upload a .MIN file first.'); return; }
   document.getElementById('logBox').innerHTML = '';
@@ -422,11 +524,19 @@ function runConversion() {
     if (!s.startsWith('(')) continue;
     const m = s.match(headerRe); if (!m) continue;
     const tNum = m[1];
+    const sUp  = s.toUpperCase();
     let matched = false;
     for (const entry of toolLibrary) {
-      if (s.includes(entry.serial)) {
+      const val = (entry.matchVal || '').toUpperCase();
+      let hit = false;
+      if (entry.matchType === 'keyword') {
+        hit = val.split(/\s+/).every(tok => sUp.includes(tok));
+      } else {
+        hit = sUp.includes(val);
+      }
+      if (hit) {
         toolMap[tNum] = entry.okuma;
-        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + entry.serial + ']  ' + (entry.desc||''));
+        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + val + ']  ' + (entry.desc || ''));
         matched = true; break;
       }
     }
@@ -477,7 +587,7 @@ function runConversion() {
   const url = URL.createObjectURL(new Blob([convertedText], { type: 'text/plain' }));
   document.getElementById('downloadBtn').href = url;
   document.getElementById('downloadBtn').download = outName;
-  document.getElementById('dlMeta').textContent = outName + '  ·  ' + changedCount + ' lines modified';
+  document.getElementById('dlMeta').textContent = '  ·  ' + outName + '  ·  ' + changedCount + ' lines modified';
   document.getElementById('downloadBar').classList.add('show');
 
   const buildHtml = arr => arr.slice(0, 300).map(l =>
@@ -492,36 +602,16 @@ function runConversion() {
   panes.forEach(p => { p.onscroll = () => panes.forEach(o => { if (o !== p) o.scrollTop = p.scrollTop; }); });
 }
 
-function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-document.getElementById('toolSearch').addEventListener('input', e => renderToolTable(e.target.value));
-loadLibrary();
-renderToolTable('');
-</script>
-
-<script>
-// ── Converter sub-tab switching ──
-function switchConvTab(name) {
-  document.querySelectorAll('.conv-tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.conv-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('ctab-' + name + '-pane').classList.add('active');
-  document.getElementById('ctab-' + name).classList.add('active');
-}
-
 // ── PDF logging ──
 function pdfLog(type, msg) {
-  const box  = document.getElementById('pdfLogBox');
+  const box = document.getElementById('pdfLogBox');
   const span = document.createElement('span');
   span.className = 'log-' + type;
-  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  span.textContent = '[' + ts + '] ' + msg + '\n';
-  box.appendChild(span);
-  box.scrollTop = box.scrollHeight;
+  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
+  box.appendChild(span); box.scrollTop = box.scrollHeight;
 }
 
-// ── PDF file drop/select ──
+// ── PDF file handling ──
 let pdfBytes    = null;
 let pdfFileName = null;
 
@@ -530,10 +620,7 @@ let pdfFileName = null;
   const fi = document.getElementById('pdfFileInput');
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
   dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault(); dz.classList.remove('drag-over');
-    if (e.dataTransfer.files[0]) handlePdfFile(e.dataTransfer.files[0]);
-  });
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handlePdfFile(e.dataTransfer.files[0]); });
   fi.addEventListener('change', e => { if (e.target.files[0]) handlePdfFile(e.target.files[0]); });
 })();
 
@@ -542,21 +629,17 @@ function handlePdfFile(file) {
   const reader = new FileReader();
   reader.onload = ev => {
     pdfBytes = new Uint8Array(ev.target.result);
-    const dz = document.getElementById('pdfDropZone');
-    dz.innerHTML = `
+    document.getElementById('pdfDropZone').innerHTML = `
       <input type="file" id="pdfFileInput" accept=".pdf,.PDF">
       <div class="file-loaded">
         <div class="file-name">&#10004; ${esc(file.name)}</div>
         <div class="file-meta">${(file.size/1024).toFixed(1)} KB</div>
         <div class="file-change">Click to change file</div>
       </div>`;
-    document.getElementById('pdfFileInput').addEventListener('change', e => {
-      if (e.target.files[0]) handlePdfFile(e.target.files[0]);
-    });
+    document.getElementById('pdfFileInput').addEventListener('change', e => { if (e.target.files[0]) handlePdfFile(e.target.files[0]); });
     document.getElementById('pdfConvertBtn').disabled = false;
     document.getElementById('pdfLogBox').innerHTML = '';
-    pdfLog('ok', 'Loaded: ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)');
-    // Reset results
+    pdfLog('ok', 'Loaded: ' + file.name);
     document.getElementById('pdfDownloadBar').classList.remove('show');
     document.getElementById('pdfStatsRow').style.display = 'none';
     document.getElementById('pdfPreviewPanel').style.display = 'none';
@@ -566,199 +649,318 @@ function handlePdfFile(file) {
 }
 
 // ── PDF Conversion Engine ──
-// Uses pdf-lib (write) + pdf.js (preview) loaded from CDN on demand
 async function runPdfConversion() {
   if (!pdfBytes) { alert('Please upload a PDF first.'); return; }
-
   const btn = document.getElementById('pdfConvertBtn');
-  btn.disabled = true;
-  btn.textContent = 'PROCESSING...';
+  btn.disabled = true; btn.innerHTML = 'PROCESSING...';
   document.getElementById('pdfLogBox').innerHTML = '';
   pdfLog('info', '══════════════════════════════════════════');
   pdfLog('info', ' STARTING PDF CONVERSION');
   pdfLog('info', '══════════════════════════════════════════');
 
   try {
-    // ── Load CDN libraries on first use ──
-    if (!window.PDFLib) {
-      pdfLog('info', 'Loading pdf-lib...');
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
-    }
-    if (!window.pdfjsLib) {
-      pdfLog('info', 'Loading pdf.js...');
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-
     const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
     const woInc = parseInt(document.getElementById('pdfWoIncrement').value) || 0;
 
-    // ── Step 1: Load PDF with pdf.js to extract text positions ──
-    pdfLog('info', 'Extracting text from PDF...');
+    // ── Step 1: Extract word-level tokens with positions via PDF.js ──
+    pdfLog('info', 'Extracting text positions...');
     const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice() });
-    const jsDoc = await loadingTask.promise;
-    const numPages = jsDoc.numPages;
-    pdfLog('info', 'Pages: ' + numPages);
+    const pdfDoc      = await loadingTask.promise;
+    const numPages    = pdfDoc.numPages;
+    pdfLog('info', 'PDF has ' + numPages + ' pages.');
 
-    // ── Step 2: Build tool map from library ──
-    pdfLog('info', 'Building tool map...');
-    // toolLibrary is defined in the main script block above
-    const toolMap = {}; // originalT# -> okumaT#
-    let unmappedCount = 0;
+    const allWords = [];
+    for (let pi = 0; pi < numPages; pi++) {
+      const page    = await pdfDoc.getPage(pi + 1);
+      const vp      = page.getViewport({ scale: 1.0 });
+      const content = await page.getTextContent();
+      const pageH   = vp.height;
 
-    // Collect all text across pages to find tool associations
-    const allPageText = [];
-    for (let pn = 1; pn <= numPages; pn++) {
-      const page  = await jsDoc.getPage(pn);
-      const items = (await page.getTextContent()).items;
-      allPageText.push(items);
-    }
+      for (const item of content.items) {
+        if (!item.str || !item.str.trim()) continue;
+        const x = item.transform[4];
+        const y = item.transform[5];
+        const w = item.width;
+        const h = item.height || 8;
 
-    // Find tool number associations by scanning each page's text
-    // Mastercam setup sheets have lines like:
-    //   "# 1  HELICAL - 48410 ..." in the tool list
-    //   "#1 - 0.5000 Bull endmill - HELICAL - 48410" in operations
-    // We look for "#N" or "# N" tokens then check nearby text for serial/keyword
-    const replacements = []; // { pageIdx, x, y, oldText, newText, fontSize }
-    let toolsMapped = 0;
-
-    for (let pi = 0; pi < allPageText.length; pi++) {
-      const items = allPageText[pi];
-      const fullText = items.map(i => i.str).join(' ');
-
-      // Build a map of original tool# -> okuma# for this page context
-      const pageToolMap = {};
-
-      // Scan for tool definitions: "# N" or "#N" followed by description containing serial/keyword
-      for (let ii = 0; ii < items.length; ii++) {
-        const str = items[ii].str.trim();
-
-        // Match "# N" or "#N" patterns
-        const hashMatch = str.match(/^#\s*(\d+)\s*$/) || str.match(/^#(\d+)$/);
-        if (!hashMatch) continue;
-
-        const origTNum = parseInt(hashMatch[1]);
-        if (origTNum === 0 || pageToolMap[origTNum] !== undefined) continue;
-
-        // Look at surrounding text (next ~15 items) for a library match
-        const context = items.slice(ii, Math.min(ii + 20, items.length))
-          .map(i => i.str).join(' ').toUpperCase();
-
-        let matched = false;
-        for (const entry of toolLibrary) {
-          const matchVal = (entry.matchVal || entry.serial || '').toUpperCase();
-          if (!matchVal) continue;
-
-          let hit = false;
-          if (entry.matchType === 'keyword') {
-            // All tokens must appear in context
-            hit = matchVal.split(/\s+/).every(tok => context.includes(tok));
-          } else {
-            // Serial — exact string match
-            hit = context.includes(matchVal);
+        // Split each PDF text item into individual word tokens with estimated x positions
+        const tokens = item.str.split(/(\s+)/);
+        let curX = x;
+        for (const tok of tokens) {
+          if (tok.trim().length === 0) {
+            curX += (item.width / Math.max(item.str.length, 1)) * tok.length;
+            continue;
           }
-
-          if (hit) {
-            pageToolMap[origTNum] = entry.okuma;
-            if (!Object.values(toolMap).includes(entry.okuma)) {
-              pdfLog('map', '  T' + origTNum + ' → Okuma T' + entry.okuma +
-                '  [' + matchVal + ']  ' + (entry.desc || ''));
-              toolsMapped++;
-            }
-            toolMap[origTNum] = entry.okuma;
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) {
-          unmappedCount++;
-          pdfLog('warn', '  T' + origTNum + ' not in library — keeping original');
+          const tokW = (item.width / Math.max(item.str.length, 1)) * tok.length;
+          allWords.push({
+            text:      tok.trim(),
+            x:         curX,
+            y:         y,
+            w:         tokW,
+            h:         h,
+            fontSize:  h,
+            pageIndex: pi,
+            pageH:     pageH,
+          });
+          curX += tokW + (item.width / Math.max(item.str.length, 1));
         }
       }
+    }
+    pdfLog('info', 'Extracted ' + allWords.length + ' text tokens across ' + numPages + ' pages.');
 
-      // Now find all number tokens that need replacing on this page
-      for (let ii = 0; ii < items.length; ii++) {
-        const item = items[ii];
-        const str  = item.str.trim();
+    // ── Step 2: Group tokens into visual lines (same page + similar Y) ──
+    const lineMap = {};
+    for (const w of allWords) {
+      const key = w.pageIndex + '_' + Math.round(w.y);
+      if (!lineMap[key]) lineMap[key] = [];
+      lineMap[key].push(w);
+    }
+    const lineKeys = Object.keys(lineMap).sort((a, b) => {
+      const [pa, ya] = a.split('_').map(Number);
+      const [pb, yb] = b.split('_').map(Number);
+      if (pa !== pb) return pa - pb;
+      return yb - ya;
+    });
+    const lines = lineKeys.map(key => ({
+      key,
+      words: lineMap[key].sort((a, b) => a.x - b.x),
+      text:  lineMap[key].sort((a, b) => a.x - b.x).map(w => w.text).join(' '),
+    }));
 
-        // Tool number tokens: "#N", "# N", "H: N", "D: N" patterns
-        const numMatch = str.match(/^(\d+)$/)  ||   // bare number
-                         str.match(/^#(\d+)$/);     // #N
+    // ── Step 3: Match tool list rows against library ──
+    // Helper: search library for a matching entry
+    function matchLibrary(descStr) {
+      const up = descStr.toUpperCase();
+      for (const entry of toolLibrary) {
+        const val = (entry.matchVal || entry.serial || '').toUpperCase();
+        let hit = false;
+        if (entry.matchType === 'keyword') {
+          const toks = val.split(/\s+/).filter(t => t.length > 0);
+          hit = toks.length > 0 && toks.every(tok => up.includes(tok));
+        } else {
+          hit = val.length > 0 && up.includes(val);
+        }
+        if (hit) return entry;
+      }
+      return null;
+    }
 
-        if (numMatch) {
-          const n = parseInt(numMatch[1]);
-          if (pageToolMap[n] !== undefined && n !== pageToolMap[n]) {
-            const tx = item.transform;
+    const mcamToOkuma = {};  // { "1": "52", "3": "33", ... }
+
+    // Pass A: Tool list header rows — "# N" with description on same visual row (within ±15 y units)
+    pdfLog('info', 'Matching tools...');
+    for (let li = 0; li < lines.length; li++) {
+      const curTxt = lines[li].text.trim();
+      const curKey = lines[li].key;
+      const [curPage, curY] = curKey.split('_').map(Number);
+
+      const mHashLine = curTxt.match(/^#\s*(\d+)\s*$/);
+      if (!mHashLine) continue;
+      const mcamNum = mHashLine[1];
+      if (mcamToOkuma[mcamNum]) continue;
+
+      // Search all lines on the same page within ±15 y units for a description
+      for (let lj = 0; lj < lines.length; lj++) {
+        if (lj === li) continue;
+        const [pg2, y2] = lines[lj].key.split('_').map(Number);
+        if (pg2 !== curPage) continue;
+        if (Math.abs(y2 - curY) > 15) continue;
+        const txt = lines[lj].text.trim();
+        if (txt.length < 5) continue;
+        if (/^(STICKOUT|TOOL LIST|OPERATION LIST|PART CYCLE|PROGRAM NUMBER)/i.test(txt)) continue;
+        const entry = matchLibrary(txt);
+        if (entry) {
+          mcamToOkuma[mcamNum] = String(entry.okuma);
+          pdfLog('map', '  Mastercam #' + mcamNum + ' → Okuma T' + entry.okuma
+            + '  [' + entry.matchType + ': ' + (entry.matchVal || entry.serial) + ']  (tool list)');
+          break;
+        }
+      }
+      if (!mcamToOkuma[mcamNum]) {
+        pdfLog('warn', '  #' + mcamNum + ' not matched — page ' + curPage + '  row: ' + curTxt.substring(0, 80));
+      }
+    }
+
+    // Pass B: Operation list rows — "N #M - description..." (fallback if not already matched)
+    for (let li = 0; li < lines.length; li++) {
+      const cur = lines[li].text;
+      const mOpRow = cur.match(/^\d+\s+#(\d+)\s+-/);
+      if (!mOpRow) continue;
+      const mcamNum = mOpRow[1];
+      if (mcamToOkuma[mcamNum]) continue;
+      const entry = matchLibrary(cur);
+      if (entry) {
+        mcamToOkuma[mcamNum] = String(entry.okuma);
+        pdfLog('map', '  Mastercam #' + mcamNum + ' → Okuma T' + entry.okuma
+          + '  [' + entry.matchType + ': ' + (entry.matchVal || entry.serial) + ']  (op list)');
+      }
+    }
+
+    if (Object.keys(mcamToOkuma).length === 0) {
+      pdfLog('warn', 'WARNING: No tools matched. Check tool library serials/keywords.');
+    } else {
+      pdfLog('info', 'Tool map built: ' + Object.keys(mcamToOkuma).length + ' tools resolved.');
+    }
+
+    // ── Step 4: Collect all replacement tokens ──
+    const replacements = [];
+
+    for (let li = 0; li < lines.length; li++) {
+      const cur    = lines[li];
+      const curTxt = cur.text.trim();
+
+      // Case A: Tool list header "# N" — whiteout entire "# N" and rewrite as "# NewNum"
+      if (/^#\s*\d+\s*$/.test(curTxt)) {
+        const mN = curTxt.match(/^#\s*(\d+)/);
+        if (mN && mcamToOkuma[mN[1]]) {
+          // Find the # token and the number token to get full x span
+          const hashWord = cur.words.find(w => w.text === '#');
+          const numWord  = cur.words.find(w => /^\d+$/.test(w.text) && w.text === mN[1]);
+          if (hashWord && numWord) {
+            // Use the # token as anchor — rewrite the whole thing as "# NewNum"
             replacements.push({
-              pageIdx:  pi,
-              x:        tx[4],
-              y:        tx[5],
-              oldText:  str,
-              newText:  str.startsWith('#') ? '#' + pageToolMap[n] : String(pageToolMap[n]),
-              fontSize: Math.abs(tx[0]) || Math.abs(tx[3]) || 10
+              ...hashWord,
+              oldText:     '# ' + mN[1],
+              newText:     '# ' + mcamToOkuma[mN[1]],
+              isHeaderNum: true,
+              // Override x/w to span from # all the way through the old number
+              x: hashWord.x,
+              w: (numWord.x + numWord.w) - hashWord.x,
             });
+          } else if (numWord) {
+            // Fallback: just replace the number token if # wasn't found separately
+            replacements.push({ ...numWord, oldText: numWord.text, newText: mcamToOkuma[mN[1]], isHeaderNum: true });
           }
         }
+        continue;
+      }
 
-        // WO: N pattern — increment by pdfWoIncrement
-        if (str === 'WO:' && woInc > 0) {
-          // Look at next item for the number
-          const nextItem = items[ii + 1];
-          if (nextItem) {
-            const woNum = parseInt(nextItem.str.trim());
-            if (!isNaN(woNum)) {
-              const tx = nextItem.transform;
-              replacements.push({
-                pageIdx:  pi,
-                x:        tx[4],
-                y:        tx[5],
-                oldText:  nextItem.str.trim(),
-                newText:  String(woNum + woInc),
-                fontSize: Math.abs(tx[0]) || Math.abs(tx[3]) || 10
-              });
+      // Case B: Operation row "N #M - ..." — replace the #M token
+      const mOpRow = curTxt.match(/^\d+\s+#(\d+)\s+-/);
+      if (mOpRow) {
+        const mcamNum = mOpRow[1];
+        if (mcamToOkuma[mcamNum]) {
+          for (const w of cur.words) {
+            if (w.text === '#' + mcamNum) {
+              replacements.push({ ...w, oldText: w.text, newText: '#' + mcamToOkuma[mcamNum] });
+              break;
             }
           }
         }
+
+        // Case C: H: and D: values — find number token immediately after each label
+        // Also gather WO: value from the same row (same-y neighbor lines included)
+        const [curPg, curYy] = cur.key.split('_').map(Number);
+        const sameRowWords = [...cur.words];
+        for (const otherLine of lines) {
+          if (otherLine.key === cur.key) continue;
+          const [pg2, y2] = otherLine.key.split('_').map(Number);
+          if (pg2 === curPg && Math.abs(y2 - curYy) <= 3) {
+            sameRowWords.push(...otherLine.words);
+          }
+        }
+        sameRowWords.sort((a, b) => a.x - b.x);
+
+        for (let wi = 0; wi < sameRowWords.length; wi++) {
+          const wt = sameRowWords[wi].text;
+          if (wt === 'H:' || wt === 'D:') {
+            for (let wj = wi + 1; wj < sameRowWords.length; wj++) {
+              const cand = sameRowWords[wj];
+              if (/^\d+$/.test(cand.text)) {
+                if (mcamToOkuma[cand.text]) {
+                  const alreadyQueued = replacements.some(r =>
+                    r.pageIndex === cand.pageIndex &&
+                    Math.abs(r.x - cand.x) < 2 &&
+                    Math.abs(r.y - cand.y) < 2
+                  );
+                  if (!alreadyQueued) {
+                    replacements.push({ ...cand, oldText: cand.text, newText: mcamToOkuma[cand.text] });
+                  }
+                }
+                break;
+              }
+              if (cand.text === 'Z:' || cand.text === 'WO:') break;
+            }
+          }
+          // WO: increment — find the number token immediately after WO:
+          if (wt === 'WO:' && woInc > 0) {
+            for (let wj = wi + 1; wj < sameRowWords.length; wj++) {
+              const cand = sameRowWords[wj];
+              if (/^\d+$/.test(cand.text)) {
+                const woNum = parseInt(cand.text);
+                const alreadyQueued = replacements.some(r =>
+                  r.pageIndex === cand.pageIndex &&
+                  Math.abs(r.x - cand.x) < 2 &&
+                  Math.abs(r.y - cand.y) < 2
+                );
+                if (!alreadyQueued) {
+                  replacements.push({ ...cand, oldText: cand.text, newText: String(woNum + woInc), isWO: true });
+                }
+                break;
+              }
+            }
+          }
+        }
+        continue;
       }
     }
 
-    pdfLog('info', 'Found ' + replacements.length + ' values to update');
-    if (unmappedCount > 0) pdfLog('warn', unmappedCount + ' tool(s) not in library');
+    pdfLog('info', 'Found ' + replacements.length + ' tokens to replace.');
 
-    // ── Step 3: Apply replacements with pdf-lib ──
-    pdfLog('info', 'Applying replacements to PDF...');
-    const libDoc = await PDFDocument.load(pdfBytes);
-    const font   = await libDoc.embedFont(StandardFonts.Helvetica);
-    const pages  = libDoc.getPages();
-    let repCount = 0;
+    if (replacements.length === 0) {
+      pdfLog('warn', 'No replacements found. Check library or PDF format.');
+      btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF';
+      return;
+    }
+
+    // ── Step 5: Apply replacements with pdf-lib ──
+    pdfLog('info', 'Applying replacements...');
+    const libDoc    = await PDFDocument.load(pdfBytes.slice());
+    const font      = await libDoc.embedFont(StandardFonts.HelveticaBold);
+    const libPages  = libDoc.getPages();
+    let repCount    = 0;
 
     for (const rep of replacements) {
-      const pg   = pages[rep.pageIdx];
-      const { height } = pg.getSize();
-      const fs   = Math.max(6, Math.min(rep.fontSize, 14));
+      const pg  = libPages[rep.pageIndex];
+      // Use full font size (no scaling) so new text matches original size exactly
+      const fs  = Math.max(rep.fontSize || 8, 6);
+      const isWO = rep.isWO === true;
 
-      // White-out box
-      const oldW = font.widthOfTextAtSize(rep.oldText, fs);
-      const newW = font.widthOfTextAtSize(rep.newText, fs);
-      const boxW = Math.max(oldW, newW) + 4;
-      const boxH = fs + 4;
+      const oldW = font.widthOfTextAtSize(String(rep.oldText), fs);
+      const newW = font.widthOfTextAtSize(String(rep.newText), fs);
+
+      // For header nums, right-align so new text ends where old text ended
+      let stampX = rep.x;
+      if (rep.isHeaderNum && newW > oldW) {
+        stampX = rep.x + oldW - newW + 8;
+      }
+
+      // WO values: shift stamp slightly left and up to better align with original
+      if (isWO) {
+        stampX = rep.x - 1;
+      }
+
+      // Operation list #N: shift left to avoid clipping next character
+      if (!isWO && !rep.isHeaderNum) {
+        stampX = rep.x - 3;  // increase this number to shift further left
+      }
+
+      // Whiteout box — extra generous padding for WO values to fully cover original
+      const padL = isWO ? 4 : 2;
+      const padR = isWO ? 2 : 1;
+      const padB = isWO ? 3 : 1;
+      const padT = isWO ? 5 : 2;
+      const whiteLeft  = Math.min(rep.x, stampX) - padL;
+      const whiteRight = Math.max(rep.x + oldW, stampX + newW) + padR;
+      const boxH = (rep.h || fs) + padB + padT;
 
       pg.drawRectangle({
-        x:      rep.x - 1,
-        y:      rep.y - 2,
-        width:  boxW,
-        height: boxH,
-        color:  rgb(1, 1, 1),
+        x: whiteLeft, y: rep.y - padB,
+        width: whiteRight - whiteLeft, height: boxH,
+        color: rgb(1, 1, 1),
       });
-
-      // Stamp new text
-      pg.drawText(rep.newText, {
-        x:     rep.x,
-        y:     rep.y,
-        size:  fs,
-        font:  font,
-        color: rgb(0, 0, 0),
+      pg.drawText(String(rep.newText), {
+        x: stampX, y: rep.y, size: fs, font, color: rgb(0, 0, 0),
       });
       repCount++;
     }
@@ -767,35 +969,31 @@ async function runPdfConversion() {
     pdfLog('ok', ' DONE — ' + repCount + ' replacements applied');
     pdfLog('ok', '══════════════════════════════════════════');
 
-    // ── Step 4: Stats ──
     document.getElementById('pdfStatPages').textContent    = numPages;
-    document.getElementById('pdfStatTools').textContent    = toolsMapped;
+    document.getElementById('pdfStatTools').textContent    = Object.keys(mcamToOkuma).length;
     document.getElementById('pdfStatNums').textContent     = repCount;
-    document.getElementById('pdfStatUnmapped').textContent = unmappedCount;
+    document.getElementById('pdfStatUnmapped').textContent =
+      document.getElementById('pdfLogBox').querySelectorAll('.log-warn').length;
     document.getElementById('pdfStatsRow').style.display   = 'flex';
 
-    // ── Step 5: Save + download ──
     const outBytes = await libDoc.save();
-    const blob     = new Blob([outBytes], { type: 'application/pdf' });
-    const url      = URL.createObjectURL(blob);
     const outName  = pdfFileName.replace(/\.[^.]+$/, '') + '_OKUMA.pdf';
+    const url      = URL.createObjectURL(new Blob([outBytes], { type: 'application/pdf' }));
     document.getElementById('pdfDownloadBtn').href     = url;
     document.getElementById('pdfDownloadBtn').download = outName;
-    document.getElementById('pdfDlMeta').textContent   = outName + '  ·  ' + repCount + ' numbers updated';
+    document.getElementById('pdfDlMeta').textContent   = '  ·  ' + outName + '  ·  ' + repCount + ' numbers updated';
     document.getElementById('pdfDownloadBar').classList.add('show');
 
-    // ── Step 6: Preview ──
     pdfLog('info', 'Rendering preview...');
-    const previewDoc  = await pdfjsLib.getDocument({ data: outBytes }).promise;
-    const wrap        = document.getElementById('pdfPreviewWrap');
-    wrap.innerHTML    = '';
+    const previewDoc = await pdfjsLib.getDocument({ data: outBytes }).promise;
+    const wrap = document.getElementById('pdfPreviewWrap');
+    wrap.innerHTML = '';
     for (let pi = 0; pi < previewDoc.numPages; pi++) {
-      const pg     = await previewDoc.getPage(pi + 1);
-      const vp     = pg.getViewport({ scale: 1.4 });
+      const pg = await previewDoc.getPage(pi + 1);
+      const vp = pg.getViewport({ scale: 1.4 });
       const canvas = document.createElement('canvas');
       canvas.className = 'pdf-page-canvas';
-      canvas.width  = vp.width;
-      canvas.height = vp.height;
+      canvas.width = vp.width; canvas.height = vp.height;
       wrap.appendChild(canvas);
       await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
     }
@@ -807,10 +1005,9 @@ async function runPdfConversion() {
     pdfLog('error', 'ERROR: ' + err.message);
     console.error(err);
   }
-
-  btn.disabled = false;
-  btn.textContent = '&#128196; CONVERT PDF';
+  btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF';
 }
+
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -819,7 +1016,20 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ──
+loadLibrary();
+renderAllTables();
 </script>
+
+<script>
+// ── Wipe transition ──
+(function () {
+  var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;transform:translateX(-100%);transition:none;';
   document.body.appendChild(overlay);
 
@@ -857,6 +1067,16 @@ function loadScript(src) {
     });
   });
 }());
+</script>
+
+<!-- Load PDF libraries at page start so they're ready when Convert is clicked -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
 </script>
 </body>
 </html>
