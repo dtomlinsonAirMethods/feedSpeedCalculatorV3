@@ -302,9 +302,11 @@ let toolLibrary = [
   { matchType: 'serial',  matchVal: '48470', okuma: 41,  desc: '1/2 DIA X 2.0 LOC X 0.06 RAD Helical EM' },
   { matchType: 'serial',  matchVal: '82397', okuma: 25,  desc: '1/2 DIA X 3.125 LOC Helical EM' },
   { matchType: 'serial',  matchVal: '48115', okuma: 52,  desc: '1/4 DIA X 3/4 LOC' },
+  { matchType: 'serial',  matchVal: '48425', okuma: 38,  desc: '1/2 DIA X 1.625 LOC' },
   { matchType: 'keyword', matchVal: '1/4 90 DEGREE SPOTDRILL', okuma: 12,  desc: '1/4 90 Degree Spot Drill' },
   { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL', okuma: 13,  desc: 'NO. 40 STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/4 -90 DEG CHAMFER MILL', okuma: 11,  desc: '1/4 -90 DEG CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/4 90 DEG CHAMFER MILL', okuma: 11,  desc: '1/4 90 DEG CHAMFER MILL' },
   { matchType: 'keyword', matchVal: '1/4 - 100 DEGREE COUNTERSINK', okuma: 160, desc: '1/4 - 100 DEGREE COUNTERSINK' },
   { matchType: 'keyword', matchVal: 'LTR. H STUB DRILL', okuma: 174, desc: 'LTR. H STUB DRILL' },
 ];
@@ -555,9 +557,22 @@ function runConversion() {
     const orig = rawLine.replace(/\r$/, '');
     let conv = orig;
     conv = conv.replace(/G15\s+H(\d+)/g, (_, h) => { wcsCount++; return 'G15 H' + (parseInt(h) + wcsInc); });
-    if (!orig.trim().startsWith('(')) {
+    const isComment = orig.trim().startsWith('(');
+    if (!isComment) {
+      // Non-comment: replace standalone T# in G-code
       conv = conv.replace(/\bT(\d+)\b/g, (match, tNum) => {
         if (toolMap[tNum] !== undefined) { toolCount++; return 'T' + toolMap[tNum]; }
+        return match;
+      });
+    } else {
+      // Header comment: replace T# at start e.g. (T1 - ... -> (T39 - ...
+      conv = conv.replace(/^\(T(\d+)([\s\-])/, (match, tNum, sep) => {
+        if (toolMap[tNum] !== undefined) { return '(T' + toolMap[tNum] + sep; }
+        return match;
+      });
+      // Update trailing H# e.g. (T1 - HELICAL - 48410 - H1) -> (T39 - ... - H39)
+      conv = conv.replace(/([\-\s]+H)(\d+)(\s*\))\s*$/, (match, prefix, hNum, suffix) => {
+        if (toolMap[hNum] !== undefined) { return prefix + toolMap[hNum] + suffix; }
         return match;
       });
     }
