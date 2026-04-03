@@ -11,6 +11,8 @@ const FILES_TO_CACHE = [
   BASE + "/styles/converter.css",
   BASE + "/js/script.js",
   BASE + "/js/app.js",
+  BASE + "/js/converter.js",
+  BASE + "/js/app-transition.js",
   BASE + "/data/material.json",
   BASE + "/data/machines.json",
   BASE + "/data/thread.json",
