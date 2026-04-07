@@ -1,24 +1,244 @@
 // ============================================================
 //  converter.js — Okuma Genos Converter Logic
-//  Handles: tool library, G-code conversion, PDF conversion,
-//           Mastercam HTML report import
+//  v2 — Full tool library, exact keyword matching, edit/sort
 // ============================================================
 
-// ── Tool Library defaults (overridden by localStorage on load) ──
-let toolLibrary = [
-  { matchType: 'serial',  matchVal: '48410', okuma: 39,  desc: '1/2 DIA X 1.25 LOC X 0.06 RAD Helical EM' },
-  { matchType: 'serial',  matchVal: '03690', okuma: 12,  desc: '3/4 DIA X 3.25 LOC Helical EM' },
-  { matchType: 'serial',  matchVal: '48470', okuma: 41,  desc: '1/2 DIA X 2.0 LOC X 0.06 RAD Helical EM' },
-  { matchType: 'serial',  matchVal: '82397', okuma: 25,  desc: '1/2 DIA X 3.125 LOC Helical EM' },
-  { matchType: 'serial',  matchVal: '48115', okuma: 52,  desc: '1/4 DIA X 3/4 LOC' },
-  { matchType: 'serial',  matchVal: '48425', okuma: 38,  desc: '1/2 DIA X 1.625 LOC' },
-  { matchType: 'keyword', matchVal: '1/4 90 DEGREE SPOTDRILL',      okuma: 12,  desc: '1/4 90 Degree Spot Drill' },
-  { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL',            okuma: 13,  desc: 'NO. 40 STUB DRILL' },
-  { matchType: 'keyword', matchVal: '1/4 -90 DEG CHAMFER MILL',     okuma: 11,  desc: '1/4 -90 DEG CHAMFER MILL' },
-  { matchType: 'keyword', matchVal: '1/4 90 DEG CHAMFER MILL',      okuma: 11,  desc: '1/4 90 DEG CHAMFER MILL' },
-  { matchType: 'keyword', matchVal: '1/4 - 100 DEGREE COUNTERSINK', okuma: 160, desc: '1/4 - 100 DEGREE COUNTERSINK' },
-  { matchType: 'keyword', matchVal: 'LTR. H STUB DRILL',            okuma: 174, desc: 'LTR. H STUB DRILL' },
+// ── Default tool library — loaded from OKUMA ALUMINUM.TOOLDB ──
+// localStorage overrides this on load if user has saved changes
+const DEFAULT_LIBRARY = [
+  { matchType: 'serial',  matchVal: '82045',  okuma: 1,   desc: 'HELICAL - 82045 - ROUGHER - 3/4 DIA X 2.25 LOC X .03 RAD' },
+  { matchType: 'serial',  matchVal: '48655',  okuma: 2,   desc: 'HELICAL - 48655 - 3/4 DIA X 2.25 LOC' },
+  { matchType: 'serial',  matchVal: '48665',  okuma: 3,   desc: 'HELICAL - 48665 - 3/4 DIA X 2.25 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '82033',  okuma: 4,   desc: 'HELICAL - 82033 - ROUGHER -1/2 DIA X 2.0 LOC X .06 RADIUS' },
+  { matchType: 'serial',  matchVal: '48455',  okuma: 5,   desc: 'HELICAL - 48455 - 1/2 DIA X 2.00 LOC' },
+  { matchType: 'serial',  matchVal: '48325',  okuma: 6,   desc: 'HELICAL - 48325 - 3/8 DIA X 1.5 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '48310',  okuma: 7,   desc: 'HELICAL - 48310 - 3/8 DIA X 1.5 LOC' },
+  { matchType: 'serial',  matchVal: '48130',  okuma: 8,   desc: 'HELICAL - 48130 - 1/4 DIA X .75 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '48135',  okuma: 9,   desc: 'HELICAL - 48135 - 1/4 DIA X 1.0 LOC' },
+  { matchType: 'serial',  matchVal: '48395',  okuma: 10,  desc: 'HELICAL - 48395 - 1/2 DIA X 1.25 LOC' },
+  { matchType: 'keyword', matchVal: '1/4 90 DEGREE CHAMFER MILL', okuma: 11, desc: '1/4 90 DEGREE CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/4 SPOTDRILL', okuma: 12, desc: '1/4 SPOTDRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL', okuma: 13, desc: 'NO. 40 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 7 STUB DRILL', okuma: 14, desc: 'NO. 7 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. F STUB DRILL', okuma: 15, desc: 'LTR. F STUB DRILL' },
+  { matchType: 'keyword', matchVal: '1/2 100 DEGREE COUNTERSINK', okuma: 16, desc: '1/2 100 DEGREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: 'NO. 16 STUB DRILL', okuma: 17, desc: 'NO. 16 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '10-32 FORM TAP RH', okuma: 18, desc: '10-32 FORM TAP RH' },
+  { matchType: 'keyword', matchVal: 'LTR. A STUB DRILL', okuma: 19, desc: 'LTR. A STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'RA390-051R19-11M', okuma: 20, desc: 'RA390-051R19-11M' },
+  { matchType: 'keyword', matchVal: '1/4-28 FORM TAP RH', okuma: 21, desc: '1/4-28 FORM TAP RH' },
+  { matchType: 'serial',  matchVal: '48120',  okuma: 22,  desc: 'HELICAL - 48120 - 1/4 DIA X .750 LOC X.015 RAD' },
+  { matchType: 'serial',  matchVal: '49105',  okuma: 23,  desc: 'HELICAL - 49105 - 1/4 DIA X .750 LOC - BALL EM' },
+  { matchType: 'serial',  matchVal: '48020',  okuma: 24,  desc: 'HELICAL - 48020 - 1/8 DIA X .500 LOC' },
+  { matchType: 'serial',  matchVal: '48125',  okuma: 25,  desc: 'HELICAL - 48125 - 1/4 DIA X .750 LOC X .030 RAD' },
+  { matchType: 'serial',  matchVal: '48275',  okuma: 26,  desc: 'HELICAL - 48275 - 3/8 DIA X 1.0 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '987136', okuma: 27,  desc: '#12 TM HARVEY - 987136-C3 - 10-32 Thread Mill' },
+  { matchType: 'keyword', matchVal: 'NO. 21 STUB DRILL', okuma: 28, desc: 'NO. 21 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '83681',  okuma: 29,  desc: 'HELICAL - 83681 - 1/2 DIA X 1.6250 LOC X .125 RAD' },
+  { matchType: 'keyword', matchVal: 'NO. 3 STUB DRILL', okuma: 30, desc: 'NO. 3 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. G STUB DRILL', okuma: 31, desc: 'LTR. G STUB DRILL' },
+  { matchType: 'keyword', matchVal: '7/32 STUB DRILL', okuma: 32, desc: '7/32 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '3/8 90 DEGREE CHAMFER MILL', okuma: 33, desc: '3/8 90 DEGREE CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/8 90 DEGREE CHAMFER MILL', okuma: 34, desc: '1/8 90 DEGREE CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '3/8 -SPOTDRILL', okuma: 35, desc: '3/8 -SPOTDRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. O STUB DRILL', okuma: 36, desc: 'LTR. O STUB DRILL' },
+  { matchType: 'serial',  matchVal: '82021',  okuma: 37,  desc: 'HELICAL - 82021 - ROUGHER -1/2 DIA X 1.625 LOC X .03 RAD' },
+  { matchType: 'serial',  matchVal: '48425',  okuma: 38,  desc: 'HELICAL - 48425 - 1/2 DIA X 1.625 LOC' },
+  { matchType: 'serial',  matchVal: '48410',  okuma: 39,  desc: 'HELICAL - 48410 - 1/2 DIA X 1.25 LOC X 0.06 RAD' },
+  { matchType: 'keyword', matchVal: '5/16 STUB DRILL', okuma: 40, desc: '5/16 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '82043',  okuma: 41,  desc: 'HELICAL - 82043 - ROUGHER - 3/4 DIA X 1.625 LOC X .03 RAD' },
+  { matchType: 'serial',  matchVal: '81417',  okuma: 42,  desc: 'HELICAL - 81417 - 3/4 DIA X 2.75 LOC' },
+  { matchType: 'serial',  matchVal: '48440',  okuma: 43,  desc: 'HELICAL - 48440 - 1/2 DIA X 1.625 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '49210',  okuma: 44,  desc: 'HELICAL - 49210 - 3/8 DIA X 1.0 LOC - BALL EM' },
+  { matchType: 'keyword', matchVal: '5/8 DEMMING DRILL', okuma: 45, desc: '5/8 DEMMING DRILL' },
+  { matchType: 'keyword', matchVal: '7/32 JOBBER DRILL', okuma: 46, desc: '7/32 JOBBER DRILL' },
+  { matchType: 'serial',  matchVal: '48260',  okuma: 47,  desc: 'HELICAL - 48260 - 3/8 DIA X 1.0 LOC' },
+  { matchType: 'serial',  matchVal: '81409',  okuma: 48,  desc: 'HELICAL - 81409 - 5/16 DIA X 1.00 LOC' },
+  { matchType: 'serial',  matchVal: '48675',  okuma: 49,  desc: 'HELICAL - 48675 - 3/4 DIA X 2.25 LOC X .125 RAD' },
+  { matchType: 'keyword', matchVal: '1/2 SPOTDRILL', okuma: 50, desc: '1/2 SPOTDRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. J JOBBER DRILL', okuma: 51, desc: 'LTR. J JOBBER DRILL' },
+  { matchType: 'serial',  matchVal: '48115',  okuma: 52,  desc: 'HELICAL - 48115 - 1/4 DIA X 3/4 LOC' },
+  { matchType: 'keyword', matchVal: 'NO. 22 STUB DRILL', okuma: 53, desc: 'NO. 22 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '81397',  okuma: 54,  desc: 'HELICAL - 81397 - 1/8 DIA X .750 LOC' },
+  { matchType: 'keyword', matchVal: '8-32 FORM TAP RH', okuma: 55, desc: '8-32 FORM TAP RH' },
+  { matchType: 'keyword', matchVal: '3/8 100 DEGREE COUNTERSINK', okuma: 56, desc: '3/8 100 DEGREE COUNTERSINK' },
+  { matchType: 'serial',  matchVal: '49240',  okuma: 57,  desc: 'HELICAL - 49240 - 3/8 DIA X 1.5 LOC- BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'REDLINE - RET1233 - 3/32 DIA X .500 LOC', okuma: 58, desc: 'REDLINE - RET1233 - 3/32 DIA X .500 LOC' },
+  { matchType: 'serial',  matchVal: '48655',  okuma: 59,  desc: 'HELICAL - 48655 - 3/4 DIA X 2.25 LOC FINISHER' },
+  { matchType: 'serial',  matchVal: '48470',  okuma: 60,  desc: 'HELICAL - 48470 - 1/2 DIA X 2.0 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '48480',  okuma: 61,  desc: 'HELICAL - 48480 - 1/2 DIA X 2.0 LOC X .125 RAD' },
+  { matchType: 'serial',  matchVal: '48685',  okuma: 62,  desc: 'HELICAL - 48685 - 3/4 DIA X 2.25 LOC X .25 RAD' },
+  { matchType: 'keyword', matchVal: 'NO. 7 JOBBER DRILL', okuma: 63, desc: 'NO. 7 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. H JOBBER DRILL', okuma: 64, desc: 'LTR. H JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '1/8 STUB DRILL', okuma: 65, desc: '1/8 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '#10 TM SCC2 TMLR139-32ELA 10-32 THREADMILL', okuma: 66, desc: '#10 TM SCC2 TMLR139-32ELA 10-32 THREADMILL' },
+  { matchType: 'serial',  matchVal: '48420',  okuma: 67,  desc: 'HELICAL - 48420 - 1/2 DIA X 1.25 LOC X .125 RAD' },
+  { matchType: 'keyword', matchVal: '1-20 Thread Mill - 0.125', okuma: 68, desc: '1-20 Thread Mill - 0.125' },
+  { matchType: 'keyword', matchVal: '.257 -REAMER', okuma: 69, desc: '.257 -REAMER' },
+  { matchType: 'keyword', matchVal: '5/8 - 100 DEGREE COUNTERSINK', okuma: 70, desc: '5/8 - 100 DEGREE COUNTERSINK' },
+  { matchType: 'serial',  matchVal: '48060',  okuma: 71,  desc: 'HELICAL - 48060 - 3/16 DIA X 1.0 LOC' },
+  { matchType: 'serial',  matchVal: '49285',  okuma: 72,  desc: 'HELICAL - 49285 - 1/2 DIA X 1.25 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: '1/8 - CORNER ROUND W/ .25 PILOT', okuma: 73, desc: '1/8 - CORNER ROUND W/ .25 PILOT' },
+  { matchType: 'keyword', matchVal: '1/4-28 CUT TAP RH', okuma: 74, desc: '1/4-28 CUT TAP RH' },
+  { matchType: 'serial',  matchVal: '81401',  okuma: 75,  desc: 'HELICAL - 81401 - 1/4 DIA X 1.25 LOC' },
+  { matchType: 'serial',  matchVal: '82393',  okuma: 76,  desc: 'HELICAL - 82393 - 5/16 DIA X 1.25 LOC' },
+  { matchType: 'keyword', matchVal: 'NO. 21 STUB DRILL', okuma: 77, desc: 'NO. 21 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '10-32 CUT TAP RH', okuma: 78, desc: '10-32 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: 'NO. 11 STUB DRILL', okuma: 79, desc: 'NO. 11 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 6 STUB DRILL', okuma: 80, desc: 'NO. 6 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '48640',  okuma: 81,  desc: 'HELICAL - 48640 - 3/4 DIA X 1.625 LOC X .125 RAD' },
+  { matchType: 'keyword', matchVal: 'NO. 4 STUB DRILL', okuma: 82, desc: 'NO. 4 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 16 JOBBER DRILL', okuma: 83, desc: 'NO. 16 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '10-32 FORM EXTENDED LENGTH TAP RH', okuma: 84, desc: '10-32 FORM EXTENDED LENGTH TAP RH' },
+  { matchType: 'serial',  matchVal: '49060',  okuma: 85,  desc: 'HELICAL - 49060 - 3/16 DIA X .750 LOC - BALL EM' },
+  { matchType: 'serial',  matchVal: '48620',  okuma: 86,  desc: 'HELICAL - 48620 - 3/4 DIA X 1.625 LOC' },
+  { matchType: 'keyword', matchVal: '.265 Diameter Slot .046 Thick', okuma: 87, desc: '.265 Diameter Slot .046 Thick' },
+  { matchType: 'keyword', matchVal: '3/16 JOBBER DRILL', okuma: 88, desc: '3/16 JOBBER DRILL' },
+  { matchType: 'serial',  matchVal: '01105',  okuma: 89,  desc: 'HELICAL - 01105 - 3/16 DIA X 0.5625 LOC' },
+  { matchType: 'keyword', matchVal: '#18 TM RM20119 - 3/8-16 Thread Mill', okuma: 90, desc: '#18 TM RM20119 - 3/8-16 Thread Mill' },
+  { matchType: 'keyword', matchVal: '1/4 STUB DRILL', okuma: 91, desc: '1/4 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 56 STUB DRILL', okuma: 92, desc: 'NO. 56 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'REDLINE - RE10904 -1/16 DIA X .25 LOC', okuma: 93, desc: 'REDLINE - RE10904 -1/16 DIA X .25 LOC' },
+  { matchType: 'keyword', matchVal: 'NO. 30 JOBBER DRILL', okuma: 94, desc: 'NO. 30 JOBBER DRILL' },
+  { matchType: 'serial',  matchVal: '48395',  okuma: 95,  desc: 'HELICAL - 48395 - 1/2 DIA X 1.25 LOC FINISHER' },
+  { matchType: 'keyword', matchVal: 'M6 X 1.0 FORM TAP RH', okuma: 96, desc: 'M6 X 1.0 FORM TAP RH' },
+  { matchType: 'keyword', matchVal: '11/64 STUB DRILL', okuma: 97, desc: '11/64 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. N STUB DRILL', okuma: 98, desc: 'LTR. N STUB DRILL' },
+  { matchType: 'keyword', matchVal: '.395 GROUND 100 DEGREE COUNTERSINK', okuma: 100, desc: '.395 GROUND 100 DEGREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: '1/4 SPOTDRILL WHITNEY 4 EXTENSION', okuma: 101, desc: '1/4 SPOTDRILL w/ Whitney 4" Extension Holder 3.0" Projection' },
+  { matchType: 'keyword', matchVal: '7/32 STUB DRILL WHITNEY 4 EXTENSION', okuma: 102, desc: '7/32 STUB DRILL w/ Whitney 4" Extension Holder 3.0" Projection' },
+  { matchType: 'serial',  matchVal: '19317',  okuma: 103, desc: 'HELICAL - 19317 - 1/2 DIA X 5/8 LOC X 3.3750 REACH' },
+  { matchType: 'keyword', matchVal: '1/2 100 DEGREE COUNTERSINK EXTENSION', okuma: 104, desc: '1/2 100° COUNTERSINK w EXTENSION' },
+  { matchType: 'keyword', matchVal: 'NO. 6-32 FORM TAP RH', okuma: 105, desc: 'NO. 6-32 FORM TAP RH' },
+  { matchType: 'keyword', matchVal: 'NO. 25 JOBBER DRILL', okuma: 106, desc: 'NO. 25 JOBBER DRILL' },
+  { matchType: 'serial',  matchVal: '314744', okuma: 107, desc: 'GWO - 314744 - 3/8 DIA X 1.0 LOC X .045 RAD' },
+  { matchType: 'keyword', matchVal: '1/8 SPOTDRILL', okuma: 108, desc: '1/8 SPOTDRILL' },
+  { matchType: 'keyword', matchVal: '1/2 90 DEGREE COUNTERSINK', okuma: 109, desc: '1/2 90 DEGREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: 'NO. 16 CARBIDE JOBBER DRILL', okuma: 110, desc: 'NO. 16 CARBIDE JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 16 CARBIDE STUB DRILL', okuma: 111, desc: 'NO. 16 CARBIDE STUB DRILL' },
+  { matchType: 'serial',  matchVal: '59224',  okuma: 112, desc: 'HELICAL - 59224 - 3/4 DIA X 3.250 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '48650',  okuma: 113, desc: 'HELICAL - 48650 - 3/4 DIA X 1.625 LOC X .25 RAD' },
+  { matchType: 'keyword', matchVal: '3/32 STUB DRILL', okuma: 114, desc: '3/32 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. P STUB DRILL', okuma: 115, desc: 'LTR. P STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'M8 X 1.25 FORM BOTTOM TAP RH', okuma: 116, desc: 'M8. X 1.25 FORM BOTTOM TAP RH' },
+  { matchType: 'keyword', matchVal: '.251 REAMER', okuma: 117, desc: '.251 Reamer' },
+  { matchType: 'keyword', matchVal: 'NO. 25 STUB DRILL', okuma: 118, desc: 'NO. 25 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '1/4 INCH ENGRAVING TOOL 30 DEGREE', okuma: 119, desc: '1/4 INCH ENGRAVING TOOL 30 DEGREE X .015 TIP' },
+  { matchType: 'serial',  matchVal: '03705',  okuma: 120, desc: 'HELICAL - 03705 - 3/4 DIA X 4.00 LOC' },
+  { matchType: 'keyword', matchVal: '27/64 STUB DRILL', okuma: 121, desc: '27/64 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '1/2-13 UNC CARBIDE THREAD MILL', okuma: 122, desc: '#6 TM 1/2-13 UNC CARBIDE Thread Mill' },
+  { matchType: 'keyword', matchVal: 'NO. 34 STUB DRILL', okuma: 123, desc: 'NO. 34 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '.1245 REAMER', okuma: 124, desc: '.1245 Reamer' },
+  { matchType: 'keyword', matchVal: '7/8 DEMING DRILL', okuma: 125, desc: '7/8 DEMING DRILL' },
+  { matchType: 'serial',  matchVal: '81415',  okuma: 126, desc: 'HELICAL - 81415 - 1/2 DIA X 2.5 LOC X UNCOATED' },
+  { matchType: 'serial',  matchVal: '48150',  okuma: 127, desc: 'HELICAL - 48150 - 1/4 DIA X 1.0 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '49040',  okuma: 128, desc: 'HELICAL - 49040 - 1/8 DIA X .500 LOC' },
+  { matchType: 'serial',  matchVal: '86968',  okuma: 129, desc: 'HELICAL-86968 - 1/8 DIA X 1.0 LOC - BALL EM' },
+  { matchType: 'serial',  matchVal: '987128', okuma: 131, desc: '#13 TM HARVEY - 987128-C3 - 8-32 Thread Mill' },
+  { matchType: 'keyword', matchVal: '3/32 CORNER ROUND .188 PILOT', okuma: 132, desc: '3/32- CORNER ROUND W/ .188 PILOT' },
+  { matchType: 'keyword', matchVal: '31/64 JOBBER DRILL', okuma: 133, desc: '31/64 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '.507 REAMER', okuma: 134, desc: '.507 REAMER' },
+  { matchType: 'serial',  matchVal: '82395',  okuma: 135, desc: 'HELICAL-82395 - 3/8 DIA X 2.0 LOC' },
+  { matchType: 'serial',  matchVal: '48045',  okuma: 136, desc: 'HELICAL - 48045 - 3/16 DIA X .75 LOC' },
+  { matchType: 'keyword', matchVal: 'NO. 2 DRILL', okuma: 137, desc: 'NO. 2 DRILL' },
+  { matchType: 'serial',  matchVal: '49065',  okuma: 138, desc: 'HELICAL - 49065 - 3/16 DIA X 1.0 LOC BALL ENDMILL' },
+  { matchType: 'serial',  matchVal: '03690',  okuma: 139, desc: 'HELICAL - 03690 - 3/4 DIA X 3.25 LOC' },
+  { matchType: 'serial',  matchVal: '59233',  okuma: 140, desc: 'HELICAL - 59233 - 3/4 DIA X 3.25 LOC X .25 RAD' },
+  { matchType: 'serial',  matchVal: '32778',  okuma: 141, desc: 'SGS-32778- 1/2 x .750 LOC X .125 RAD' },
+  { matchType: 'keyword', matchVal: '3.1MM STUB DRILL', okuma: 142, desc: '3.1MM STUB DRILL' },
+  { matchType: 'keyword', matchVal: '8.0MM REAMER', okuma: 143, desc: '8.0MM REAMER - .315 DIA' },
+  { matchType: 'serial',  matchVal: '82047',  okuma: 144, desc: 'HELICAL - 82047 - ROUGHER - 3/4 DIA X 3.25 LOC X .03 RAD' },
+  { matchType: 'serial',  matchVal: '81537',  okuma: 145, desc: 'HELICAL - 81537 - 1/4 DIA X .375 LOC X 1.6250 REACH - BALL EM' },
+  { matchType: 'keyword', matchVal: '1/32 CORNER ROUND .255 PILOT', okuma: 146, desc: '1/32- CORNER ROUND W/ .255 PILOT' },
+  { matchType: 'keyword', matchVal: 'LTR. C STUB DRILL', okuma: 147, desc: 'LTR. C STUB DRILL' },
+  { matchType: 'keyword', matchVal: '.252 REAMER', okuma: 148, desc: '.252 Reamer' },
+  { matchType: 'keyword', matchVal: 'NO. 9 STUB DRILL', okuma: 149, desc: 'NO. 9 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. I STUB DRILL', okuma: 150, desc: 'LTR. I STUB DRILL' },
+  { matchType: 'keyword', matchVal: '7/32 EXTRA LONG JOBBER DRILL', okuma: 151, desc: '7/32 EXTRA LONG JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 24 STUB DRILL', okuma: 152, desc: 'NO. 24 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '13/64 STUB DRILL', okuma: 153, desc: '13/64 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '.187 X 1.140 SLOT MILL', okuma: 154, desc: '.187 X 1.140 SLOT MILL' },
+  { matchType: 'keyword', matchVal: '3/8-16 CUT TAP RH', okuma: 155, desc: '3/8-16 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: '8-32 EXTENDED THREAD MILL', okuma: 156, desc: '#25 TM SCC2 - TMLR126-32EL- 8-32 EXTENDED THREAD MILL' },
+  { matchType: 'keyword', matchVal: 'NO. 39 STUB DRILL', okuma: 157, desc: 'NO. 39 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '987144', okuma: 158, desc: '#7 TM HARVEY - 987144-C3 - 1/4-20 Thread Mill' },
+  { matchType: 'serial',  matchVal: '48055',  okuma: 159, desc: 'HELICAL - 48055 - 3/16 DIA X .750 LOC X .03 RAD' },
+  { matchType: 'keyword', matchVal: '1/4 100 DEGREE COUNTERSINK', okuma: 160, desc: '1/4 100 DEGREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: '.5005 REAMER', okuma: 161, desc: '.5005 REAMER' },
+  { matchType: 'keyword', matchVal: '39/64 DRILL', okuma: 162, desc: '39/64 DRILL' },
+  { matchType: 'serial',  matchVal: '831960', okuma: 163, desc: 'HARVEY - 831960 -3/16 DIA X .625 LOC X .06 RAD' },
+  { matchType: 'serial',  matchVal: '48405',  okuma: 164, desc: 'HELICAL - 48405 - 1/2 DIA X 1.250 LOC X .03 RAD' },
+  { matchType: 'keyword', matchVal: '.250 REAMER', okuma: 165, desc: '.250 Reamer' },
+  { matchType: 'keyword', matchVal: '.254 REAMER', okuma: 166, desc: '.254 Reamer' },
+  { matchType: 'keyword', matchVal: 'NO. 36 JOBBER DRILL', okuma: 167, desc: 'NO. 36 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 11 JOBBER DRILL', okuma: 168, desc: 'NO. 11 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 10 STUB DRILL', okuma: 169, desc: 'NO. 10 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '1/4 CR .375 PILOT', okuma: 170, desc: '1/4 C.R W/.375 PILOT' },
+  { matchType: 'keyword', matchVal: '.375 45 DEGREE DOVETAIL', okuma: 171, desc: '.375 45° Dovetail Cutter' },
+  { matchType: 'keyword', matchVal: 'V STUB DRILL', okuma: 172, desc: 'V STUB DRILL' },
+  { matchType: 'keyword', matchVal: '10-24 CUT TAP RH', okuma: 173, desc: '10-24 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: 'LTR. H STUB DRILL', okuma: 174, desc: 'LTR. H STUB DRILL' },
+  { matchType: 'keyword', matchVal: '3/8 90 DEGREE LONG REACH SPOT DRILL', okuma: 175, desc: '3/8 90 Degree Long Reach Spot Drill' },
+  { matchType: 'keyword', matchVal: '1/4-20 FORM TAP RH', okuma: 176, desc: '1/4-20 FORM TAPRH' },
+  { matchType: 'keyword', matchVal: 'NO. 1 STUB DRILL', okuma: 177, desc: 'NO. 1 STUB DRILL' },
+  { matchType: 'serial',  matchVal: '48030',  okuma: 178, desc: 'HELICAL - 48030 - 3/16 DIA X .375 LOC' },
+  { matchType: 'keyword', matchVal: '3/4 100 DEGREE COUNTERSINK', okuma: 179, desc: '3/4 100 DEGEREE COUNTERSINK' },
+  { matchType: 'keyword', matchVal: '1/16 CR .125 PILOT', okuma: 180, desc: '1/16" C.R W/.125 PILOT' },
+  { matchType: 'keyword', matchVal: 'NO.17 STUB DRILL', okuma: 181, desc: 'NO.17 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '406 SLOT MILL', okuma: 182, desc: '406 SLOT MILL' },
+  { matchType: 'keyword', matchVal: '1/2 STUB DRILL', okuma: 183, desc: '1/2 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. T STUB DRILL', okuma: 184, desc: 'LTR. T STUB DRILL' },
+  { matchType: 'serial',  matchVal: '48060',  okuma: 185, desc: 'HELICAL - 48060 - 5/32 DIA X 1.0 LOC' },
+  { matchType: 'keyword', matchVal: 'LTR. Q STUB DRILL', okuma: 186, desc: 'LTR. Q STUB DRILL' },
+  { matchType: 'keyword', matchVal: '7/32 STUB DRILL', okuma: 187, desc: '7/32 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '3/4 90 DEGREE SPOTDRILL', okuma: 188, desc: '3/4 90° SPOTDRILL' },
+  { matchType: 'keyword', matchVal: '1/8-27 NPT THREADMILL', okuma: 189, desc: '#17 TM REDLINE - RM20202 - 1/8-27 NPT THREADMILL' },
+  { matchType: 'keyword', matchVal: '7/16 JOBBER DRILL', okuma: 190, desc: '7/16 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '1/4-18 NPT THREADMILL', okuma: 191, desc: '#19 TM REDLINE - RM20205 - 1/4-18 NPT THREADMILL' },
+  { matchType: 'keyword', matchVal: 'NO. 27 STUB DRILL', okuma: 192, desc: 'NO. 27 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '11.00MM STUB DRILL', okuma: 193, desc: '11.00mm Stub Drill' },
+  { matchType: 'keyword', matchVal: 'M4 X .70 FORM TAP RH', okuma: 194, desc: 'M4 X .70 FORM TAP RH' },
+  { matchType: 'serial',  matchVal: '59218',  okuma: 195, desc: 'HELICAL-59218 - 35 DEG HELIX CORNER RADIUS END MILL FOR ALUMINUM' },
+  { matchType: 'keyword', matchVal: 'NO. 12 JOBBER DRILL', okuma: 196, desc: 'NO. 12 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '1/4 SPOTDRILL EXTRA LONG', okuma: 197, desc: '1/4 SPOTDRILL Extra Long' },
+  { matchType: 'serial',  matchVal: '82431',  okuma: 198, desc: 'HELICAL - 82431- 3/8 DIA X 2.0 LOC x .06 RAD' },
+  { matchType: 'serial',  matchVal: '81509',  okuma: 199, desc: 'HELICAL - 81509 - 3/8 DIA X .5 LOC X .06 RAD X 2.50 REACH' },
+  { matchType: 'keyword', matchVal: '3/8 100 DEGREE COUNTERSINK EXTENSION 1.5', okuma: 200, desc: '3/8 100 DEGREE COUNTERSINK IN EXTENSION WITH 1.5 PROJECTION' },
+  { matchType: 'keyword', matchVal: '1/2 90 DEG CHAMFER MILL', okuma: 201, desc: '1/2 90 DEG CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/32 CORNER ROUND .265 PILOT', okuma: 202, desc: '1/32 - CORNER ROUND W/ .265 PILOT' },
+  { matchType: 'keyword', matchVal: '4 INCH .125 SLITTING SAW', okuma: 203, desc: '4" X .125 SLITTING SAW' },
+  { matchType: 'keyword', matchVal: 'LTR. U STUB DRILL', okuma: 204, desc: 'LTR. U STUB DRILL' },
+  { matchType: 'keyword', matchVal: '.317 REAMER', okuma: 205, desc: '.317 REAMER' },
+  { matchType: 'keyword', matchVal: '.381 REAMER', okuma: 206, desc: '.381 REAMER' },
+  { matchType: 'keyword', matchVal: '.258 REAMER', okuma: 207, desc: '.258 -REAMER' },
+  { matchType: 'keyword', matchVal: '5.7MM DRILL', okuma: 208, desc: '5.7MM DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 5 STUB DRILL', okuma: 209, desc: 'NO. 5 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '4.40MM STUB DRILL', okuma: 210, desc: '4.40mm Stub Drill' },
+  { matchType: 'keyword', matchVal: '1-12 TPI SINGLE POINT THREAD MILL', okuma: 211, desc: '#4 TM 1-12 TPI 1" Single Point Thread Mill' },
+  { matchType: 'keyword', matchVal: '29/64 JOBBER DRILL', okuma: 212, desc: '29/64 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '1/2-20 CUT TAP RH', okuma: 213, desc: '1/2-20 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: '37/64 DEMING DRILL', okuma: 214, desc: '37/64 DEMING DRILL' },
+  { matchType: 'keyword', matchVal: '5/8-18 CUT TAP RH', okuma: 215, desc: '5/8-18 CUT TAPRH' },
+  { matchType: 'keyword', matchVal: '13/64 JOBBER DRILL', okuma: 216, desc: '13/64 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'LTR. F JOBBER DRILL', okuma: 217, desc: 'LTR. F JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: '5/16-18 UN CARBIDE THREAD MILL', okuma: 218, desc: '#21 HAT2 836754-C6 - 5/16-18, UN, 3FL Carbide Thread Mill' },
+  { matchType: 'keyword', matchVal: '5/8-11 UNC CARBIDE THREAD MILL', okuma: 219, desc: '#5 TM 5/8-11 UNC CARBIDE THREAD MILL' },
+  { matchType: 'keyword', matchVal: 'LTR. K STUB DRILL', okuma: 220, desc: 'LTR. K STUB DRILL' },
+  { matchType: 'serial',  matchVal: '82439',  okuma: 221, desc: 'HELICAL - 82439 - 1/2 DIA X 2.5 LOC x .06 RADIUS' },
+  { matchType: 'serial',  matchVal: '82397',  okuma: 222, desc: 'HELICAL - 82397 - 1/2 DIA X 3.125 LOC' },
+  { matchType: 'keyword', matchVal: '3/8 DIA 1.5 LOC LONG REACH', okuma: 223, desc: 'REDLINE - RE12325 - 3/8 DIA X 1.5 LOC WITH LONG REACH' },
+  { matchType: 'keyword', matchVal: 'NO. 29 DRILL', okuma: 224, desc: 'NO. 29 DRILL' },
+  { matchType: 'keyword', matchVal: '8-32 CUT TAP RH', okuma: 225, desc: '8-32 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: '1/2-14 NPT TAP RH', okuma: 226, desc: '1/2-14 NPT TAPRH' },
+  { matchType: 'serial',  matchVal: '81499',  okuma: 227, desc: 'HELICAL - 81499 - 1/4 DIA X .375 LOC X .06 RAD X 2.125 REACH' },
+  { matchType: 'keyword', matchVal: '11-32 TPI SINGLE POINT THREAD MILL', okuma: 228, desc: '#2 TM 11-32 TPI 1/2" Single Point Thread Mill' },
+  { matchType: 'keyword', matchVal: 'REDLINE RE10106 3/32 DIA .1875 LOC', okuma: 229, desc: 'REDLINE - RE10106 - 3/32 DIA x .1875 LOC' },
+  { matchType: 'serial',  matchVal: '74362',  okuma: 230, desc: 'HARVEY - 74362 -1/16 DIA X .186 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'NO. 4-40 FORM TAP RH', okuma: 231, desc: 'NO. 4-40 FORM TAP RH' },
+  { matchType: 'serial',  matchVal: '81459',  okuma: 232, desc: 'HELICAL - 81459 - 1/4 DIA X 1.25 LOC BALL ENDMILL' },
 ];
+
+let toolLibrary = DEFAULT_LIBRARY.map(t => Object.assign({}, t));
 
 let fileContent         = null;
 let fileName            = null;
@@ -26,9 +246,52 @@ let pdfBytes            = null;
 let pdfFileName         = null;
 let currentMatchType    = 'serial';
 let pdfCurrentMatchType = 'serial';
+let sortCol             = 'okuma';
+let sortDir             = 1; // 1 = asc, -1 = desc
 
 // ════════════════════════════════════════
-//  TOOL LIBRARY
+//  KEYWORD MATCHING — EXACT WHOLE MATCH
+//  Both sides are normalized the same way.
+//  matchVal must match the full normalized
+//  tool comment string, not just be a substring.
+//  This prevents NO. 7 matching NO.17 etc.
+// ════════════════════════════════════════
+
+function normalize(str) {
+  // uppercase, strip dashes and dots adjacent to spaces, collapse whitespace
+  return str.toUpperCase()
+    .replace(/\.\s*/g, ' ')   // "NO. 7" → "NO  7"
+    .replace(/-/g, ' ')       // dashes → space
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function keywordMatches(entryVal, haystack) {
+  // Normalize both sides the same way
+  const normEntry   = normalize(entryVal);
+  const normHay     = normalize(haystack);
+  // Split entry into tokens and require each token to appear as a whole word
+  const tokens = normEntry.split(' ').filter(t => t.length > 0);
+  return tokens.every(tok => {
+    // whole-word boundary check: token not preceded/followed by alphanumeric
+    const re = new RegExp('(?<![A-Z0-9])' + tok.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?![A-Z0-9])');
+    return re.test(normHay);
+  });
+}
+
+function matchesLibraryEntry(entry, text) {
+  const val = (entry.matchVal || '').toUpperCase();
+  if (!val) return false;
+  if (entry.matchType === 'keyword') {
+    return keywordMatches(val, text);
+  } else {
+    // Serial: exact substring match (serials are numeric, no ambiguity)
+    return text.toUpperCase().includes(val);
+  }
+}
+
+// ════════════════════════════════════════
+//  TOOL LIBRARY PERSISTENCE
 // ════════════════════════════════════════
 
 function saveLibrary() {
@@ -38,33 +301,69 @@ function saveLibrary() {
 function loadLibrary() {
   try {
     const s = localStorage.getItem('okumaToolLibrary');
-    if (s) toolLibrary = JSON.parse(s);
+    if (s) {
+      const parsed = JSON.parse(s);
+      // Only use saved if it has content
+      if (Array.isArray(parsed) && parsed.length > 0) toolLibrary = parsed;
+    }
   } catch(e) {}
 }
 
-function renderToolTable(bodyId, countId, filter) {
+// ════════════════════════════════════════
+//  TOOL TABLE RENDERING (both tabs)
+// ════════════════════════════════════════
+
+function getSortedFiltered(filter) {
   const q = (filter || '').toLowerCase();
-  const rows = toolLibrary.filter(t =>
+  let rows = toolLibrary.filter(t =>
     (t.matchVal || '').toLowerCase().includes(q) ||
     (t.desc || '').toLowerCase().includes(q) ||
     String(t.okuma).includes(q)
   );
-  const badgeHtml = t => {
-    const isSerial = t.matchType !== 'keyword';
-    const col = isSerial ? 'var(--orange)' : 'var(--accent)';
-    const lbl = isSerial ? 'SERIAL' : 'KEYWORD';
-    return `<span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:2px;border:1px solid ${col};color:${col};">${lbl}</span>`;
-  };
-  const uid = t => esc(t.matchVal + '|' + t.okuma);
+  rows.sort((a, b) => {
+    let av, bv;
+    if (sortCol === 'okuma')     { av = a.okuma;              bv = b.okuma; }
+    else if (sortCol === 'type') { av = a.matchType;          bv = b.matchType; }
+    else if (sortCol === 'val')  { av = (a.matchVal||'').toLowerCase(); bv = (b.matchVal||'').toLowerCase(); }
+    else                         { av = (a.desc||'').toLowerCase();     bv = (b.desc||'').toLowerCase(); }
+    if (av < bv) return -1 * sortDir;
+    if (av > bv) return  1 * sortDir;
+    return 0;
+  });
+  return rows;
+}
+
+function setSortCol(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === 1 ? -1 : 1; // proper toggle
+  } else {
+    sortCol = col;
+    sortDir = 1;
+  }
+  renderAllTables();
+}
+
+function sortIndicator(col) {
+  if (sortCol !== col) return '';
+  return sortDir === 1 ? ' ▲' : ' ▼';
+}
+
+function renderToolTable(bodyId, countId, filter) {
+  const rows = getSortedFiltered(filter);
+  const uid  = t => esc(t.matchVal + '|' + t.okuma);
+
   document.getElementById(bodyId).innerHTML = rows.length
-    ? rows.map(t => `<tr>
-        <td>${badgeHtml(t)}</td>
+    ? rows.map(t => `<tr class="lib-row">
+        <td class="okuma-num" style="width:50px;">T${t.okuma}</td>
         <td class="serial">${esc(t.matchVal || '')}</td>
-        <td class="okuma-num">T${t.okuma}</td>
         <td class="desc" title="${esc(t.desc || '')}">${esc(t.desc || '—')}</td>
-        <td><button class="btn-remove" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button></td>
+        <td class="lib-row-actions">
+          <button class="lib-action-btn lib-edit"   onclick="editTool('${uid(t)}')"   title="Edit">&#9998;</button>
+          <button class="lib-action-btn lib-delete" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button>
+        </td>
       </tr>`).join('')
-    : `<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+    : `<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+
   if (document.getElementById(countId))
     document.getElementById(countId).textContent = toolLibrary.length + ' TOOLS';
 }
@@ -72,25 +371,126 @@ function renderToolTable(bodyId, countId, filter) {
 function renderAllTables() {
   renderToolTable('toolBody',    'toolCount',    document.getElementById('toolSearch')?.value    || '');
   renderToolTable('pdfToolBody', 'pdfToolCount', document.getElementById('pdfToolSearch')?.value || '');
+  updateSortHeaders();
+}
+
+// Columns: TOOL # | MATCH VALUE | DESCRIPTION (no TYPE column)
+const SORT_COLS   = ['okuma', 'val', 'desc'];
+const SORT_LABELS = ['TOOL #', 'MATCH VALUE', 'DESCRIPTION'];
+
+function updateSortHeaders() {
+  ['toolBody', 'pdfToolBody'].forEach(bodyId => {
+    const thead = document.getElementById(bodyId)?.closest('table')?.querySelector('thead tr');
+    if (!thead) return;
+    const ths = thead.querySelectorAll('th');
+    SORT_COLS.forEach((col, i) => {
+      if (ths[i]) ths[i].textContent = SORT_LABELS[i] + sortIndicator(col);
+    });
+  });
 }
 
 function removeTool(uid) {
-  const parts    = uid.split('|');
-  const matchVal = parts[0];
-  const okuma    = parseInt(parts[1]);
+  const idx = uid.lastIndexOf('|');
+  const matchVal = uid.substring(0, idx);
+  const okuma    = parseInt(uid.substring(idx + 1));
   toolLibrary = toolLibrary.filter(t => !(t.matchVal === matchVal && t.okuma === okuma));
   saveLibrary();
   renderAllTables();
   log('warn', 'Removed: ' + matchVal + ' (T' + okuma + ')');
 }
 
-// ── Match type toggles ──
+// ── Inline edit ──
+function editTool(uid) {
+  const idx      = uid.lastIndexOf('|');
+  const matchVal = uid.substring(0, idx);
+  const okuma    = parseInt(uid.substring(idx + 1));
+  const entry    = toolLibrary.find(t => t.matchVal === matchVal && t.okuma === okuma);
+  if (!entry) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'editModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:520px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">EDIT TOOL</div>
+      <div style="display:flex;gap:8px;">
+        <button id="editBtnSerial"  onclick="editSetType('serial')"
+          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--orange);background:var(--orange);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">SERIAL #</button>
+        <button id="editBtnKeyword" onclick="editSetType('keyword')"
+          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">KEYWORD</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);" id="editMatchLabel">Serial Number / Keyword</label>
+        <input id="editMatchVal" value="${esc(entry.matchVal)}"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Okuma Tool #</label>
+        <input id="editOkuma" type="number" value="${entry.okuma}" min="1"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:18px;padding:6px 10px;border-radius:3px;outline:none;width:100%;text-align:center;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Description</label>
+        <input id="editDesc" value="${esc(entry.desc || '')}"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="document.getElementById('editModal').remove()"
+          style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
+        <button onclick="saveEditTool('${esc(matchVal)}',${okuma})"
+          style="padding:10px 24px;background:var(--green);border:none;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">SAVE</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // Set initial type state
+  modal._editType = entry.matchType;
+  editSetType(entry.matchType);
+}
+
+function editSetType(type) {
+  const modal = document.getElementById('editModal');
+  if (!modal) return;
+  modal._editType = type;
+  const isSer = type === 'serial';
+  const btnS  = document.getElementById('editBtnSerial');
+  const btnK  = document.getElementById('editBtnKeyword');
+  btnS.style.background  = isSer ? 'var(--orange)' : 'transparent';
+  btnS.style.color       = isSer ? '#000' : 'var(--dim)';
+  btnS.style.borderColor = isSer ? 'var(--orange)' : 'var(--border)';
+  btnK.style.background  = !isSer ? 'var(--accent)' : 'transparent';
+  btnK.style.color       = !isSer ? '#000' : 'var(--dim)';
+  btnK.style.borderColor = !isSer ? 'var(--accent)' : 'var(--border)';
+  document.getElementById('editMatchLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
+}
+
+function saveEditTool(origMatchVal, origOkuma) {
+  const modal    = document.getElementById('editModal');
+  const newVal   = document.getElementById('editMatchVal').value.trim();
+  const newOkuma = parseInt(document.getElementById('editOkuma').value);
+  const newDesc  = document.getElementById('editDesc').value.trim();
+  const newType  = modal._editType;
+  if (!newVal)           { alert('Match value is required.'); return; }
+  if (!newOkuma||newOkuma<1) { alert('Tool number is required.'); return; }
+  const i = toolLibrary.findIndex(t => t.matchVal === origMatchVal && t.okuma === origOkuma);
+  if (i === -1) { alert('Tool not found.'); return; }
+  toolLibrary[i] = { matchType: newType, matchVal: newVal, okuma: newOkuma, desc: newDesc };
+  saveLibrary();
+  renderAllTables();
+  modal.remove();
+  log('ok', 'Updated: ' + newVal + ' → T' + newOkuma);
+}
+
+// ════════════════════════════════════════
+//  MATCH TYPE TOGGLES
+// ════════════════════════════════════════
+
 function setMatchType(type) {
   currentMatchType = type;
   const isSer = type === 'serial';
   document.getElementById('btnSerial').classList.toggle('active', isSer);
   document.getElementById('btnKeyword').classList.toggle('active', !isSer);
-  document.getElementById('matchHint').textContent       = isSer ? 'SERIAL: exact number found in tool comment (e.g. 48410)' : 'KEYWORD: all words must appear in tool comment (e.g. NO. 40 STUB DRILL)';
+  document.getElementById('matchHint').textContent       = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('matchValLabel').textContent   = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('newSerial').placeholder       = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
 }
@@ -100,12 +500,15 @@ function setPdfMatchType(type) {
   const isSer = type === 'serial';
   document.getElementById('pdfBtnSerial').classList.toggle('active', isSer);
   document.getElementById('pdfBtnKeyword').classList.toggle('active', !isSer);
-  document.getElementById('pdfMatchHint').textContent    = isSer ? 'SERIAL: exact number found in tool comment (e.g. 48410)' : 'KEYWORD: all words must appear in tool comment (e.g. NO. 40 STUB DRILL)';
+  document.getElementById('pdfMatchHint').textContent    = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('pdfMatchValLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('pdfNewSerial').placeholder    = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
 }
 
-// ── Add tool forms ──
+// ════════════════════════════════════════
+//  ADD TOOL FORMS
+// ════════════════════════════════════════
+
 function toggleAddForm()    { document.getElementById('addToolForm').classList.toggle('open'); }
 function togglePdfAddForm() { document.getElementById('pdfAddToolForm').classList.toggle('open'); }
 
@@ -128,8 +531,7 @@ function addTool() {
     document.getElementById('newSerial').value.trim(),
     parseInt(document.getElementById('newOkuma').value),
     document.getElementById('newDesc').value.trim(),
-    log,
-    ['newSerial','newOkuma','newDesc']
+    log, ['newSerial','newOkuma','newDesc']
   );
 }
 
@@ -139,12 +541,14 @@ function addToolFromPdfTab() {
     document.getElementById('pdfNewSerial').value.trim(),
     parseInt(document.getElementById('pdfNewOkuma').value),
     document.getElementById('pdfNewDesc').value.trim(),
-    pdfLog,
-    ['pdfNewSerial','pdfNewOkuma','pdfNewDesc']
+    pdfLog, ['pdfNewSerial','pdfNewOkuma','pdfNewDesc']
   );
 }
 
-// ── Export ──
+// ════════════════════════════════════════
+//  EXPORT / IMPORT
+// ════════════════════════════════════════
+
 function exportLibrary() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(toolLibrary, null, 2)], { type: 'application/json' }));
@@ -152,7 +556,7 @@ function exportLibrary() {
   a.click();
 }
 
-// ── Import dispatcher — .json = library import, .html = Mastercam report ──
+// Single import handler — .json = library, .html = Mastercam report
 function handleImport(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -221,54 +625,46 @@ function parseMastercamReport(html) {
       Math.abs(i.left - NUMBER_LEFT) < TOLERANCE && /^\d+$/.test(i.text)
     );
 
-    for (const numItem of numItems) {
-      const toolNum = parseInt(numItem.text);
+    for (const ni of numItems) {
+      const toolNum = parseInt(ni.text);
       if (toolNum === 0 || seenTools.has(toolNum)) continue;
 
       const nameItem = items.find(i =>
         Math.abs(i.left - TOOLNAME_LEFT) < TOLERANCE &&
-        Math.abs(i.top - numItem.top) < 0.03
+        Math.abs(i.top - ni.top) < 0.03
       );
       if (!nameItem || nameItem.text.length < 3) continue;
-
       seenTools.add(toolNum);
 
       const toolName    = nameItem.text;
       const serialMatch = toolName.match(/-\s*(\d{4,6})\s*-/);
       const serial      = serialMatch ? serialMatch[1] : null;
 
-      const diaItem = items.find(i => Math.abs(i.left - DIA_LEFT) < TOLERANCE && Math.abs(i.top - numItem.top) < 0.03);
-      const radItem = items.find(i => Math.abs(i.left - RAD_LEFT) < TOLERANCE && Math.abs(i.top - numItem.top) < 0.03);
+      const diaItem = items.find(i => Math.abs(i.left - DIA_LEFT) < TOLERANCE && Math.abs(i.top - ni.top) < 0.03);
+      const radItem = items.find(i => Math.abs(i.left - RAD_LEFT) < TOLERANCE && Math.abs(i.top - ni.top) < 0.03);
 
-      allTools.push({
-        toolNum,
-        toolName,
-        serial,
+      allTools.push({ toolNum, toolName, serial,
         dia: diaItem ? parseFloat(diaItem.text) : null,
-        rad: radItem ? parseFloat(radItem.text)  : null,
-      });
+        rad: radItem ? parseFloat(radItem.text)  : null });
     }
   }
-
   allTools.sort((a, b) => a.toolNum - b.toolNum);
   return allTools;
 }
 
-// Normalize for keyword matching — strip dashes, collapse spaces, uppercase
-function normalizeName(str) {
-  return str.toUpperCase().replace(/-/g, '').replace(/\s+/g, ' ').trim();
+function normalizeMcName(str) {
+  // For Mastercam import: strip dashes, dots, collapse spaces, uppercase
+  return str.toUpperCase().replace(/\./g,' ').replace(/-/g,' ').replace(/\s+/g,' ').trim();
 }
 
-// ── Mastercam import preview modal ──
 function showMcImportPreview(tools) {
   const existing = document.getElementById('mcPreviewModal');
   if (existing) existing.remove();
 
   const isDuplicate = t => {
-    const val = t.serial || normalizeName(t.toolName);
+    const val = t.serial || normalizeMcName(t.toolName);
     return toolLibrary.some(e => e.okuma === t.toolNum && e.matchVal === val);
   };
-
   const newTools   = tools.filter(t => !isDuplicate(t));
   const serialCnt  = tools.filter(t => t.serial).length;
   const keywordCnt = tools.length - serialCnt;
@@ -278,14 +674,12 @@ function showMcImportPreview(tools) {
     const isSer    = !!t.serial;
     const typeCol  = isSer ? 'var(--orange)' : 'var(--accent)';
     const typeLabel= isSer ? 'SERIAL'        : 'KEYWORD';
-    const val      = t.serial || normalizeName(t.toolName);
+    const val      = t.serial || normalizeMcName(t.toolName);
     return `<tr style="${dup ? 'opacity:0.4;' : ''}">
       <td style="padding:5px 8px;font-family:var(--mono);font-size:11px;color:var(--accent);">T${t.toolNum}</td>
       <td style="padding:5px 8px;"><span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:2px;border:1px solid ${typeCol};color:${typeCol};">${typeLabel}</span></td>
-      <td style="padding:5px 8px;font-family:var(--mono);font-size:11px;color:var(--text);">${esc(val)}</td>
-      <td style="padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--dim);">
-        ${esc(t.toolName)}${dup ? ' <span style="color:var(--yellow);font-size:9px;">ALREADY IN LIBRARY</span>' : ''}
-      </td>
+      <td style="padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--dim);">${esc(t.toolName)}</td>
+      <td style="padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--text);">${esc(val)}${dup ? ' <span style="color:var(--yellow);font-size:9px;">ALREADY IN LIBRARY</span>' : ''}</td>
     </tr>`;
   }).join('');
 
@@ -293,7 +687,7 @@ function showMcImportPreview(tools) {
   modal.id = 'mcPreviewModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
-    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:860px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">MASTERCAM IMPORT PREVIEW</div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:auto;">
@@ -309,8 +703,8 @@ function showMcImportPreview(tools) {
             <tr style="border-bottom:1px solid var(--border);">
               <th style="padding:8px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:left;">TOOL #</th>
               <th style="padding:8px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:left;">TYPE</th>
-              <th style="padding:8px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:left;">MATCH VALUE</th>
               <th style="padding:8px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:left;">TOOL NAME</th>
+              <th style="padding:8px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:left;">MATCH VALUE</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -318,16 +712,11 @@ function showMcImportPreview(tools) {
       </div>
       <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="document.getElementById('mcPreviewModal').remove()"
-          style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">
-          CANCEL
-        </button>
+          style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
         <button onclick="confirmMcImport()"
-          style="padding:10px 24px;background:var(--green);border:none;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">
-          ADD ${newTools.length} NEW TOOLS
-        </button>
+          style="padding:10px 24px;background:var(--green);border:none;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">ADD ${newTools.length} NEW TOOLS</button>
       </div>
     </div>`;
-
   modal._tools = tools;
   document.body.appendChild(modal);
 }
@@ -338,7 +727,7 @@ function confirmMcImport() {
   let added = 0;
   for (const t of modal._tools) {
     const matchType = t.serial ? 'serial' : 'keyword';
-    const matchVal  = t.serial || normalizeName(t.toolName);
+    const matchVal  = t.serial || normalizeMcName(t.toolName);
     if (toolLibrary.some(e => e.okuma === t.toolNum && e.matchVal === matchVal)) continue;
     toolLibrary.push({ matchType, matchVal, okuma: t.toolNum, desc: t.toolName });
     added++;
@@ -350,12 +739,23 @@ function confirmMcImport() {
 }
 
 // ════════════════════════════════════════
-//  UI — SEARCH, TABS, FILE HANDLING
+//  SEARCH & TAB SWITCHING
 // ════════════════════════════════════════
 
 document.addEventListener('input', e => {
   if (e.target.id === 'toolSearch')    renderToolTable('toolBody',    'toolCount',    e.target.value);
   if (e.target.id === 'pdfToolSearch') renderToolTable('pdfToolBody', 'pdfToolCount', e.target.value);
+});
+
+// Make table headers clickable for sort
+document.addEventListener('click', e => {
+  const th = e.target.closest('th');
+  if (!th) return;
+  const thead = th.closest('thead');
+  if (!thead) return;
+  const ths    = [...thead.querySelectorAll('th')];
+  const colIdx = ths.indexOf(th);
+  if (colIdx >= 0 && colIdx < SORT_COLS.length) setSortCol(SORT_COLS[colIdx]);
 });
 
 function switchConvTab(name) {
@@ -365,7 +765,10 @@ function switchConvTab(name) {
   document.getElementById('ctab-' + name).classList.add('active');
 }
 
-// G-code file drop/select
+// ════════════════════════════════════════
+//  G-CODE FILE HANDLING
+// ════════════════════════════════════════
+
 (function() {
   const dz = document.getElementById('dropZone');
   const fi = document.getElementById('fileInput');
@@ -396,7 +799,10 @@ function handleFile(file) {
   reader.readAsText(file);
 }
 
-// PDF file drop/select
+// ════════════════════════════════════════
+//  PDF FILE HANDLING
+// ════════════════════════════════════════
+
 (function() {
   const dz = document.getElementById('pdfDropZone');
   const fi = document.getElementById('pdfFileInput');
@@ -481,21 +887,11 @@ function runConversion() {
     const m = s.match(headerRe);
     if (!m) continue;
     const tNum = m[1];
-    const sUp  = s.toUpperCase();
     let matched = false;
     for (const entry of toolLibrary) {
-      const val = (entry.matchVal || '').toUpperCase();
-      let hit = false;
-      if (entry.matchType === 'keyword') {
-        const normVal = val.replace(/-/g,'').replace(/\s+/g,' ').trim();
-        const normS   = sUp.replace(/-/g,'').replace(/\s+/g,' ').trim();
-        hit = normVal.split(' ').filter(t=>t).every(tok => normS.includes(tok));
-      } else {
-        hit = val.length > 0 && sUp.includes(val);
-      }
-      if (hit) {
+      if (matchesLibraryEntry(entry, s)) {
         toolMap[tNum] = entry.okuma;
-        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + val + ']  ' + (entry.desc || ''));
+        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + entry.matchType + ': ' + entry.matchVal + ']  ' + (entry.desc || ''));
         matched = true; break;
       }
     }
@@ -619,7 +1015,6 @@ async function runPdfConversion() {
     }
     pdfLog('info', 'Extracted ' + allWords.length + ' tokens across ' + numPages + ' pages.');
 
-    // Group into visual lines
     const lineMap = {};
     for (const w of allWords) {
       const key = w.pageIndex + '_' + Math.round(w.y);
@@ -630,29 +1025,9 @@ async function runPdfConversion() {
       .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })
       .map(key => ({ key, words: lineMap[key].sort((a,b)=>a.x-b.x), text: lineMap[key].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ') }));
 
-    // Match library
-    function matchLib(descStr) {
-      const up = descStr.toUpperCase();
-      for (const entry of toolLibrary) {
-        const val = (entry.matchVal || '').toUpperCase();
-        let hit = false;
-        if (entry.matchType === 'keyword') {
-          const normVal = val.replace(/-/g,'').replace(/\s+/g,' ').trim();
-          const normUp  = up.replace(/-/g,'').replace(/\s+/g,' ').trim();
-          const toks = normVal.split(' ').filter(t=>t);
-          hit = toks.length > 0 && toks.every(tok => normUp.includes(tok));
-        } else {
-          hit = val.length > 0 && up.includes(val);
-        }
-        if (hit) return entry;
-      }
-      return null;
-    }
-
     const mcamToOkuma = {};
     pdfLog('info', 'Matching tools...');
 
-    // Pass A: "# N" header rows
     for (let li = 0; li < lines.length; li++) {
       const curTxt = lines[li].text.trim();
       const [curPage, curY] = lines[li].key.split('_').map(Number);
@@ -666,33 +1041,35 @@ async function runPdfConversion() {
         if (pg2 !== curPage || Math.abs(y2 - curY) > 15) continue;
         const txt = lines[lj].text.trim();
         if (txt.length < 5 || /^(STICKOUT|TOOL LIST|OPERATION LIST|PART CYCLE|PROGRAM NUMBER)/i.test(txt)) continue;
-        const entry = matchLib(txt);
-        if (entry) {
-          mcamToOkuma[mcamNum] = String(entry.okuma);
-          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchType + ': ' + entry.matchVal + ']');
-          break;
+        for (const entry of toolLibrary) {
+          if (matchesLibraryEntry(entry, txt)) {
+            mcamToOkuma[mcamNum] = String(entry.okuma);
+            pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchType + ': ' + entry.matchVal + ']');
+            break;
+          }
         }
+        if (mcamToOkuma[mcamNum]) break;
       }
       if (!mcamToOkuma[mcamNum]) pdfLog('warn', '  #' + mcamNum + ' not matched');
     }
 
-    // Pass B: operation rows "N #M - ..."
     for (let li = 0; li < lines.length; li++) {
       const mOp = lines[li].text.match(/^\d+\s+#(\d+)\s+-/);
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
-      const entry = matchLib(lines[li].text);
-      if (entry) {
-        mcamToOkuma[mcamNum] = String(entry.okuma);
-        pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
+      for (const entry of toolLibrary) {
+        if (matchesLibraryEntry(entry, lines[li].text)) {
+          mcamToOkuma[mcamNum] = String(entry.okuma);
+          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
+          break;
+        }
       }
     }
 
     if (!Object.keys(mcamToOkuma).length) pdfLog('warn', 'WARNING: No tools matched. Check library.');
     else pdfLog('info', 'Tool map: ' + Object.keys(mcamToOkuma).length + ' tools resolved.');
 
-    // Collect replacements
     const replacements = [];
 
     for (let li = 0; li < lines.length; li++) {
@@ -763,8 +1140,7 @@ async function runPdfConversion() {
     pdfLog('info', 'Found ' + replacements.length + ' tokens to replace.');
     if (replacements.length === 0) {
       pdfLog('warn', 'No replacements found. Check library or PDF format.');
-      btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF';
-      return;
+      btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF'; return;
     }
 
     pdfLog('info', 'Applying replacements...');

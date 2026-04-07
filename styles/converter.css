@@ -190,9 +190,11 @@ header {
 table { width: 100%; border-collapse: collapse; }
 th {
   font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--dim); padding: 6px 10px; text-align: left;
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; background: var(--panel);
+  color: #000; padding: 6px 10px; text-align: left;
+  border-bottom: 2px solid rgba(0,0,0,0.3);
+  position: sticky; top: 0; z-index: 1;
+  background: #00c8ff;
+  cursor: pointer; user-select: none;
 }
 td {
   font-family: var(--mono); font-size: 12px;
@@ -377,34 +379,56 @@ td.desc {
   border: 1px solid var(--border); border-radius: 2px;
   max-width: 100%; display: block; margin: 0 auto;
 }
-
-@media (max-width: 1280px) {
-  .main-grid { grid-template-columns: 300px minmax(0, 1fr); }
-}
-
-@media (max-width: 1100px) {
-  .main-grid { grid-template-columns: 260px minmax(0, 1fr); }
-  .tool-table-wrap { max-height: 200px; }
-  .code-scroll { max-height: 280px; }
-}
-
-@media (max-width: 1000px) and (min-width: 901px) {
-  /* Stay two-column but stack the code panes vertically */
-  .code-compare { grid-template-columns: 1fr; }
-  .code-scroll  { max-height: 180px; }
-  /* Shrink download button so it fits */
-  .btn-download { padding: 10px 16px; font-size: 15px; letter-spacing: 1px; }
-  .dl-info      { font-size: 14px; }
-}
-
-@media (max-width: 900px) {
-  .code-compare { grid-template-columns: 1fr; }
-  .code-scroll  { max-height: 220px; }
-}
-
 @media(max-width:600px) {
   .wrapper { padding: 0 14px 80px; }
   .brand-name { font-size: 26px; }
   .app-switcher { bottom: 16px; right: 16px; }
   .switcher-btn { padding: 8px 12px; font-size: 11px; }
+}
+
+/* ── ROW HOVER ACTIONS — right side, fade in on hover ── */
+.lib-row { position: relative; }
+.lib-row-actions {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; gap: 2px;
+  padding: 0 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  background: linear-gradient(to right, transparent, var(--panel) 30%);
+}
+.lib-row:hover .lib-row-actions,
+.lib-row:focus-within .lib-row-actions {
+  opacity: 1;
+  pointer-events: all;
+}
+.lib-action-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; padding: 4px 6px; border-radius: 3px;
+  transition: background .12s, color .12s; line-height: 1;
+}
+.lib-edit   { color: var(--accent); }
+.lib-delete { color: var(--dim); }
+.lib-edit:hover   { background: rgba(0,200,255,0.15); }
+.lib-delete:hover { background: rgba(255,59,59,0.15); color: var(--red); }
+
+/* ── MEDIUM SCREEN RESPONSIVE FIXES ── */
+@media (max-width: 1280px) {
+  .main-grid { grid-template-columns: 300px minmax(0, 1fr); }
+}
+@media (max-width: 1100px) {
+  .main-grid { grid-template-columns: 260px minmax(0, 1fr); }
+  .tool-table-wrap { max-height: 200px; }
+  .code-scroll { max-height: 280px; }
+}
+@media (max-width: 1000px) and (min-width: 901px) {
+  .code-compare { grid-template-columns: 1fr; }
+  .code-scroll  { max-height: 180px; }
+  .btn-download { padding: 10px 16px; font-size: 15px; letter-spacing: 1px; }
+  .dl-info      { font-size: 14px; }
+}
+@media (max-width: 900px) {
+  .code-compare { grid-template-columns: 1fr; }
+  .code-scroll  { max-height: 220px; }
 }
