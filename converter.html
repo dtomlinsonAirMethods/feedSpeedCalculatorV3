@@ -35,13 +35,17 @@
         <div class="panel-head"><div class="dot"></div>INPUT FILE (.MIN)</div>
         <div class="panel-body">
           <div class="drop-zone" id="dropZone">
-            <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt">
+            <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt" multiple>
             <div class="drop-icon">&#128194;</div>
             <div class="drop-label">DROP .MIN FILE HERE</div>
             <div class="drop-sub">or click to browse</div>
           </div>
         </div>
       </div>
+
+      <button class="btn-convert" id="convertBtn" onclick="runConversion()" disabled>
+        &#9881; CONVERT FILE
+      </button>
 
       <div class="panel">
         <div class="panel-head"><div class="dot"></div>CONVERSION SETTINGS</div>
@@ -104,55 +108,29 @@
         </div>
       </div>
 
-      <button class="btn-convert" id="convertBtn" onclick="runConversion()" disabled>
-        &#9881; CONVERT FILE
-      </button>
+  
 
     </div><!-- /left -->
 
     <div class="right-col">
 
-      <div class="download-bar" id="downloadBar">
-        <div class="dl-info">CONVERSION COMPLETE<span id="dlMeta"></span></div>
-        <a class="btn-download" id="downloadBtn" href="#" download>&#11015; DOWNLOAD .MIN</a>
-      </div>
-
-      <div class="stats-row" id="statsRow" style="display:none;">
-        <div class="stat-box"><div class="stat-val ok" id="statLines">0</div><div class="stat-label">Total Lines</div></div>
-        <div class="stat-box"><div class="stat-val" id="statWcs">0</div><div class="stat-label">WCS Changed</div></div>
-        <div class="stat-box"><div class="stat-val" id="statTools">0</div><div class="stat-label">Tools Remapped</div></div>
-        <div class="stat-box"><div class="stat-val warn" id="statUnmapped">0</div><div class="stat-label">Unmapped Tools</div></div>
-      </div>
-
+      <!-- Status log — always visible, shows summary across all conversions -->
       <div class="panel">
-        <div class="panel-head"><div class="dot"></div>CONVERSION LOG</div>
+        <div class="panel-head"><div class="dot"></div>STATUS</div>
         <div class="panel-body" style="padding:0;">
           <div class="log-box" id="logBox">
-            <span class="log-info">// Ready. Upload a .MIN file and click CONVERT FILE.</span>
+            <span class="log-info">// Ready. Drop one or more .MIN files and click CONVERT.</span>
           </div>
         </div>
       </div>
 
-      <div class="panel" id="previewPanel" style="display:none;">
-        <div class="panel-head">
-          <div class="dot"></div>SIDE-BY-SIDE PREVIEW
-          <span style="color:var(--dim);font-size:10px;margin-left:8px;">(CHANGED LINES HIGHLIGHTED)</span>
-        </div>
-        <div class="code-compare">
-          <div class="code-pane">
-            <div class="code-pane-head orig">&#9658; ORIGINAL (HAAS)</div>
-            <div class="code-scroll" id="origCode"></div>
-          </div>
-          <div class="code-pane">
-            <div class="code-pane-head conv">&#9658; CONVERTED (OKUMA)</div>
-            <div class="code-scroll" id="convCode"></div>
-          </div>
-        </div>
-      </div>
+      <!-- Card deck — one card per converted file, click through with arrows -->
+      <div id="cardDeck" style="display:none;flex-direction:column;gap:16px;"></div>
 
+      <!-- Empty state -->
       <div class="empty-state" id="emptyState">
         <div class="big">&#9881;</div>
-        <p>Upload a .MIN file and click CONVERT FILE</p>
+        <p>Upload .MIN files and click CONVERT FILE</p>
       </div>
 
     </div><!-- /right -->
@@ -178,6 +156,10 @@
           </div>
         </div>
       </div>
+
+      <button class="btn-convert" id="pdfConvertBtn" onclick="runPdfConversion()" disabled>
+        &#128196; CONVERT PDF
+      </button>
 
       <div class="panel">
         <div class="panel-head"><div class="dot"></div>PDF SETTINGS</div>
@@ -238,10 +220,6 @@
           </div>
         </div>
       </div>
-
-      <button class="btn-convert" id="pdfConvertBtn" onclick="runPdfConversion()" disabled>
-        &#128196; CONVERT PDF
-      </button>
 
     </div><!-- /left -->
 

@@ -16,7 +16,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48130',  okuma: 8,   desc: 'HELICAL - 48130 - 1/4 DIA X .75 LOC X .06 RAD' },
   { matchType: 'serial',  matchVal: '48135',  okuma: 9,   desc: 'HELICAL - 48135 - 1/4 DIA X 1.0 LOC' },
   { matchType: 'serial',  matchVal: '48395',  okuma: 10,  desc: 'HELICAL - 48395 - 1/2 DIA X 1.25 LOC' },
-  { matchType: 'keyword', matchVal: '1/4 90 DEGREE CHAMFER MILL', okuma: 11, desc: '1/4 90 DEGREE CHAMFER MILL' },
+  { matchType: 'keyword', matchVal: '1/4 90 DEGREE CHAMFER MILL', altVals: ['1/4 -90 DEG CHAMFER MILL', '1/4 90 DEG CHAMFER MILL'], okuma: 11, desc: '1/4 90 DEGREE CHAMFER MILL' },
   { matchType: 'keyword', matchVal: '1/4 SPOTDRILL', okuma: 12, desc: '1/4 SPOTDRILL' },
   { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL', okuma: 13, desc: 'NO. 40 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 7 STUB DRILL', okuma: 14, desc: 'NO. 7 STUB DRILL' },
@@ -226,16 +226,19 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'LTR. K STUB DRILL', okuma: 220, desc: 'LTR. K STUB DRILL' },
   { matchType: 'serial',  matchVal: '82439',  okuma: 221, desc: 'HELICAL - 82439 - 1/2 DIA X 2.5 LOC x .06 RADIUS' },
   { matchType: 'serial',  matchVal: '82397',  okuma: 222, desc: 'HELICAL - 82397 - 1/2 DIA X 3.125 LOC' },
-  { matchType: 'keyword', matchVal: '3/8 DIA 1.5 LOC LONG REACH', okuma: 223, desc: 'REDLINE - RE12325 - 3/8 DIA X 1.5 LOC WITH LONG REACH' },
-  { matchType: 'keyword', matchVal: 'NO. 29 DRILL', okuma: 224, desc: 'NO. 29 DRILL' },
-  { matchType: 'keyword', matchVal: '8-32 CUT TAP RH', okuma: 225, desc: '8-32 CUT TAP RH' },
-  { matchType: 'keyword', matchVal: '1/2-14 NPT TAP RH', okuma: 226, desc: '1/2-14 NPT TAPRH' },
-  { matchType: 'serial',  matchVal: '81499',  okuma: 227, desc: 'HELICAL - 81499 - 1/4 DIA X .375 LOC X .06 RAD X 2.125 REACH' },
-  { matchType: 'keyword', matchVal: '11-32 TPI SINGLE POINT THREAD MILL', okuma: 228, desc: '#2 TM 11-32 TPI 1/2" Single Point Thread Mill' },
-  { matchType: 'keyword', matchVal: 'REDLINE RE10106 3/32 DIA .1875 LOC', okuma: 229, desc: 'REDLINE - RE10106 - 3/32 DIA x .1875 LOC' },
-  { matchType: 'serial',  matchVal: '74362',  okuma: 230, desc: 'HARVEY - 74362 -1/16 DIA X .186 LOC BALL ENDMILL' },
-  { matchType: 'keyword', matchVal: 'NO. 4-40 FORM TAP RH', okuma: 231, desc: 'NO. 4-40 FORM TAP RH' },
-  { matchType: 'serial',  matchVal: '81459',  okuma: 232, desc: 'HELICAL - 81459 - 1/4 DIA X 1.25 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: '3/8 DIA 1.5 LOC LONG REACH',         okuma: 223, desc: 'REDLINE - RE12325 - 3/8 DIA X 1.5 LOC WITH LONG REACH' },
+  { matchType: 'keyword', matchVal: 'NO. 29 DRILL',                        okuma: 224, desc: 'NO. 29 DRILL' },
+  { matchType: 'keyword', matchVal: '8-32 CUT TAP RH',                     okuma: 225, desc: '8-32 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: '1/2-14 NPT TAP RH',                   okuma: 226, desc: '1/2-14 NPT TAPRH' },
+  { matchType: 'serial',  matchVal: '81499',                                okuma: 227, desc: 'HELICAL - 81499 - 1/4 DIA X .375 LOC X .06 RAD X 2.125 REACH' },
+  { matchType: 'keyword', matchVal: '11-32 TPI SINGLE POINT THREAD MILL',  okuma: 228, desc: '#2 TM 11-32 TPI 1/2" Single Point Thread Mill' },
+  { matchType: 'keyword', matchVal: 'REDLINE RE10106 3/32 DIA .1875 LOC',  okuma: 229, desc: 'REDLINE - RE10106 - 3/32 DIA x .1875 LOC' },
+  { matchType: 'serial',  matchVal: '74362',                                okuma: 230, desc: 'HARVEY - 74362 -1/16 DIA X .186 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'NO. 4-40 FORM TAP RH',                okuma: 231, desc: 'NO. 4-40 FORM TAP RH' },
+  { matchType: 'serial',  matchVal: '81459',                                okuma: 232, desc: 'HELICAL - 81459 - 1/4 DIA X 1.25 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'HAT977645 1/4 SHARP POINT CHAMFER',   okuma: 233, desc: '1/4 SHARP POINT CHAMFER' },
+  { matchType: 'keyword', matchVal: '7/16 100 DEG C.S',                    okuma: 234, desc: '7/16 100 DEG C.S' },
+  { matchType: 'keyword', matchVal: '#305 -SLOT MILL',                     okuma: 235, desc: '#305 -SLOT MILL' },
 ];
 
 let toolLibrary = DEFAULT_LIBRARY.map(t => Object.assign({}, t));
@@ -283,10 +286,19 @@ function matchesLibraryEntry(entry, text) {
   const val = (entry.matchVal || '').toUpperCase();
   if (!val) return false;
   if (entry.matchType === 'keyword') {
-    return keywordMatches(val, text);
+    if (keywordMatches(val, text)) return true;
+    // Check alternate match values if provided
+    if (entry.altVals && entry.altVals.length) {
+      return entry.altVals.some(alt => keywordMatches(alt.toUpperCase(), text));
+    }
+    return false;
   } else {
-    // Serial: exact substring match (serials are numeric, no ambiguity)
-    return text.toUpperCase().includes(val);
+    // Serial: also support altVals for alternate serial numbers
+    if (text.toUpperCase().includes(val)) return true;
+    if (entry.altVals && entry.altVals.length) {
+      return entry.altVals.some(alt => text.toUpperCase().includes(alt.toUpperCase()));
+    }
+    return false;
   }
 }
 
@@ -766,42 +778,282 @@ function switchConvTab(name) {
 }
 
 // ════════════════════════════════════════
-//  G-CODE FILE HANDLING
+//  G-CODE FILE HANDLING — MULTI FILE
 // ════════════════════════════════════════
+
+let pendingFiles  = []; // { name, content } queued for batch convert
+let resultCards   = []; // converted result objects
+let currentCard   = 0;
 
 (function() {
   const dz = document.getElementById('dropZone');
   const fi = document.getElementById('fileInput');
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
   dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-  fi.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) handleFiles(Array.from(e.dataTransfer.files));
+  });
+  fi.addEventListener('change', e => {
+    if (e.target.files.length) handleFiles(Array.from(e.target.files));
+  });
 })();
 
-function handleFile(file) {
-  fileName = file.name;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    fileContent = ev.target.result;
-    const lc = fileContent.split('\n').length;
-    document.getElementById('dropZone').innerHTML = `
-      <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt">
-      <div class="file-loaded">
-        <div class="file-name">&#10004; ${esc(file.name)}</div>
-        <div class="file-meta">${lc.toLocaleString()} lines &nbsp;&middot;&nbsp; ${(file.size/1024).toFixed(1)} KB</div>
-        <div class="file-change">Click to change file</div>
-      </div>`;
-    document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-    document.getElementById('convertBtn').disabled = false;
-    log('ok', 'Loaded: ' + file.name + ' (' + lc.toLocaleString() + ' lines)');
-    clearResults();
-  };
-  reader.readAsText(file);
+function handleFiles(files) {
+  pendingFiles = [];
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingFiles.push({ name: file.name, content: ev.target.result, size: file.size });
+      loaded++;
+      if (loaded === files.length) {
+        pendingFiles.sort((a,b) => a.name.localeCompare(b.name));
+        updateDropZoneMulti();
+        document.getElementById('convertBtn').disabled = false;
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function updateDropZoneMulti() {
+  const count = pendingFiles.length;
+  const names = pendingFiles.map(f => esc(f.name)).join('<br>');
+  document.getElementById('dropZone').innerHTML = `
+    <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt" multiple>
+    <div class="file-loaded">
+      <div class="file-name">&#10004; ${count} file${count>1?'s':''} ready</div>
+      <div class="file-meta" style="margin-top:6px;line-height:1.8;">${names}</div>
+      <div class="file-change">Click to change files</div>
+    </div>`;
+  document.getElementById('fileInput').addEventListener('change', e => {
+    if (e.target.files.length) handleFiles(Array.from(e.target.files));
+  });
 }
 
 // ════════════════════════════════════════
-//  PDF FILE HANDLING
+//  LOGGING (single status log, not per-card)
 // ════════════════════════════════════════
+
+function log(type, msg) {
+  const box  = document.getElementById('logBox');
+  const span = document.createElement('span');
+  span.className   = 'log-' + type;
+  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
+  box.appendChild(span); box.scrollTop = box.scrollHeight;
+}
+
+function pdfLog(type, msg) {
+  const box  = document.getElementById('pdfLogBox');
+  const span = document.createElement('span');
+  span.className   = 'log-' + type;
+  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
+  box.appendChild(span); box.scrollTop = box.scrollHeight;
+}
+
+function clearResults() {
+  resultCards = []; currentCard = 0;
+  document.getElementById('cardDeck').innerHTML = '';
+  document.getElementById('cardDeck').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('logBox').innerHTML = '';
+}
+
+// ════════════════════════════════════════
+//  G-CODE CONVERSION ENGINE
+// ════════════════════════════════════════
+
+// Pure conversion — takes text string, returns result object
+function convertGCode(content, fname, wcsInc) {
+  const lines    = content.split('\n');
+  const toolMap  = {};
+  const unmapped = [];
+  const logLines = [];
+  const headerRe = /^\(T(\d+)\s*[-–]/i;
+
+  const addLog = (type, msg) => logLines.push({ type, msg });
+
+  addLog('info', '══════════════════════════════════════════');
+  addLog('info', ' ' + fname);
+  addLog('info', '══════════════════════════════════════════');
+  addLog('info', 'Scanning header...');
+
+  for (const line of lines) {
+    const s = line.trim();
+    if (!s.startsWith('(')) continue;
+    const m = s.match(headerRe);
+    if (!m) continue;
+    const tNum = m[1];
+    let matched = false;
+    for (const entry of toolLibrary) {
+      if (matchesLibraryEntry(entry, s)) {
+        toolMap[tNum] = entry.okuma;
+        addLog('map', '  T' + tNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']');
+        matched = true; break;
+      }
+    }
+    if (!matched && /T\d+\s*[-–].{4,}/.test(s)) unmapped.push({ tNum, line: s });
+  }
+
+  if (unmapped.length) {
+    addLog('warn', unmapped.length + ' tool(s) not in library:');
+    unmapped.forEach(u => addLog('warn', '  T' + u.tNum + ': ' + u.line));
+  }
+
+  addLog('info', 'Converting... (WCS +' + wcsInc + ')');
+  const origLines = [], convLines = [];
+  let wcsCount = 0, toolCount = 0;
+
+  for (const rawLine of lines) {
+    const orig      = rawLine.replace(/\r$/, '');
+    let conv        = orig;
+    const isComment = orig.trim().startsWith('(');
+
+    conv = conv.replace(/G15\s+H(\d+)/g, (_, h) => { wcsCount++; return 'G15 H' + (parseInt(h) + wcsInc); });
+
+    if (!isComment) {
+      conv = conv.replace(/\bT(\d+)\b/g, (match, tNum) => {
+        if (toolMap[tNum] !== undefined) { toolCount++; return 'T' + toolMap[tNum]; }
+        return match;
+      });
+    } else {
+      conv = conv.replace(/^\(T(\d+)([\s\-])/, (match, tNum, sep) => {
+        if (toolMap[tNum] !== undefined) return '(T' + toolMap[tNum] + sep;
+        return match;
+      });
+      conv = conv.replace(/([\-\s]+H)(\d+)(\s*\))\s*$/, (match, prefix, hNum, suffix) => {
+        if (toolMap[hNum] !== undefined) return prefix + toolMap[hNum] + suffix;
+        return match;
+      });
+    }
+
+    const changed = conv !== orig;
+    origLines.push({ text: orig, changed });
+    convLines.push({ text: conv, changed });
+  }
+
+  const convertedText = convLines.map(l => l.text).join('\n');
+  const changedCount  = convLines.filter(l => l.changed).length;
+
+  addLog('ok', ' DONE — ' + lines.length.toLocaleString() + ' lines processed');
+  addLog('ok', '   WCS changed  : ' + wcsCount);
+  addLog('ok', '   Tools changed: ' + toolCount);
+  addLog('ok', '   Lines changed: ' + changedCount);
+  if (unmapped.length) addLog('warn', '   Unmapped     : ' + unmapped.length);
+
+  const outName = fname.replace(/\.[^.]+$/, '') + '_OKUMA.MIN';
+  const url     = URL.createObjectURL(new Blob([convertedText], { type: 'text/plain' }));
+
+  return {
+    fname, outName, url,
+    lines: lines.length, wcsCount, toolCount,
+    changedCount, unmappedCount: unmapped.length,
+    origLines, convLines, logLines
+  };
+}
+
+function runConversion() {
+  if (!pendingFiles.length) { alert('Please upload .MIN files first.'); return; }
+
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('emptyState').style.display = 'none';
+
+  const wcsInc = parseInt(document.getElementById('wcsIncrement').value) || 1;
+
+  resultCards  = pendingFiles.map(f => convertGCode(f.content, f.name, wcsInc));
+  currentCard  = 0;
+
+  // Print summary to status log
+  log('info', 'Converted ' + resultCards.length + ' file(s)');
+  resultCards.forEach(r => {
+    log(r.unmappedCount > 0 ? 'warn' : 'ok',
+      r.fname + '  →  ' + r.changedCount + ' lines changed' +
+      (r.unmappedCount ? '  (' + r.unmappedCount + ' unmapped)' : ''));
+  });
+
+  renderCardDeck();
+}
+
+// ── Card deck renderer ──
+function renderCardDeck() {
+  const deck = document.getElementById('cardDeck');
+  deck.style.display = 'flex';
+
+  if (resultCards.length === 0) { deck.innerHTML = ''; return; }
+
+  const r    = resultCards[currentCard];
+  const total = resultCards.length;
+
+  const buildHtml = arr => arr.slice(0, 300).map(l =>
+    '<span class="' + (l.changed ? 'line-changed' : 'line-normal') + '">' + esc(l.text) + '</span>'
+  ).join('');
+
+  const logHtml = r.logLines.map(l =>
+    '<span class="log-' + l.type + '">' + esc(l.msg) + '\n</span>'
+  ).join('');
+
+  deck.innerHTML = `
+    <!-- Download bar -->
+    <div class="download-bar show">
+      <div class="dl-info">CONVERSION COMPLETE<span>${esc(r.outName)} &nbsp;·&nbsp; ${r.changedCount} lines modified</span></div>
+      <a class="btn-download" href="${r.url}" download="${esc(r.outName)}">&#11015; DOWNLOAD .MIN</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val ok">${r.lines.toLocaleString()}</div><div class="stat-label">Total Lines</div></div>
+      <div class="stat-box"><div class="stat-val">${r.wcsCount}</div><div class="stat-label">WCS Changed</div></div>
+      <div class="stat-box"><div class="stat-val">${r.toolCount}</div><div class="stat-label">Tools Remapped</div></div>
+      <div class="stat-box"><div class="stat-val warn">${r.unmappedCount}</div><div class="stat-label">Unmapped Tools</div></div>
+    </div>
+
+    <!-- Per-card log -->
+    <div class="panel">
+      <div class="panel-head"><div class="dot"></div>CONVERSION LOG</div>
+      <div class="panel-body" style="padding:0;">
+        <div class="log-box" style="max-height:160px;">${logHtml}</div>
+      </div>
+    </div>
+
+    <!-- Card nav -->
+    <div class="card-nav">
+      <button class="card-nav-btn" onclick="navigateCard(-1)" ${currentCard===0?'disabled':''}>&#8592;</button>
+      <span class="card-nav-label">
+        <span style="color:var(--accent);font-weight:700;">${currentCard+1}</span>
+        <span style="color:var(--dim);"> / ${total}</span>
+        <span style="color:var(--text);margin-left:10px;font-size:11px;">${esc(r.fname)}</span>
+      </span>
+      <button class="card-nav-btn" onclick="navigateCard(1)" ${currentCard===total-1?'disabled':''}>&#8594;</button>
+    </div>
+
+    <!-- Side-by-side preview -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dot"></div>SIDE-BY-SIDE PREVIEW
+        <span style="color:var(--dim);font-size:10px;margin-left:8px;">(CHANGED LINES HIGHLIGHTED)</span>
+      </div>
+      <div class="code-compare">
+        <div class="code-pane">
+          <div class="code-pane-head orig">&#9658; ORIGINAL (HAAS)</div>
+          <div class="code-scroll" id="origCode">${buildHtml(r.origLines)}</div>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-head conv">&#9658; CONVERTED (OKUMA)</div>
+          <div class="code-scroll" id="convCode">${buildHtml(r.convLines)}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Sync scroll between panes
+  const panes = deck.querySelectorAll('.code-scroll');
+  panes.forEach(p => { p.onscroll = () => panes.forEach(o => { if (o !== p) o.scrollTop = p.scrollTop; }); });
+}
+
+function navigateCard(dir) {
+  currentCard = Math.max(0, Math.min(resultCards.length - 1, currentCard + dir));
+  renderCardDeck();
+}
 
 (function() {
   const dz = document.getElementById('pdfDropZone');
@@ -838,137 +1090,6 @@ function handlePdfFile(file) {
 
 // ════════════════════════════════════════
 //  LOGGING
-// ════════════════════════════════════════
-
-function log(type, msg) {
-  const box  = document.getElementById('logBox');
-  const span = document.createElement('span');
-  span.className   = 'log-' + type;
-  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
-  box.appendChild(span); box.scrollTop = box.scrollHeight;
-}
-
-function pdfLog(type, msg) {
-  const box  = document.getElementById('pdfLogBox');
-  const span = document.createElement('span');
-  span.className   = 'log-' + type;
-  span.textContent = '[' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + '] ' + msg + '\n';
-  box.appendChild(span); box.scrollTop = box.scrollHeight;
-}
-
-function clearResults() {
-  document.getElementById('downloadBar').classList.remove('show');
-  document.getElementById('statsRow').style.display     = 'none';
-  document.getElementById('previewPanel').style.display = 'none';
-  document.getElementById('emptyState').style.display   = 'block';
-}
-
-// ════════════════════════════════════════
-//  G-CODE CONVERSION ENGINE
-// ════════════════════════════════════════
-
-function runConversion() {
-  if (!fileContent) { alert('Please upload a .MIN file first.'); return; }
-  document.getElementById('logBox').innerHTML = '';
-  log('info', '══════════════════════════════════════════');
-  log('info', ' STARTING CONVERSION');
-  log('info', '══════════════════════════════════════════');
-
-  const wcsInc   = parseInt(document.getElementById('wcsIncrement').value) || 1;
-  const lines    = fileContent.split('\n');
-  const toolMap  = {};
-  const unmapped = [];
-  const headerRe = /^\(T(\d+)\s*[-–]/i;
-
-  log('info', 'Scanning header for tool definitions...');
-  for (const line of lines) {
-    const s = line.trim();
-    if (!s.startsWith('(')) continue;
-    const m = s.match(headerRe);
-    if (!m) continue;
-    const tNum = m[1];
-    let matched = false;
-    for (const entry of toolLibrary) {
-      if (matchesLibraryEntry(entry, s)) {
-        toolMap[tNum] = entry.okuma;
-        log('map', '  T' + tNum + ' → Okuma T' + entry.okuma + '  [' + entry.matchType + ': ' + entry.matchVal + ']  ' + (entry.desc || ''));
-        matched = true; break;
-      }
-    }
-    if (!matched && /T\d+\s*[-–].{4,}/.test(s)) unmapped.push({ tNum, line: s });
-  }
-  if (unmapped.length) {
-    log('warn', unmapped.length + ' tool(s) NOT in library — keeping original T#:');
-    unmapped.forEach(u => log('warn', '  T' + u.tNum + ': ' + u.line));
-  }
-
-  log('info', 'Converting lines... (WCS +' + wcsInc + ')');
-  const origLines = [], convLines = [];
-  let wcsCount = 0, toolCount = 0;
-
-  for (const rawLine of lines) {
-    const orig      = rawLine.replace(/\r$/, '');
-    let conv        = orig;
-    const isComment = orig.trim().startsWith('(');
-
-    conv = conv.replace(/G15\s+H(\d+)/g, (_, h) => { wcsCount++; return 'G15 H' + (parseInt(h) + wcsInc); });
-
-    if (!isComment) {
-      conv = conv.replace(/\bT(\d+)\b/g, (match, tNum) => {
-        if (toolMap[tNum] !== undefined) { toolCount++; return 'T' + toolMap[tNum]; }
-        return match;
-      });
-    } else {
-      conv = conv.replace(/^\(T(\d+)([\s\-])/, (match, tNum, sep) => {
-        if (toolMap[tNum] !== undefined) return '(T' + toolMap[tNum] + sep;
-        return match;
-      });
-      conv = conv.replace(/([\-\s]+H)(\d+)(\s*\))\s*$/, (match, prefix, hNum, suffix) => {
-        if (toolMap[hNum] !== undefined) return prefix + toolMap[hNum] + suffix;
-        return match;
-      });
-    }
-
-    const changed = conv !== orig;
-    origLines.push({ text: orig, changed });
-    convLines.push({ text: conv, changed });
-  }
-
-  const convertedText = convLines.map(l => l.text).join('\n');
-  const changedCount  = convLines.filter(l => l.changed).length;
-
-  log('ok', '══════════════════════════════════════════');
-  log('ok', ' DONE — ' + lines.length.toLocaleString() + ' lines processed');
-  log('ok', '   WCS offsets changed : ' + wcsCount);
-  log('ok', '   Tool numbers changed: ' + toolCount);
-  log('ok', '   Total lines changed : ' + changedCount);
-  if (unmapped.length) log('warn', '   Unmapped tools      : ' + unmapped.length);
-  log('ok', '══════════════════════════════════════════');
-
-  document.getElementById('statLines').textContent    = lines.length.toLocaleString();
-  document.getElementById('statWcs').textContent      = wcsCount;
-  document.getElementById('statTools').textContent    = toolCount;
-  document.getElementById('statUnmapped').textContent = unmapped.length;
-  document.getElementById('statsRow').style.display   = 'flex';
-
-  const outName = fileName.replace(/\.[^.]+$/, '') + '_OKUMA.MIN';
-  const url     = URL.createObjectURL(new Blob([convertedText], { type: 'text/plain' }));
-  document.getElementById('downloadBtn').href          = url;
-  document.getElementById('downloadBtn').download      = outName;
-  document.getElementById('dlMeta').textContent        = '  ·  ' + outName + '  ·  ' + changedCount + ' lines modified';
-  document.getElementById('downloadBar').classList.add('show');
-
-  const buildHtml = arr => arr.slice(0, 300).map(l =>
-    '<span class="' + (l.changed ? 'line-changed' : 'line-normal') + '">' + esc(l.text) + '</span>'
-  ).join('');
-  document.getElementById('origCode').innerHTML        = buildHtml(origLines);
-  document.getElementById('convCode').innerHTML        = buildHtml(convLines);
-  document.getElementById('previewPanel').style.display = 'block';
-  document.getElementById('emptyState').style.display   = 'none';
-
-  const panes = document.querySelectorAll('.code-scroll');
-  panes.forEach(p => { p.onscroll = () => panes.forEach(o => { if (o !== p) o.scrollTop = p.scrollTop; }); });
-}
 
 // ════════════════════════════════════════
 //  PDF CONVERSION ENGINE

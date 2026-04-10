@@ -414,8 +414,16 @@ td.desc {
 .lib-delete:hover { background: rgba(255,59,59,0.15); color: var(--red); }
 
 /* ── MEDIUM SCREEN RESPONSIVE FIXES ── */
+@media (max-width: 1550px) {
+  .code-compare  { grid-template-columns: 1fr 1fr; overflow: hidden; }
+  .code-pane     { min-width: 0; overflow: hidden; }
+  .code-scroll   { max-height: 310px; overflow-x: auto; overflow-y: auto; white-space: pre; }
+  .download-bar  { flex-wrap: nowrap; }
+  .dl-info       { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-download  { padding: 10px 14px; font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+}
 @media (max-width: 1280px) {
-  .main-grid { grid-template-columns: 300px minmax(0, 1fr); }
+  .main-grid { grid-template-columns: 280px minmax(0, 1fr); }
 }
 @media (max-width: 1100px) {
   .main-grid { grid-template-columns: 260px minmax(0, 1fr); }
@@ -431,4 +439,26 @@ td.desc {
 @media (max-width: 900px) {
   .code-compare { grid-template-columns: 1fr; }
   .code-scroll  { max-height: 220px; }
+}
+
+/* ── CARD NAV ── */
+.card-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 14px;
+}
+.card-nav-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); font-size: 16px; padding: 4px 14px;
+  border-radius: 3px; cursor: pointer; transition: background .1s;
+}
+.card-nav-btn:hover:not([disabled]) { background: rgba(255,255,255,0.07); }
+.card-nav-btn[disabled] { opacity: 0.25; cursor: default; }
+.card-nav-label {
+  font-family: var(--mono); font-size: 12px;
+  display: flex; align-items: center; gap: 0; flex: 1;
+  justify-content: center; overflow: hidden;
+}
+.card-nav-label span:last-child {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
