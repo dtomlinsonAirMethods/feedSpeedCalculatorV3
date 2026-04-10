@@ -239,6 +239,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'HAT977645 1/4 SHARP POINT CHAMFER',   okuma: 233, desc: '1/4 SHARP POINT CHAMFER' },
   { matchType: 'keyword', matchVal: '7/16 100 DEG C.S',                    okuma: 234, desc: '7/16 100 DEG C.S' },
   { matchType: 'keyword', matchVal: '#305 -SLOT MILL',                     okuma: 235, desc: '#305 -SLOT MILL' },
+  { matchType: 'serial', matchVal: '48630', okuma: 236, desc: 'HELICAL - 48630 - 3/4 X 1.625 LOC X .06 RAD' },
 ];
 
 let toolLibrary = DEFAULT_LIBRARY.map(t => Object.assign({}, t));
