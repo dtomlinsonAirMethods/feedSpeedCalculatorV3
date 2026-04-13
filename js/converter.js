@@ -996,21 +996,13 @@ function renderCardDeck() {
   ).join('');
 
   deck.innerHTML = `
-    <!-- Card nav -->
-    <div class="card-nav">
-      <button class="card-nav-btn" onclick="navigateCard(-1)" ${currentCard===0?'disabled':''}>&#8592;</button>
-      <span class="card-nav-label">
-        <span style="color:var(--accent);font-weight:700;">${currentCard+1}</span>
-        <span style="color:var(--dim);"> / ${total}</span>
-        <span style="color:var(--text);margin-left:10px;font-size:11px;">${esc(r.fname)}</span>
-      </span>
-      <button class="card-nav-btn" onclick="navigateCard(1)" ${currentCard===total-1?'disabled':''}>&#8594;</button>
-    </div>
-
     <!-- Download bar -->
     <div class="download-bar show">
       <div class="dl-info">CONVERSION COMPLETE<span>${esc(r.outName)} &nbsp;·&nbsp; ${r.changedCount} lines modified</span></div>
-      <a class="btn-download" href="${r.url}" download="${esc(r.outName)}">&#11015; DOWNLOAD .MIN</a>
+      ${total > 1
+        ? `<button class="btn-download" onclick="downloadAll()">&#11015; DOWNLOAD ALL (${total})</button>`
+        : `<a class="btn-download" href="${r.url}" download="${esc(r.outName)}">&#11015; DOWNLOAD .MIN</a>`
+      }
     </div>
 
     <!-- Stats -->
@@ -1029,12 +1021,22 @@ function renderCardDeck() {
       </div>
     </div>
 
-    <!-- Side-by-side preview -->
+    <!-- Side-by-side preview + card nav combined -->
     <div class="panel">
       <div class="panel-head">
         <div class="dot"></div>SIDE-BY-SIDE PREVIEW
         <span style="color:var(--dim);font-size:10px;margin-left:8px;">(CHANGED LINES HIGHLIGHTED)</span>
       </div>
+      ${total > 1 ? `
+      <div class="card-nav">
+        <button class="card-nav-btn" onclick="navigateCard(-1)" ${currentCard===0?'disabled':''}>&#8592;</button>
+        <span class="card-nav-label">
+          <span class="card-nav-counter">FILE ${currentCard+1} OF ${total} &nbsp;·&nbsp; CLICK ARROWS TO SWITCH</span>
+          <span class="card-nav-filename">${esc(r.fname)}</span>
+        </span>
+        <button class="card-nav-btn" onclick="navigateCard(1)" ${currentCard===total-1?'disabled':''}>&#8594;</button>
+        <a class="card-nav-download" href="${r.url}" download="${esc(r.outName)}">&#11015; ${esc(r.outName)}</a>
+      </div>` : ''}
       <div class="code-compare">
         <div class="code-pane">
           <div class="code-pane-head orig">&#9658; ORIGINAL (HAAS)</div>
@@ -1055,6 +1057,19 @@ function renderCardDeck() {
 function navigateCard(dir) {
   currentCard = Math.max(0, Math.min(resultCards.length - 1, currentCard + dir));
   renderCardDeck();
+}
+
+function downloadAll() {
+  // Trigger individual downloads with a small delay between each
+  // so the browser doesn't block them as a popup flood
+  resultCards.forEach((r, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href     = r.url;
+      a.download = r.outName;
+      a.click();
+    }, i * 200);
+  });
 }
 
 (function() {

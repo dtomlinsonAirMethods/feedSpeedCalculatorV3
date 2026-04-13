@@ -414,13 +414,9 @@ td.desc {
 .lib-delete:hover { background: rgba(255,59,59,0.15); color: var(--red); }
 
 /* ── MEDIUM SCREEN RESPONSIVE FIXES ── */
-@media (max-width: 1550px) {
-  .code-compare  { grid-template-columns: 1fr 1fr; overflow: hidden; }
-  .code-pane     { min-width: 0; overflow: hidden; }
-  .code-scroll   { max-height: 310px; overflow-x: auto; overflow-y: auto; white-space: pre; }
-  .download-bar  { flex-wrap: nowrap; }
-  .dl-info       { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .btn-download  { padding: 10px 14px; font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+@media (max-width: 1400px) {
+  .wrapper { padding: 0 16px 100px; }
+  .main-grid { grid-template-columns: 300px minmax(0, 1fr); }
 }
 @media (max-width: 1280px) {
   .main-grid { grid-template-columns: 280px minmax(0, 1fr); }
@@ -443,22 +439,63 @@ td.desc {
 
 /* ── CARD NAV ── */
 .card-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 4px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,200,255,0.05);
+  border-bottom: 1px solid var(--accent);
+  padding: 10px 14px;
 }
 .card-nav-btn {
-  background: transparent; border: 1px solid var(--border);
-  color: var(--text); font-size: 16px; padding: 4px 14px;
-  border-radius: 3px; cursor: pointer; transition: background .1s;
+  background: var(--accent); border: none;
+  color: #000; font-size: 18px; font-weight: 700;
+  padding: 6px 18px; border-radius: 3px;
+  cursor: pointer; transition: opacity .1s;
+  flex-shrink: 0; line-height: 1;
 }
-.card-nav-btn:hover:not([disabled]) { background: rgba(255,255,255,0.07); }
-.card-nav-btn[disabled] { opacity: 0.25; cursor: default; }
+.card-nav-btn:hover:not([disabled]) { opacity: 0.8; }
+.card-nav-btn[disabled] { opacity: 0.2; cursor: default; }
 .card-nav-label {
   font-family: var(--mono); font-size: 12px;
-  display: flex; align-items: center; gap: 0; flex: 1;
+  display: flex; align-items: center; flex: 1;
   justify-content: center; overflow: hidden;
+  flex-direction: column; gap: 2px; text-align: center;
 }
-.card-nav-label span:last-child {
+.card-nav-counter {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim);
+}
+.card-nav-filename {
+  color: var(--text); font-size: 11px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 300px;
+}
+
+/* ── DOWNLOAD ALL BUTTON ── */
+.btn-download-all {
+  padding: 7px 14px;
+  background: var(--green); border: none; color: #000;
+  font-family: var(--sans); font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; border-radius: 3px; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+  transition: opacity .1s;
+}
+.btn-download-all:hover { opacity: 0.85; }
+
+/* ── CARD NAV PER-FILE DOWNLOAD ── */
+.card-nav-download {
+  padding: 5px 10px;
+  background: var(--green); border: none; color: #000;
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; border-radius: 3px; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0; text-decoration: none;
+  transition: opacity .1s; display: inline-block;
+}
+.card-nav-download:hover { opacity: 0.85; }
+
+@media (max-width: 1550px) {
+  .code-compare  { grid-template-columns: 1fr 1fr; overflow: hidden; }
+  .code-pane     { min-width: 0; overflow: hidden; }
+  .code-scroll   { max-height: 310px; overflow-x: auto; overflow-y: auto; white-space: pre; }
+  .download-bar  { flex-wrap: nowrap; }
+  .dl-info       { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-download  { padding: 10px 14px; font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
 }
