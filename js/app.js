@@ -472,7 +472,10 @@ function selectFSTool(id, tabHint) {
     updateDrillBanner(t);
     populateDrillFields(t);
   }
-  // TAP: just navigate to tapping tab — no field auto-fill yet since it uses thread dropdowns
+  // TAP: navigate and populate thread dropdowns
+  if (isTap || destTab === 'tapping') {
+    populateTappingFields(t);
+  }
 }
 
 function updateEndmillBanner(t) {
@@ -531,6 +534,57 @@ function populateEndmillFields(t) {
       updateCornerRadiusState('tool select');
     }
   });
+}
+
+// ── Tap thread matching ──
+function getTapThread(t) {
+  const n = (t.name || '').toUpperCase();
+  const threadData = window.threadsData;
+  if (!threadData) return null;
+
+  // ISO metric: M4, M6, M8
+  const isoM = n.match(/\bM(\d+)/);
+  if (isoM) {
+    const msize = 'M' + isoM[1];
+    for (const sz of Object.keys(threadData.ISO || {})) {
+      if (sz.toUpperCase().startsWith(msize)) return { type:'ISO', size:sz, cls:'2B' };
+    }
+  }
+  // NPT — not in thread data, skip
+  if (n.includes('NPT')) return null;
+  // Fractional: 1/4-20, 1/4-28, 3/8-16, 1/2-13, 1/2-20, 5/8-18 etc.
+  const frac = n.match(/(\d+\/\d+-\d+)/);
+  if (frac) {
+    const sz = frac[1];
+    for (const ttype of ['UNC','UNF','UNEF','UNJ']) {
+      if (threadData[ttype]?.[sz]) return { type:ttype, size:sz, cls:'2B' };
+    }
+  }
+  // Numbered: 4-40, 6-32, 8-32, 10-24, 10-32
+  const num = n.match(/\b(\d+-\d+)\b/);
+  if (num) {
+    const sz = num[1];
+    for (const ttype of ['UNC','UNF','UNEF','UNJ']) {
+      if (threadData[ttype]?.[sz]) return { type:ttype, size:sz, cls:'2B' };
+    }
+  }
+  return null;
+}
+
+function populateTappingFields(t) {
+  const match = getTapThread(t);
+  if (!match) return; // leave dropdowns as-is if no match
+
+  // Set thread type
+  setSelectVal('threadType', match.type);
+  // Rebuild size dropdown for this type
+  if (typeof updateThreadSizes === 'function') updateThreadSizes();
+  // Set size
+  setSelectVal('threadSize', match.size);
+  // Rebuild class dropdown
+  if (typeof updateThreadClasses === 'function') updateThreadClasses();
+  // Set class
+  setSelectVal('threadClass', match.cls);
 }
 
 function getDrillSubtype(t) {
@@ -764,6 +818,42 @@ function escH(s) {
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+
+// ── File System Access API download — remembers last folder (incl. network paths) ──
+async function saveFileWithPicker(url, suggestedName) {
+  // Feature detect
+  if (!window.showSaveFilePicker) {
+    // Fallback to standard download
+    const a = document.createElement('a');
+    a.href = url; a.download = suggestedName; a.click();
+    return;
+  }
+  try {
+    const ext  = suggestedName.split('.').pop().toLowerCase();
+    const typeMap = {
+      'min': [{ description:'NC Program', accept:{'text/plain':['.min']} }],
+      'nc':  [{ description:'NC Program', accept:{'text/plain':['.nc']} }],
+      'txt': [{ description:'Text File',  accept:{'text/plain':['.txt']} }],
+      'pdf': [{ description:'PDF',        accept:{'application/pdf':['.pdf']} }],
+    };
+    const handle = await window.showSaveFilePicker({
+      suggestedName,
+      types: typeMap[ext] || [{ description:'File', accept:{'application/octet-stream':['.' + ext]} }],
+    });
+    // Fetch the blob from the object URL
+    const blob = await fetch(url).then(r => r.blob());
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      // User cancelled or API failed — fallback
+      const a = document.createElement('a');
+      a.href = url; a.download = suggestedName; a.click();
+    }
+  }
+}
+
 loadFSLib();
 loadFSUsage();
 renderFSLibrary();
