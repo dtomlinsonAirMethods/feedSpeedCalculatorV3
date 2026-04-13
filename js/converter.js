@@ -184,7 +184,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48030',  okuma: 178, desc: 'HELICAL - 48030 - 3/16 DIA X .375 LOC' },
   { matchType: 'keyword', matchVal: '3/4 100 DEGREE COUNTERSINK', okuma: 179, desc: '3/4 100 DEGEREE COUNTERSINK' },
   { matchType: 'keyword', matchVal: '1/16 CR .125 PILOT', okuma: 180, desc: '1/16" C.R W/.125 PILOT' },
-  { matchType: 'keyword', matchVal: 'NO.17 STUB DRILL', altVals: ['NO. 17 STUB DRILL', 'NO 17 STUB DRILL'], okuma: 181, desc: 'NO.17 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO.17 STUB DRILL', okuma: 181, desc: 'NO.17 STUB DRILL' },
   { matchType: 'keyword', matchVal: '406 SLOT MILL', okuma: 182, desc: '406 SLOT MILL' },
   { matchType: 'keyword', matchVal: '1/2 STUB DRILL', okuma: 183, desc: '1/2 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'LTR. T STUB DRILL', okuma: 184, desc: 'LTR. T STUB DRILL' },
@@ -262,10 +262,11 @@ let sortDir             = 1; // 1 = asc, -1 = desc
 // ════════════════════════════════════════
 
 function normalize(str) {
-  // uppercase, strip dashes and dots adjacent to spaces, collapse whitespace
   return str.toUpperCase()
-    .replace(/\.\s*/g, ' ')   // "NO. 7" → "NO  7"
-    .replace(/-/g, ' ')       // dashes → space
+    .replace(/NO\.\s*(\d+)/g, 'NO$1')  // "NO. 17" → "NO17", "NO.4" → "NO4" — keeps number attached so NO4 ≠ NO17
+    .replace(/LTR\.\s*([A-Z])/g, 'LTR$1') // "LTR. H" → "LTRH"
+    .replace(/\.\s*/g, ' ')            // remaining dots → space
+    .replace(/-/g, ' ')                // dashes → space
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -1150,19 +1151,6 @@ async function runPdfConversion() {
     const mcamToOkuma = {};
     pdfLog('info', 'Matching tools...');
 
-    // Sort library longest matchVal first so specific entries win over shorter ones
-    // e.g. "NO.17 STUB DRILL" matches before "NO. 7 STUB DRILL"
-    const sortedLib = [...toolLibrary].sort((a, b) =>
-      (b.matchVal || '').length - (a.matchVal || '').length
-    );
-
-    function matchLibSorted(txt) {
-      for (const entry of sortedLib) {
-        if (matchesLibraryEntry(entry, txt)) return entry;
-      }
-      return null;
-    }
-
     for (let li = 0; li < lines.length; li++) {
       const curTxt = lines[li].text.trim();
       const [curPage, curY] = lines[li].key.split('_').map(Number);
@@ -1173,15 +1161,17 @@ async function runPdfConversion() {
       for (let lj = 0; lj < lines.length; lj++) {
         if (lj === li) continue;
         const [pg2, y2] = lines[lj].key.split('_').map(Number);
-        if (pg2 !== curPage || Math.abs(y2 - curY) > 8) continue;  // tightened from 15 to 8
+        if (pg2 !== curPage || Math.abs(y2 - curY) > 15) continue;
         const txt = lines[lj].text.trim();
         if (txt.length < 5 || /^(STICKOUT|TOOL LIST|OPERATION LIST|PART CYCLE|PROGRAM NUMBER)/i.test(txt)) continue;
-        const entry = matchLibSorted(txt);
-        if (entry) {
-          mcamToOkuma[mcamNum] = String(entry.okuma);
-          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchType + ': ' + entry.matchVal + ']');
-          break;
+        for (const entry of toolLibrary) {
+          if (matchesLibraryEntry(entry, txt)) {
+            mcamToOkuma[mcamNum] = String(entry.okuma);
+            pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']  txt:"' + txt.substring(0,50) + '"');
+            break;
+          }
         }
+        if (mcamToOkuma[mcamNum]) break;
       }
       if (!mcamToOkuma[mcamNum]) pdfLog('warn', '  #' + mcamNum + ' not matched');
     }
@@ -1191,10 +1181,12 @@ async function runPdfConversion() {
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
-      const entry = matchLibSorted(lines[li].text);
-      if (entry) {
-        mcamToOkuma[mcamNum] = String(entry.okuma);
-        pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
+      for (const entry of toolLibrary) {
+        if (matchesLibraryEntry(entry, lines[li].text)) {
+          mcamToOkuma[mcamNum] = String(entry.okuma);
+          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
+          break;
+        }
       }
     }
 
