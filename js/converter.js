@@ -122,7 +122,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'LTR. P STUB DRILL', okuma: 115, desc: 'LTR. P STUB DRILL' },
   { matchType: 'keyword', matchVal: 'M8 X 1.25 FORM BOTTOM TAP RH', okuma: 116, desc: 'M8. X 1.25 FORM BOTTOM TAP RH' },
   { matchType: 'keyword', matchVal: '.251 REAMER', okuma: 117, desc: '.251 Reamer' },
-  { matchType: 'keyword', matchVal: 'NO. 25 STUB DRILL', okuma: 118, desc: 'NO. 25 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 25 STUB DRILL', altVals: ['#25 STUB DRILL', 'NO. 25 STUB DRILL'], okuma: 118, desc: 'NO. 25 STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/4 INCH ENGRAVING TOOL 30 DEGREE', okuma: 119, desc: '1/4 INCH ENGRAVING TOOL 30 DEGREE X .015 TIP' },
   { matchType: 'serial',  matchVal: '03705',  okuma: 120, desc: 'HELICAL - 03705 - 3/4 DIA X 4.00 LOC' },
   { matchType: 'keyword', matchVal: '27/64 STUB DRILL', okuma: 121, desc: '27/64 STUB DRILL' },

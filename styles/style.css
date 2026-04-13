@@ -246,7 +246,6 @@ header {
   flex-shrink: 0;
   transition: border-color .15s, color .15s;
   padding: 0;
-  /* Override global button styles */
   width: 28px !important;
   margin: 0 !important;
   font-weight: normal !important;
@@ -289,7 +288,6 @@ header {
   outline: none;
   width: 100%;
   transition: border-color .15s;
-  /* Override global input/select */
   margin-top: 0;
 }
 .field-input:focus,
@@ -304,7 +302,6 @@ header {
 }
 
 /* ── RADIO PILLS ── */
-/* Hide native radio, style the label as a pill button */
 .radio-pill-group {
   display: flex;
   gap: 6px;
@@ -337,7 +334,6 @@ header {
   cursor: pointer;
   transition: all .15s;
   user-select: none;
-  /* remove global label styles */
   display: inline-flex;
   align-items: center;
   margin-top: 0;
@@ -360,14 +356,12 @@ header {
   padding: 7px 0;
   cursor: pointer;
   user-select: none;
-  /* override global label */
   margin-top: 0;
   font-weight: normal;
   color: var(--text);
 }
 
 .check-native {
-  /* Hide real checkbox */
   position: absolute;
   opacity: 0;
   width: 0;
@@ -387,7 +381,6 @@ header {
   transition: border-color .15s, background .15s;
 }
 
-/* When the hidden checkbox is checked, style the sibling UI box */
 .check-native:checked ~ .check-box-ui {
   border-color: var(--accent);
   background: rgba(0,230,118,0.12);
@@ -407,7 +400,6 @@ header {
 }
 
 /* ── CALCULATE BUTTON ── */
-/* Override global button styles completely */
 button.btn-calc {
   display: block !important;
   width: 100% !important;
@@ -444,7 +436,6 @@ button.btn-calc:active { transform: scale(.98) !important; }
   border-radius: 3px;
   cursor: pointer;
   transition: border-color .15s, color .15s;
-  /* override global */
   display: inline-block !important;
   width: auto !important;
   margin: 0 !important;
@@ -626,7 +617,6 @@ button.btn-calc:active { transform: scale(.98) !important; }
   flex-shrink: 0;
   transition: border-color .15s, color .15s;
   padding: 0;
-  /* override global button */
   width: 24px !important;
   margin: 0 !important;
   font-weight: normal !important;
@@ -654,7 +644,6 @@ button.btn-calc:active { transform: scale(.98) !important; }
   padding: 7px 11px;
   outline: none;
   transition: border-color .15s;
-  /* override global */
   width: auto;
   margin-top: 0;
 }
@@ -674,7 +663,6 @@ button.btn-calc:active { transform: scale(.98) !important; }
   cursor: pointer;
   transition: all .15s;
   white-space: nowrap;
-  /* override */
   display: inline-block !important;
   width: auto !important;
   margin: 0 !important;
@@ -741,4 +729,61 @@ button.btn-calc:active { transform: scale(.98) !important; }
 @media (max-width: 380px) {
   .brand-name { font-size: 22px; }
   .results-grid { grid-template-columns: 1fr; }
+}
+
+/* ── SHOP TOOL PICKER ── */
+.shop-search { margin-bottom: 8px; }
+.shop-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.shop-results::-webkit-scrollbar { width: 4px; }
+.shop-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.shop-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  text-align: center;
+  padding: 12px 0;
+}
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background .1s;
+  border: 1px solid transparent;
+}
+.shop-item:hover {
+  background: rgba(0,230,118,0.07);
+  border-color: rgba(0,230,118,0.2);
+}
+.shop-tnum {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 36px;
+  flex-shrink: 0;
+}
+.shop-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shop-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
