@@ -6,8 +6,6 @@
 // ── Default tool library — loaded from OKUMA ALUMINUM.TOOLDB ──
 // localStorage overrides this on load if user has saved changes
 const DEFAULT_LIBRARY = [
-  // NOTE: T28 and T77 are both 'NO. 21 STUB DRILL' — two separate pockets.
-  // T28 will match first; T77 will only match if T28 is already assigned.
   { matchType: 'serial',  matchVal: '82045',  okuma: 1,   desc: 'HELICAL - 82045 - ROUGHER - 3/4 DIA X 2.25 LOC X .03 RAD' },
   { matchType: 'serial',  matchVal: '48655',  okuma: 2,   desc: 'HELICAL - 48655 - 3/4 DIA X 2.25 LOC' },
   { matchType: 'serial',  matchVal: '48665',  okuma: 3,   desc: 'HELICAL - 48665 - 3/4 DIA X 2.25 LOC X .06 RAD' },
@@ -19,12 +17,12 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48135',  okuma: 9,   desc: 'HELICAL - 48135 - 1/4 DIA X 1.0 LOC' },
   { matchType: 'serial',  matchVal: '48395',  okuma: 10,  desc: 'HELICAL - 48395 - 1/2 DIA X 1.25 LOC' },
   { matchType: 'keyword', matchVal: '1/4 90 DEGREE CHAMFER MILL', altVals: ['1/4 -90 DEG CHAMFER MILL', '1/4 90 DEG CHAMFER MILL'], okuma: 11, desc: '1/4 90 DEGREE CHAMFER MILL' },
-  { matchType: 'keyword', matchVal: '1/4 SPOTDRILL', altVals: ['1/4 90 DEGREE SPOTDRILL'], okuma: 12, desc: '1/4 SPOTDRILL' },
+  { matchType: 'keyword', matchVal: '1/4 SPOTDRILL', altVals: ['1/4 90 DEGREE SPOTDRILL', '1/4 SPOTDRILL'], okuma: 12, desc: '1/4 SPOTDRILL' },
   { matchType: 'keyword', matchVal: 'NO. 40 STUB DRILL', okuma: 13, desc: 'NO. 40 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 7 STUB DRILL', okuma: 14, desc: 'NO. 7 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'LTR. F STUB DRILL', okuma: 15, desc: 'LTR. F STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/2 100 DEGREE COUNTERSINK', okuma: 16, desc: '1/2 100 DEGREE COUNTERSINK' },
-  { matchType: 'keyword', matchVal: 'NO. 16 STUB DRILL', altVals: ['#16 DRILL'], okuma: 17, desc: 'NO. 16 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 16 STUB DRILL', altVals: ['#16 DRILL', 'NO. 16 DRILL' 'NO. 16 STUB DRILL'], okuma: 17, desc: 'NO. 16 STUB DRILL' },
   { matchType: 'keyword', matchVal: '10-32 FORM TAP RH', okuma: 18, desc: '10-32 FORM TAP RH' },
   { matchType: 'keyword', matchVal: 'LTR. A STUB DRILL', okuma: 19, desc: 'LTR. A STUB DRILL' },
   { matchType: 'keyword', matchVal: 'RA390-051R19-11M', okuma: 20, desc: 'RA390-051R19-11M' },
@@ -35,14 +33,14 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48125',  okuma: 25,  desc: 'HELICAL - 48125 - 1/4 DIA X .750 LOC X .030 RAD' },
   { matchType: 'serial',  matchVal: '48275',  okuma: 26,  desc: 'HELICAL - 48275 - 3/8 DIA X 1.0 LOC X .06 RAD' },
   { matchType: 'serial',  matchVal: '987136', okuma: 27,  desc: '#12 TM HARVEY - 987136-C3 - 10-32 Thread Mill' },
-  { matchType: 'keyword', matchVal: 'NO. 21 STUB DRILL', altVals: ['#21 STUB DRILL'], okuma: 28, desc: 'NO. 21 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 21 STUB DRILL', altVals: ['#21 STUB DRILL', 'NO. 21 STUB DRILL'], okuma: 28, desc: 'NO. 21 STUB DRILL' },
   { matchType: 'serial',  matchVal: '83681',  okuma: 29,  desc: 'HELICAL - 83681 - 1/2 DIA X 1.6250 LOC X .125 RAD' },
   { matchType: 'keyword', matchVal: 'NO. 3 STUB DRILL', okuma: 30, desc: 'NO. 3 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'LTR. G STUB DRILL', okuma: 31, desc: 'LTR. G STUB DRILL' },
   { matchType: 'keyword', matchVal: '7/32 STUB DRILL', okuma: 32, desc: '7/32 STUB DRILL' },
   { matchType: 'keyword', matchVal: '3/8 90 DEGREE CHAMFER MILL', okuma: 33, desc: '3/8 90 DEGREE CHAMFER MILL' },
   { matchType: 'keyword', matchVal: '1/8 90 DEGREE CHAMFER MILL', okuma: 34, desc: '1/8 90 DEGREE CHAMFER MILL' },
-  { matchType: 'keyword', matchVal: '3/8 -SPOTDRILL', altVals: ['3/8 90 DEGREE SPOTDRILL'], okuma: 35, desc: '3/8 -SPOTDRILL' },
+  { matchType: 'keyword', matchVal: '3/8 -SPOTDRILL', altVals: ['3/8 90 DEGREE SPOTDRILL', '3/8 -SPOTDRILL'], okuma: 35, desc: '3/8 -SPOTDRILL' },
   { matchType: 'keyword', matchVal: 'LTR. O STUB DRILL', okuma: 36, desc: 'LTR. O STUB DRILL' },
   { matchType: 'serial',  matchVal: '82021',  okuma: 37,  desc: 'HELICAL - 82021 - ROUGHER -1/2 DIA X 1.625 LOC X .03 RAD' },
   { matchType: 'serial',  matchVal: '48425',  okuma: 38,  desc: 'HELICAL - 48425 - 1/2 DIA X 1.625 LOC' },
@@ -57,7 +55,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48260',  okuma: 47,  desc: 'HELICAL - 48260 - 3/8 DIA X 1.0 LOC' },
   { matchType: 'serial',  matchVal: '81409',  okuma: 48,  desc: 'HELICAL - 81409 - 5/16 DIA X 1.00 LOC' },
   { matchType: 'serial',  matchVal: '48675',  okuma: 49,  desc: 'HELICAL - 48675 - 3/4 DIA X 2.25 LOC X .125 RAD' },
-  { matchType: 'keyword', matchVal: '1/2 SPOTDRILL', altVals: ['1/2 90 DEGREE SPOTDRILL'], okuma: 50, desc: '1/2 SPOTDRILL' },
+  { matchType: 'keyword', matchVal: '1/2 SPOTDRILL', altVals: ['1/2 90 DEGREE SPOTDRILL', '1/2 SPOTDRILL'], okuma: 50, desc: '1/2 SPOTDRILL' },
   { matchType: 'keyword', matchVal: 'LTR. J JOBBER DRILL', okuma: 51, desc: 'LTR. J JOBBER DRILL' },
   { matchType: 'serial',  matchVal: '48115',  okuma: 52,  desc: 'HELICAL - 48115 - 1/4 DIA X 3/4 LOC' },
   { matchType: 'keyword', matchVal: 'NO. 22 STUB DRILL', okuma: 53, desc: 'NO. 22 STUB DRILL' },
@@ -87,7 +85,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'NO. 21 STUB DRILL', okuma: 77, desc: 'NO. 21 STUB DRILL' },
   { matchType: 'keyword', matchVal: '10-32 CUT TAP RH', okuma: 78, desc: '10-32 CUT TAP RH' },
   { matchType: 'keyword', matchVal: 'NO. 11 STUB DRILL', okuma: 79, desc: 'NO. 11 STUB DRILL' },
-  { matchType: 'keyword', matchVal: 'NO. 6 STUB DRILL', altVals: ['#6 DRILL'], okuma: 80, desc: 'NO. 6 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 6 STUB DRILL', altVals: ['#6 DRILL', 'NO. 6 STUB DRILL'], okuma: 80, desc: 'NO. 6 STUB DRILL' },
   { matchType: 'serial',  matchVal: '48640',  okuma: 81,  desc: 'HELICAL - 48640 - 3/4 DIA X 1.625 LOC X .125 RAD' },
   { matchType: 'keyword', matchVal: 'NO. 4 STUB DRILL', okuma: 82, desc: 'NO. 4 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 16 JOBBER DRILL', okuma: 83, desc: 'NO. 16 JOBBER DRILL' },
@@ -101,7 +99,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: '1/4 STUB DRILL', okuma: 91, desc: '1/4 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 56 STUB DRILL', okuma: 92, desc: 'NO. 56 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'REDLINE - RE10904 -1/16 DIA X .25 LOC', okuma: 93, desc: 'REDLINE - RE10904 -1/16 DIA X .25 LOC' },
-  { matchType: 'keyword', matchVal: 'NO. 30 JOBBER DRILL', altVals: ['#30 DRILL'], okuma: 94, desc: 'NO. 30 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 30 JOBBER DRILL', altVals: ['#30 DRILL', 'NO. 30 JOBBER DRILL'], okuma: 94, desc: 'NO. 30 JOBBER DRILL' },
   { matchType: 'serial',  matchVal: '48395',  okuma: 95,  desc: 'HELICAL - 48395 - 1/2 DIA X 1.25 LOC FINISHER' },
   { matchType: 'keyword', matchVal: 'M6 X 1.0 FORM TAP RH', okuma: 96, desc: 'M6 X 1.0 FORM TAP RH' },
   { matchType: 'keyword', matchVal: '11/64 STUB DRILL', okuma: 97, desc: '11/64 STUB DRILL' },
@@ -124,7 +122,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'LTR. P STUB DRILL', okuma: 115, desc: 'LTR. P STUB DRILL' },
   { matchType: 'keyword', matchVal: 'M8 X 1.25 FORM BOTTOM TAP RH', okuma: 116, desc: 'M8. X 1.25 FORM BOTTOM TAP RH' },
   { matchType: 'keyword', matchVal: '.251 REAMER', okuma: 117, desc: '.251 Reamer' },
-  { matchType: 'keyword', matchVal: 'NO. 25 STUB DRILL', altVals: ['#25 STUB DRILL'], okuma: 118, desc: 'NO. 25 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 25 STUB DRILL', altVals: ['#25 STUB DRILL', 'NO. 25 STUB DRILL'], okuma: 118, desc: 'NO. 25 STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/4 INCH ENGRAVING TOOL 30 DEGREE', okuma: 119, desc: '1/4 INCH ENGRAVING TOOL 30 DEGREE X .015 TIP' },
   { matchType: 'serial',  matchVal: '03705',  okuma: 120, desc: 'HELICAL - 03705 - 3/4 DIA X 4.00 LOC' },
   { matchType: 'keyword', matchVal: '27/64 STUB DRILL', okuma: 121, desc: '27/64 STUB DRILL' },
@@ -208,7 +206,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: '3/8 100 DEGREE COUNTERSINK EXTENSION 1.5', okuma: 200, desc: '3/8 100 DEGREE COUNTERSINK IN EXTENSION WITH 1.5 PROJECTION' },
   { matchType: 'keyword', matchVal: '1/2 90 DEG CHAMFER MILL', okuma: 201, desc: '1/2 90 DEG CHAMFER MILL' },
   { matchType: 'keyword', matchVal: '1/32 CORNER ROUND .265 PILOT', okuma: 202, desc: '1/32 - CORNER ROUND W/ .265 PILOT' },
-  { matchType: 'keyword', matchVal: '4 INCH .125 SLITTING SAW', okuma: 203, desc: '4"  X .125 SLITTING SAW' },
+  { matchType: 'keyword', matchVal: '4 INCH .125 SLITTING SAW', okuma: 203, desc: '4" X .125 SLITTING SAW' },
   { matchType: 'keyword', matchVal: 'LTR. U STUB DRILL', okuma: 204, desc: 'LTR. U STUB DRILL' },
   { matchType: 'keyword', matchVal: '.317 REAMER', okuma: 205, desc: '.317 REAMER' },
   { matchType: 'keyword', matchVal: '.381 REAMER', okuma: 206, desc: '.381 REAMER' },
@@ -228,20 +226,20 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'LTR. K STUB DRILL', okuma: 220, desc: 'LTR. K STUB DRILL' },
   { matchType: 'serial',  matchVal: '82439',  okuma: 221, desc: 'HELICAL - 82439 - 1/2 DIA X 2.5 LOC x .06 RADIUS' },
   { matchType: 'serial',  matchVal: '82397',  okuma: 222, desc: 'HELICAL - 82397 - 1/2 DIA X 3.125 LOC' },
-  { matchType: 'keyword', matchVal: '3/8 DIA 1.5 LOC LONG REACH', okuma: 223, desc: 'REDLINE - RE12325 - 3/8 DIA X 1.5 LOC WITH LONG REACH' },
-  { matchType: 'keyword', matchVal: 'NO. 29 DRILL', okuma: 224, desc: 'NO. 29 DRILL' },
-  { matchType: 'keyword', matchVal: '8-32 CUT TAP RH', okuma: 225, desc: '8-32 CUT TAP RH' },
-  { matchType: 'keyword', matchVal: '1/2-14 NPT TAP RH', okuma: 226, desc: '1/2-14 NPT TAPRH' },
-  { matchType: 'serial',  matchVal: '81499',  okuma: 227, desc: 'HELICAL - 81499 - 1/4 DIA X .375 LOC X .06 RAD X 2.125 REACH' },
-  { matchType: 'keyword', matchVal: '11-32 TPI SINGLE POINT THREAD MILL', okuma: 228, desc: '#2 TM 11-32 TPI 1/2" Single Point Thread Mill' },
-  { matchType: 'keyword', matchVal: 'REDLINE RE10106 3/32 DIA .1875 LOC', okuma: 229, desc: 'REDLINE - RE10106 - 3/32 DIA x .1875 LOC' },
-  { matchType: 'serial',  matchVal: '74362',  okuma: 230, desc: 'HARVEY - 74362 -1/16 DIA X .186 LOC BALL ENDMILL' },
-  { matchType: 'keyword', matchVal: 'NO. 4-40 FORM TAP RH', okuma: 231, desc: 'NO. 4-40 FORM TAP RH' },
-  { matchType: 'serial',  matchVal: '81459',  okuma: 232, desc: 'HELICAL - 81459 - 1/4 DIA X 1.25 LOC BALL ENDMILL' },
-  { matchType: 'keyword', matchVal: 'HAT977645 1/4 SHARP POINT CHAMFER', okuma: 233, desc: '1/4 SHARP POINT CHAMFER' },
-  { matchType: 'keyword', matchVal: '7/16 100 DEG C.S', okuma: 234, desc: '7/16 100 DEG C.S' },
-  { matchType: 'keyword', matchVal: '#305 -SLOT MILL', okuma: 235, desc: '#305 -SLOT MILL' },
-  { matchType: 'serial',  matchVal: '48630',  okuma: 236, desc: 'HELICAL - 48630 - 3/4 X 1.625 LOC X .06 RAD' },
+  { matchType: 'keyword', matchVal: '3/8 DIA 1.5 LOC LONG REACH',         okuma: 223, desc: 'REDLINE - RE12325 - 3/8 DIA X 1.5 LOC WITH LONG REACH' },
+  { matchType: 'keyword', matchVal: 'NO. 29 DRILL',                        okuma: 224, desc: 'NO. 29 DRILL' },
+  { matchType: 'keyword', matchVal: '8-32 CUT TAP RH',                     okuma: 225, desc: '8-32 CUT TAP RH' },
+  { matchType: 'keyword', matchVal: '1/2-14 NPT TAP RH',                   okuma: 226, desc: '1/2-14 NPT TAPRH' },
+  { matchType: 'serial',  matchVal: '81499',                                okuma: 227, desc: 'HELICAL - 81499 - 1/4 DIA X .375 LOC X .06 RAD X 2.125 REACH' },
+  { matchType: 'keyword', matchVal: '11-32 TPI SINGLE POINT THREAD MILL',  okuma: 228, desc: '#2 TM 11-32 TPI 1/2" Single Point Thread Mill' },
+  { matchType: 'keyword', matchVal: 'REDLINE RE10106 3/32 DIA .1875 LOC',  okuma: 229, desc: 'REDLINE - RE10106 - 3/32 DIA x .1875 LOC' },
+  { matchType: 'serial',  matchVal: '74362',                                okuma: 230, desc: 'HARVEY - 74362 -1/16 DIA X .186 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'NO. 4-40 FORM TAP RH',                okuma: 231, desc: 'NO. 4-40 FORM TAP RH' },
+  { matchType: 'serial',  matchVal: '81459',                                okuma: 232, desc: 'HELICAL - 81459 - 1/4 DIA X 1.25 LOC BALL ENDMILL' },
+  { matchType: 'keyword', matchVal: 'HAT977645 1/4 SHARP POINT CHAMFER',   okuma: 233, desc: '1/4 SHARP POINT CHAMFER' },
+  { matchType: 'keyword', matchVal: '7/16 100 DEG C.S',                    okuma: 234, desc: '7/16 100 DEG C.S' },
+  { matchType: 'keyword', matchVal: '#305 -SLOT MILL',                     okuma: 235, desc: '#305 -SLOT MILL' },
+  { matchType: 'serial',  matchVal: '48630',                                okuma: 236, desc: 'HELICAL - 48630 - 3/4 X 1.625 LOC X .06 RAD' },
 ];
 
 let toolLibrary = DEFAULT_LIBRARY.map(t => Object.assign({}, t));
@@ -872,6 +870,7 @@ function clearResults() {
 function convertGCode(content, fname, wcsInc) {
   const lines    = content.split('\n');
   const toolMap  = {};
+  const sameTools = new Set(); // tNums where Haas# already == Okuma#
   const unmapped = [];
   const logLines = [];
   const headerRe = /^\(T(\d+)\s*[-–]/i;
@@ -893,7 +892,12 @@ function convertGCode(content, fname, wcsInc) {
     for (const entry of toolLibrary) {
       if (matchesLibraryEntry(entry, s)) {
         toolMap[tNum] = entry.okuma;
-        addLog('map', '  T' + tNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']');
+        if (String(tNum) === String(entry.okuma)) {
+          sameTools.add(tNum);
+          addLog('same', '  T' + tNum + ' → T' + entry.okuma + '  [' + entry.matchVal + '] ✓ already correct');
+        } else {
+          addLog('map', '  T' + tNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']');
+        }
         matched = true; break;
       }
     }
@@ -933,8 +937,14 @@ function convertGCode(content, fname, wcsInc) {
     }
 
     const changed = conv !== orig;
-    origLines.push({ text: orig, changed });
-    convLines.push({ text: conv, changed });
+    // Detect lines where tool number didn't actually change (already correct pocket)
+    const isSameTool = changed && (() => {
+      const origT = orig.match(/\bT(\d+)\b/);
+      const convT = conv.match(/\bT(\d+)\b/);
+      return origT && convT && origT[1] === convT[1] && sameTools.has(origT[1]);
+    })();
+    origLines.push({ text: orig, changed, same: isSameTool });
+    convLines.push({ text: conv, changed, same: isSameTool });
   }
 
   const convertedText = convLines.map(l => l.text).join('\n');
@@ -990,7 +1000,7 @@ function renderCardDeck() {
   const total = resultCards.length;
 
   const buildHtml = arr => arr.slice(0, 300).map(l =>
-    '<span class="' + (l.changed ? 'line-changed' : 'line-normal') + '">' + esc(l.text) + '</span>'
+    '<span class="' + (l.same ? 'line-same' : l.changed ? 'line-changed' : 'line-normal') + '">' + esc(l.text) + '</span>'
   ).join('');
 
   const logHtml = r.logLines.map(l =>
