@@ -22,7 +22,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'NO. 7 STUB DRILL', okuma: 14, desc: 'NO. 7 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'LTR. F STUB DRILL', okuma: 15, desc: 'LTR. F STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/2 100 DEGREE COUNTERSINK', okuma: 16, desc: '1/2 100 DEGREE COUNTERSINK' },
-  { matchType: 'keyword', matchVal: 'NO. 16 STUB DRILL', altVals: ['#16 DRILL', 'NO. 16 DRILL' 'NO. 16 STUB DRILL'], okuma: 17, desc: 'NO. 16 STUB DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 16 STUB DRILL', altVals: ['#16 DRILL', 'NO. 16 DRILL', 'NO. 16 STUB DRILL'], okuma: 17, desc: 'NO. 16 STUB DRILL' },
   { matchType: 'keyword', matchVal: '10-32 FORM TAP RH', okuma: 18, desc: '10-32 FORM TAP RH' },
   { matchType: 'keyword', matchVal: 'LTR. A STUB DRILL', okuma: 19, desc: 'LTR. A STUB DRILL' },
   { matchType: 'keyword', matchVal: 'RA390-051R19-11M', okuma: 20, desc: 'RA390-051R19-11M' },
