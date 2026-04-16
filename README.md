@@ -10,6 +10,7 @@ A browser-based tool for converting Mastercam HAAS posts to Okuma OSP format —
 
 ### 1 — Set Up Mastercam
 
+- Make sure original HAAS program is in good standing and has HELICAL tooling
 - Create a new machine group named **OKUMA CONVERTED**
 - Select post: **OKUMA OSP 3X VMC MILL**
 - Create stock

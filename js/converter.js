@@ -156,7 +156,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'keyword', matchVal: 'LTR. I STUB DRILL', okuma: 150, desc: 'LTR. I STUB DRILL' },
   { matchType: 'keyword', matchVal: '7/32 EXTRA LONG JOBBER DRILL', okuma: 151, desc: '7/32 EXTRA LONG JOBBER DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 24 STUB DRILL', okuma: 152, desc: 'NO. 24 STUB DRILL' },
-  { matchType: 'keyword', matchVal: '13/64 STUB DRILL', okuma: 153, desc: '13/64 STUB DRILL' },
+  { matchType: 'keyword', matchVal: '13/64 STUB DRILL', altVals: ['13/64 DRILL'], okuma: 153, desc: '13/64 STUB DRILL' },
   { matchType: 'keyword', matchVal: '.187 X 1.140 SLOT MILL', okuma: 154, desc: '.187 X 1.140 SLOT MILL' },
   { matchType: 'keyword', matchVal: '3/8-16 CUT TAP RH', okuma: 155, desc: '3/8-16 CUT TAP RH' },
   { matchType: 'keyword', matchVal: '8-32 EXTENDED THREAD MILL', okuma: 156, desc: '#25 TM SCC2 - TMLR126-32EL- 8-32 EXTENDED THREAD MILL' },
