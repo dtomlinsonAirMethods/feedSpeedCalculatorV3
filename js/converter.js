@@ -1169,12 +1169,12 @@ async function runPdfConversion() {
 
     const lineMap = {};
     for (const w of allWords) {
-      const key = w.pageIndex + '_' + Math.floor(w.y * 2) / 2;  // 0.5pt buckets — prevents two close rows merging
+      const key = w.pageIndex + '_' + Math.round(w.y);
       if (!lineMap[key]) lineMap[key] = [];
       lineMap[key].push(w);
     }
     const lines = Object.keys(lineMap)
-      .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })  // sorts page asc, y desc (top of page first)
+      .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })
       .map(key => ({ key, words: lineMap[key].sort((a,b)=>a.x-b.x), text: lineMap[key].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ') }));
 
     const mcamToOkuma = {};
@@ -1206,7 +1206,7 @@ async function runPdfConversion() {
     }
 
     for (let li = 0; li < lines.length; li++) {
-      const mOp = lines[li].text.match(/^\s*\d+\s+#(\d+)\s*-/);
+      const mOp = lines[li].text.match(/^\d+\s+#(\d+)\s+-/);
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
@@ -1223,98 +1223,110 @@ async function runPdfConversion() {
     else pdfLog('info', 'Tool map: ' + Object.keys(mcamToOkuma).length + ' tools resolved.');
 
     const replacements = [];
+    const addRep = (word, newText, extra={}) => {
+      const dupe = replacements.some(r =>
+        r.pageIndex === word.pageIndex &&
+        Math.abs(r.x - word.x) < 2 &&
+        Math.abs(r.y - word.y) < 2
+      );
+      if (!dupe) replacements.push({ ...word, oldText: word.text, newText, ...extra });
+    };
 
-    for (let li = 0; li < lines.length; li++) {
-      const cur    = lines[li];
+    // ── Pass: Tool list header numbers  (#N standalone lines) ──
+    for (const cur of lines) {
       const curTxt = cur.text.trim();
+      if (!/^#\s*\d+\s*$/.test(curTxt)) continue;
+      const mN = curTxt.match(/^#\s*(\d+)/);
+      if (!mN || !mcamToOkuma[mN[1]]) continue;
+      const hashWord = cur.words.find(w => w.text === '#');
+      const numWord  = cur.words.find(w => /^\d+$/.test(w.text) && w.text === mN[1]);
+      if (hashWord && numWord) {
+        addRep(hashWord, '# '+mcamToOkuma[mN[1]], { isHeaderNum:true, w:(numWord.x+numWord.w)-hashWord.x });
+      } else if (numWord) {
+        addRep(numWord, mcamToOkuma[mN[1]], { isHeaderNum:true });
+      }
+    }
 
-      if (/^#\s*\d+\s*$/.test(curTxt)) {
-        const mN = curTxt.match(/^#\s*(\d+)/);
-        if (mN && mcamToOkuma[mN[1]]) {
-          const hashWord = cur.words.find(w => w.text === '#');
-          const numWord  = cur.words.find(w => /^\d+$/.test(w.text) && w.text === mN[1]);
-          if (hashWord && numWord) {
-            replacements.push({ ...hashWord, oldText:'# '+mN[1], newText:'# '+mcamToOkuma[mN[1]], isHeaderNum:true, x:hashWord.x, w:(numWord.x+numWord.w)-hashWord.x });
-          } else if (numWord) {
-            replacements.push({ ...numWord, oldText:numWord.text, newText:mcamToOkuma[mN[1]], isHeaderNum:true });
-          }
+    // ── Pass: Operation rows — scan word-by-word for pattern: opNum #mcamNum - ──
+    // This avoids line-merging issues entirely by working on the raw word stream.
+    // Pattern: word[i]=opNumber(digits), word[i+1]='#'+mcamNum OR word[i+1]='#' & word[i+2]=mcamNum
+    // All words sorted by page then y then x.
+    const sortedWords = allWords.slice().sort((a,b) =>
+      a.pageIndex !== b.pageIndex ? a.pageIndex - b.pageIndex :
+      Math.abs(a.y - b.y) > 1    ? b.y - a.y :   // higher y = higher on page
+      a.x - b.x
+    );
+
+    for (let wi = 0; wi < sortedWords.length - 2; wi++) {
+      const w0 = sortedWords[wi];
+      const w1 = sortedWords[wi + 1];
+      const w2 = sortedWords[wi + 2];
+
+      // Must be on same page, same approximate Y (within 3 units)
+      if (w1.pageIndex !== w0.pageIndex) continue;
+      if (Math.abs(w1.y - w0.y) > 3)    continue;
+
+      // w0 must be an operation sequence number (1-3 digit standalone number)
+      if (!/^\d{1,3}$/.test(w0.text)) continue;
+
+      // Case A: w1 is '#N' combined token
+      let mcamNum = null;
+      let hashToken = null;
+      if (/^#\d+$/.test(w1.text)) {
+        mcamNum   = w1.text.slice(1);
+        hashToken = w1;
+      }
+      // Case B: w1 is '#' and w2 is the number (split tokens), same Y
+      else if (w1.text === '#' && w2 && w2.pageIndex === w0.pageIndex &&
+               Math.abs(w2.y - w0.y) <= 3 && /^\d+$/.test(w2.text)) {
+        // Check w3 is '-' to confirm op row pattern
+        const w3 = sortedWords[wi + 3];
+        if (w3 && w3.pageIndex === w0.pageIndex && Math.abs(w3.y - w0.y) <= 3 &&
+            (w3.text === '-' || w3.text.startsWith('-'))) {
+          mcamNum   = w2.text;
+          hashToken = w2;
         }
-        continue;
       }
 
-      const mOp = curTxt.match(/^\s*\d+\s+#(\d+)\s*-/);
-      if (mOp) {
-        const mcamNum = mOp[1];
-        if (mcamToOkuma[mcamNum]) {
-          // Find #N token — exact match first
-          let tokenFound = false;
-          for (const w of cur.words) {
-            if (w.text === '#'+mcamNum) {
-              const dupe = replacements.some(r =>
-                r.pageIndex === w.pageIndex &&
-                Math.abs(r.x - w.x) < 2 &&
-                Math.abs(r.y - w.y) < 2
-              );
-              if (!dupe) replacements.push({...w, oldText:w.text, newText:'#'+mcamToOkuma[mcamNum]});
-              tokenFound = true;
+      if (!mcamNum || !mcamToOkuma[mcamNum]) continue;
+
+      // Confirm it looks like an op row: next non-# word should be '-'
+      const checkW = hashToken === w1 ? w2 : sortedWords[wi + 3];
+      if (!checkW || checkW.pageIndex !== w0.pageIndex) continue;
+      if (Math.abs(checkW.y - w0.y) > 3) continue;
+      if (!checkW.text.startsWith('-') && checkW.text !== '-') continue;
+
+      // Replace the #N or just N token
+      addRep(hashToken, '#' + mcamToOkuma[mcamNum]);
+
+      // Now find H: D: WO: tokens on this same row (within 3 y units, same page)
+      const rowY  = w0.y;
+      const rowPg = w0.pageIndex;
+      const rowWords = sortedWords.filter(w =>
+        w.pageIndex === rowPg && Math.abs(w.y - rowY) <= 3
+      ).sort((a,b) => a.x - b.x);
+
+      for (let ri = 0; ri < rowWords.length; ri++) {
+        const rw = rowWords[ri];
+        if (rw.text === 'H:' || rw.text === 'D:') {
+          for (let rj = ri + 1; rj < rowWords.length; rj++) {
+            const cand = rowWords[rj];
+            if (cand.text === 'Z:' || cand.text === 'WO:') break;
+            if (/^\d+$/.test(cand.text)) {
+              if (mcamToOkuma[cand.text]) addRep(cand, mcamToOkuma[cand.text]);
               break;
             }
           }
-          // Fallback: '#' and number may be split into separate tokens
-          if (!tokenFound) {
-            const ws = [...cur.words].sort((a,b)=>a.x-b.x);
-            for (let wi = 0; wi < ws.length - 1; wi++) {
-              if (ws[wi].text === '#' && ws[wi+1].text === mcamNum) {
-                const w = ws[wi+1];
-                const dupe = replacements.some(r =>
-                  r.pageIndex === w.pageIndex &&
-                  Math.abs(r.x - w.x) < 2 &&
-                  Math.abs(r.y - w.y) < 2
-                );
-                if (!dupe) replacements.push({...w, oldText:w.text, newText:mcamToOkuma[mcamNum]});
-                tokenFound = true;
-                break;
-              }
-            }
-          }
-          if (!tokenFound) pdfLog('warn', '  Op #' + mcamNum + ' token not found in line words — may be a rendering split');
         }
-        const [curPg, curYy] = cur.key.split('_').map(Number);
-        const sameRow = [...cur.words];
-        for (const ol of lines) {
-          if (ol.key === cur.key) continue;
-          const [pg2,y2] = ol.key.split('_').map(Number);
-          if (pg2===curPg && Math.abs(y2-curYy)<=4) sameRow.push(...ol.words);
-        }
-        sameRow.sort((a,b)=>a.x-b.x);
-
-        for (let wi = 0; wi < sameRow.length; wi++) {
-          const wt = sameRow[wi].text;
-          if (wt==='H:' || wt==='D:') {
-            for (let wj=wi+1; wj<sameRow.length; wj++) {
-              const cand = sameRow[wj];
-              if (/^\d+$/.test(cand.text)) {
-                if (mcamToOkuma[cand.text]) {
-                  const dupe = replacements.some(r=>r.pageIndex===cand.pageIndex&&Math.abs(r.x-cand.x)<2&&Math.abs(r.y-cand.y)<2);
-                  if (!dupe) replacements.push({...cand, oldText:cand.text, newText:mcamToOkuma[cand.text]});
-                }
-                break;
-              }
-              if (cand.text==='Z:'||cand.text==='WO:') break;
-            }
-          }
-          if (wt==='WO:' && woInc>0) {
-            for (let wj=wi+1; wj<sameRow.length; wj++) {
-              const cand = sameRow[wj];
-              if (/^\d+$/.test(cand.text)) {
-                const dupe = replacements.some(r=>r.pageIndex===cand.pageIndex&&Math.abs(r.x-cand.x)<2&&Math.abs(r.y-cand.y)<2);
-                if (!dupe) replacements.push({...cand, oldText:cand.text, newText:String(parseInt(cand.text)+woInc), isWO:true});
-                break;
-              }
+        if (rw.text === 'WO:' && woInc > 0) {
+          for (let rj = ri + 1; rj < rowWords.length; rj++) {
+            const cand = rowWords[rj];
+            if (/^\d+$/.test(cand.text)) {
+              addRep(cand, String(parseInt(cand.text) + woInc), { isWO: true });
+              break;
             }
           }
         }
-        continue;
       }
     }
 
