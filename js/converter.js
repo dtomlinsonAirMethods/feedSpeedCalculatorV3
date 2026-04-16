@@ -1344,20 +1344,21 @@ async function runPdfConversion() {
 
     for (const rep of replacements) {
       const pg   = libPages[rep.pageIndex];
-      const fs   = Math.max(rep.fontSize || 8, 6);
+      const fs = (!rep.isHeaderNum && !rep.isWO && String(rep.newText).trim().length >= 4) ? Math.max((rep.fontSize || 8) - 1.5, 6) : Math.max(rep.fontSize || 8, 6);
       const isWO = rep.isWO === true;
       const oldW = font.widthOfTextAtSize(String(rep.oldText), fs);
       const newW = font.widthOfTextAtSize(String(rep.newText), fs);
       let stampX = rep.x;
-      if (rep.isHeaderNum && newW > oldW) stampX = rep.x + oldW - newW + 8;
-      if (isWO)                           stampX = rep.x - 1;
-      if (!isWO && !rep.isHeaderNum)      stampX = rep.x - 3;
+      if (rep.isHeaderNum && newW > oldW)  stampX = rep.x + oldW - newW + 13;
+      if (rep.isHeaderNum && newW <= oldW) stampX = rep.x + 4;
+      if (isWO)                            stampX = rep.x - 1;
+      if (!isWO && !rep.isHeaderNum)       stampX = rep.x - 3;
 
-      const padL = isWO?4:2, padR = isWO?2:1, padB = isWO?3:1, padT = isWO?5:2;
+      const padL = isWO?4:rep.isHeaderNum?4:2, padR = isWO?2:1, padB = isWO?3:1, padT = isWO?1:rep.isHeaderNum?2:0;
       const whiteL = Math.min(rep.x,stampX)-padL;
       const whiteR = Math.max(rep.x+oldW,stampX+newW)+padR;
-      pg.drawRectangle({ x:whiteL, y:rep.y-padB, width:whiteR-whiteL, height:(rep.h||fs)+padB+padT, color:rgb(1,1,1) });
-      pg.drawText(String(rep.newText), { x:stampX, y:rep.y, size:fs, font, color:rgb(0,0,0) });
+      pg.drawRectangle({ x:whiteL, y:rep.y-padB, width:whiteR-whiteL, height:(!rep.isHeaderNum&&!rep.isWO&&!String(rep.newText).startsWith('#')?(rep.h||fs)*0.9:(rep.h||fs))+padB+padT, color:rgb(1,1,1) });
+      pg.drawText(String(rep.newText), { x:stampX, y:rep.y - (!rep.isHeaderNum && !rep.isWO && !String(rep.newText).startsWith('#') ? 2 : 0), size:fs, font, color:rgb(0,0,0) });
       repCount++;
     }
 
