@@ -60,7 +60,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48115',  okuma: 52, desc: 'HELICAL - 48115 - 1/4 DIA X 3/4 LOC' },
   { matchType: 'keyword', matchVal: 'NO. 22 STUB DRILL', okuma: 53, desc: 'NO. 22 STUB DRILL' },
   { matchType: 'serial',  matchVal: '81397',  okuma: 54, desc: 'HELICAL - 81397 - 1/8 DIA X .750 LOC' },
-  { matchType: 'keyword', matchVal: '8-32 FORM TAP RH', altVals: ['0.1640 X 32.00 Right-hand tap - 8-32 FORM TAP RH', ''], okuma: 55, desc: '8-32 FORM TAP RH' },
+  { matchType: 'keyword', matchVal: '8-32 FORM TAP RH', altVals: ['0.1640 X 32.00 Right-hand tap - 8-32 FORM TAP RH'], okuma: 55, desc: '8-32 FORM TAP RH' },
   { matchType: 'keyword', matchVal: '3/8 100 DEGREE COUNTERSINK', okuma: 56, desc: '3/8 100 DEGREE COUNTERSINK' },
   { matchType: 'serial',  matchVal: '49240',  okuma: 57, desc: 'HELICAL - 49240 - 3/8 DIA X 1.5 LOC- BALL ENDMILL' },
   { matchType: 'keyword', matchVal: 'REDLINE - RET1233 - 3/32 DIA X .500 LOC', okuma: 58, desc: 'REDLINE - RET1233 - 3/32 DIA X .500 LOC' },
