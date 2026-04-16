@@ -1169,12 +1169,12 @@ async function runPdfConversion() {
 
     const lineMap = {};
     for (const w of allWords) {
-      const key = w.pageIndex + '_' + Math.round(w.y);
+      const key = w.pageIndex + '_' + Math.floor(w.y * 2) / 2;  // 0.5pt buckets — prevents two close rows merging
       if (!lineMap[key]) lineMap[key] = [];
       lineMap[key].push(w);
     }
     const lines = Object.keys(lineMap)
-      .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })
+      .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })  // sorts page asc, y desc (top of page first)
       .map(key => ({ key, words: lineMap[key].sort((a,b)=>a.x-b.x), text: lineMap[key].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ') }));
 
     const mcamToOkuma = {};
@@ -1206,7 +1206,7 @@ async function runPdfConversion() {
     }
 
     for (let li = 0; li < lines.length; li++) {
-      const mOp = lines[li].text.match(/^\d+\s+#(\d+)\s+-/);
+      const mOp = lines[li].text.match(/^\s*\d+\s+#(\d+)\s*-/);
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
@@ -1242,20 +1242,49 @@ async function runPdfConversion() {
         continue;
       }
 
-      const mOp = curTxt.match(/^\d+\s+#(\d+)\s+-/);
+      const mOp = curTxt.match(/^\s*\d+\s+#(\d+)\s*-/);
       if (mOp) {
         const mcamNum = mOp[1];
         if (mcamToOkuma[mcamNum]) {
+          // Find #N token — exact match first
+          let tokenFound = false;
           for (const w of cur.words) {
-            if (w.text === '#'+mcamNum) { replacements.push({...w, oldText:w.text, newText:'#'+mcamToOkuma[mcamNum]}); break; }
+            if (w.text === '#'+mcamNum) {
+              const dupe = replacements.some(r =>
+                r.pageIndex === w.pageIndex &&
+                Math.abs(r.x - w.x) < 2 &&
+                Math.abs(r.y - w.y) < 2
+              );
+              if (!dupe) replacements.push({...w, oldText:w.text, newText:'#'+mcamToOkuma[mcamNum]});
+              tokenFound = true;
+              break;
+            }
           }
+          // Fallback: '#' and number may be split into separate tokens
+          if (!tokenFound) {
+            const ws = [...cur.words].sort((a,b)=>a.x-b.x);
+            for (let wi = 0; wi < ws.length - 1; wi++) {
+              if (ws[wi].text === '#' && ws[wi+1].text === mcamNum) {
+                const w = ws[wi+1];
+                const dupe = replacements.some(r =>
+                  r.pageIndex === w.pageIndex &&
+                  Math.abs(r.x - w.x) < 2 &&
+                  Math.abs(r.y - w.y) < 2
+                );
+                if (!dupe) replacements.push({...w, oldText:w.text, newText:mcamToOkuma[mcamNum]});
+                tokenFound = true;
+                break;
+              }
+            }
+          }
+          if (!tokenFound) pdfLog('warn', '  Op #' + mcamNum + ' token not found in line words — may be a rendering split');
         }
         const [curPg, curYy] = cur.key.split('_').map(Number);
         const sameRow = [...cur.words];
         for (const ol of lines) {
           if (ol.key === cur.key) continue;
           const [pg2,y2] = ol.key.split('_').map(Number);
-          if (pg2===curPg && Math.abs(y2-curYy)<=3) sameRow.push(...ol.words);
+          if (pg2===curPg && Math.abs(y2-curYy)<=4) sameRow.push(...ol.words);
         }
         sameRow.sort((a,b)=>a.x-b.x);
 
