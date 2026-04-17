@@ -170,7 +170,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48405',  okuma: 164, desc: 'HELICAL - 48405 - 1/2 DIA X 1.250 LOC X .03 RAD' },
   { matchType: 'keyword', matchVal: '.250 REAMER', okuma: 165, desc: '.250 Reamer' },
   { matchType: 'keyword', matchVal: '.254 REAMER', okuma: 166, desc: '.254 Reamer' },
-  { matchType: 'keyword', matchVal: 'NO. 36 JOBBER DRILL', okuma: 167, desc: 'NO. 36 JOBBER DRILL' },
+  { matchType: 'keyword', matchVal: 'NO. 36 STUB DRILL', altVals: ['#36 STUB DRILL'], okuma: 167, desc: 'NO. 36 STUB DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 11 JOBBER DRILL', okuma: 168, desc: 'NO. 11 JOBBER DRILL' },
   { matchType: 'keyword', matchVal: 'NO. 10 STUB DRILL', okuma: 169, desc: 'NO. 10 STUB DRILL' },
   { matchType: 'keyword', matchVal: '1/4 CR .375 PILOT', okuma: 170, desc: '1/4 C.R W/.375 PILOT' },
