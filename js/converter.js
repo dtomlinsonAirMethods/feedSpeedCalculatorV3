@@ -242,6 +242,7 @@ const DEFAULT_LIBRARY = [
   { matchType: 'serial',  matchVal: '48630', okuma: 236, desc: 'HELICAL - 48630 - 3/4 X 1.625 LOC X .06 RAD' },
   { matchType: 'keyword', matchVal: '.812 Seat Track', okuma: 237, desc: '.812 Seat Track' },
   { matchType: 'keyword', matchVal: '.750 Seat Track Cutter', okuma: 238, desc: '.750 Seat Track Cutter' },
+  { matchType: 'keyword', matchVal: '6-32 CUT TAP RH', okuma: 239, desc: '6-32 CUT TAP RH' },
 ];
 
 let toolLibrary = DEFAULT_LIBRARY.map(t => Object.assign({}, t));
