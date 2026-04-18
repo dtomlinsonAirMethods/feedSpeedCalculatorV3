@@ -103,6 +103,10 @@
               <label>Description (optional)</label>
               <input type="text" id="newDesc" placeholder="1/2 Helical EM">
             </div>
+            <div class="form-group" id="addAltValsRow" style="flex:2;display:none;">
+              <label>Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
+              <input type="text" id="newAltVals" placeholder="e.g. #16 DRILL, NO. 16 DRILL">
+            </div>
             <button class="btn-add-confirm" onclick="addTool()">ADD</button>
           </div>
         </div>
@@ -216,6 +220,10 @@
               <label>Description (optional)</label>
               <input type="text" id="pdfNewDesc" placeholder="1/2 Helical EM">
             </div>
+            <div class="form-group" id="pdfAddAltValsRow" style="flex:2;display:none;">
+              <label>Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
+              <input type="text" id="pdfNewAltVals" placeholder="e.g. #16 DRILL, NO. 16 DRILL">
+            </div>
             <button class="btn-add-confirm" onclick="addToolFromPdfTab()">ADD</button>
           </div>
         </div>
@@ -282,9 +290,8 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
   const firebaseConfig = {
-    apiKey:            "AIzaSyCI-aziX0DWC84KdrroSY4svRtwwQfTXc0",
+    apiKey:            "AIzaSyAhyHuQ3_ujy9W19pL3uFontyMDwGBp4DY",
     authDomain:        "okuma-tool-library.firebaseapp.com",
     databaseURL:       "https://okuma-tool-library-default-rtdb.firebaseio.com",
     projectId:         "okuma-tool-library",
@@ -292,20 +299,13 @@
     messagingSenderId: "378232388099",
     appId:             "1:378232388099:web:90733678ce97eb398d6c36"
   };
-
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-
   window._fbDatabase = db;
   window._fbRTDB     = { ref, set, onValue };
-
-  // Poll until converter.js has loaded, then start sync
   function tryInitSync() {
-    if (typeof initFirebaseSync === 'function') {
-      initFirebaseSync();
-    } else {
-      setTimeout(tryInitSync, 50);
-    }
+    if (typeof initFirebaseSync === 'function') initFirebaseSync();
+    else setTimeout(tryInitSync, 50);
   }
   tryInitSync();
 </script>

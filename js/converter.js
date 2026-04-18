@@ -308,39 +308,32 @@ function matchesLibraryEntry(entry, text) {
 }
 
 // ════════════════════════════════════════
-//  TOOL LIBRARY PERSISTENCE — FIREBASE + localStorage fallback
+//  TOOL LIBRARY PERSISTENCE
 // ════════════════════════════════════════
 
-// Save to Firebase (primary) and localStorage (offline fallback)
-const FB_WRITE_TOKEN = 'okuma-genos-2024';  // shared write token
+const FB_WRITE_TOKEN = 'okuma-genos-2024';
 
 function saveLibrary() {
   try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
   if (window._fbDatabase) {
     setStatusPill('saving');
     const { ref, set } = window._fbRTDB;
-    // Write token stored alongside data — rules check for its presence
     set(ref(window._fbDatabase, 'data'), { token: FB_WRITE_TOKEN, toolLibrary })
       .then(() => setStatusPill('synced'))
       .catch(err => { console.warn('Firebase save failed:', err); setStatusPill('offline'); });
   }
 }
 
-// Load from localStorage immediately (fast, offline-safe)
-// Firebase listener will override once connected
 function loadLibrary() {
   try {
     const s = localStorage.getItem('okumaToolLibrary');
     if (s) {
       const parsed = JSON.parse(s);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        toolLibrary = parsed;
-      }
+      if (Array.isArray(parsed) && parsed.length > 0) toolLibrary = parsed;
     }
   } catch(e) {}
 }
 
-// Update the status pill
 function setStatusPill(state) {
   const pill = document.querySelector('.status-pill');
   if (!pill) return;
@@ -356,17 +349,11 @@ function setStatusPill(state) {
   pill.style.borderColor = s.color;
 }
 
-// Called after Firebase is ready — sets up real-time listener
 function initFirebaseSync() {
-  if (!window._fbDatabase) {
-    setStatusPill('offline');
-    return;
-  }
+  if (!window._fbDatabase) { setStatusPill('offline'); return; }
   setStatusPill('connecting');
   const { ref, onValue } = window._fbRTDB;
-  const libRef = ref(window._fbDatabase, 'data/toolLibrary');
-
-  onValue(libRef, snapshot => {
+  onValue(ref(window._fbDatabase, 'data/toolLibrary'), snapshot => {
     const data = snapshot.val();
     if (Array.isArray(data) && data.length > 0) {
       toolLibrary = data;
@@ -374,14 +361,10 @@ function initFirebaseSync() {
       renderAllTables();
       setStatusPill('synced');
     } else if (data === null || data === undefined) {
-      // Firebase empty — push local library as source of truth
       saveLibrary();
       setStatusPill('synced');
     }
-  }, err => {
-    console.warn('Firebase sync error:', err);
-    setStatusPill('offline');
-  });
+  }, err => { console.warn('Firebase sync error:', err); setStatusPill('offline'); });
 }
 
 // ════════════════════════════════════════
@@ -452,17 +435,17 @@ function renderAllTables() {
   updateSortHeaders();
 }
 
-// Columns: TOOL # | MATCH VALUE | DESCRIPTION (no TYPE column)
 const SORT_COLS   = ['okuma', 'val', 'desc'];
-const SORT_LABELS = ['TOOL #', 'MATCH VALUE', 'DESCRIPTION'];
 
 function updateSortHeaders() {
   ['toolBody', 'pdfToolBody'].forEach(bodyId => {
     const thead = document.getElementById(bodyId)?.closest('table')?.querySelector('thead tr');
     if (!thead) return;
     const ths = thead.querySelectorAll('th');
-    SORT_COLS.forEach((col, i) => {
-      if (ths[i]) ths[i].textContent = SORT_LABELS[i] + sortIndicator(col);
+    const colMap   = { 0: 'okuma', 1: 'val', 2: 'desc' };
+    const labelMap = { 0: 'TOOL #', 1: 'MATCH VALUE', 2: 'DESCRIPTION' };
+    ths.forEach((th, i) => {
+      if (labelMap[i] !== undefined) th.textContent = labelMap[i] + sortIndicator(colMap[i]);
     });
   });
 }
@@ -513,7 +496,7 @@ function editTool(uid) {
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
       <div id="editAltValsRow" style="display:none;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="color:var(--dim);font-size:9px;letter-spacing:1px;">(COMMA SEPARATED)</span></label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
         <input id="editAltVals" value="${esc((entry.altVals||[]).filter(v=>v).join(', '))}"
           placeholder="e.g. #16 DRILL, NO. 16 DRILL"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
@@ -582,6 +565,8 @@ function setMatchType(type) {
   document.getElementById('matchHint').textContent       = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('matchValLabel').textContent   = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('newSerial').placeholder       = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
+  const addAlt = document.getElementById('addAltValsRow');
+  if (addAlt) addAlt.style.display = isSer ? 'none' : 'flex';
 }
 
 function setPdfMatchType(type) {
@@ -592,6 +577,8 @@ function setPdfMatchType(type) {
   document.getElementById('pdfMatchHint').textContent    = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('pdfMatchValLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('pdfNewSerial').placeholder    = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
+  const pdfAddAlt = document.getElementById('pdfAddAltValsRow');
+  if (pdfAddAlt) pdfAddAlt.style.display = isSer ? 'none' : 'flex';
 }
 
 // ════════════════════════════════════════
@@ -604,8 +591,6 @@ function togglePdfAddForm() { openAddToolModal('pdf'); }
 function openAddToolModal(tab) {
   const existing = document.getElementById('addToolModal');
   if (existing) existing.remove();
-
-  const isPdf = tab === 'pdf';
   const modal = document.createElement('div');
   modal.id = 'addToolModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
@@ -613,9 +598,9 @@ function openAddToolModal(tab) {
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:520px;padding:24px;display:flex;flex-direction:column;gap:16px;">
       <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">ADD TOOL</div>
       <div style="display:flex;gap:8px;">
-        <button id="addBtnSerial" onclick="addModalSetType('serial','${tab}')"
+        <button id="addBtnSerial" onclick="addModalSetType('serial')"
           style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--orange);background:var(--orange);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">SERIAL #</button>
-        <button id="addBtnKeyword" onclick="addModalSetType('keyword','${tab}')"
+        <button id="addBtnKeyword" onclick="addModalSetType('keyword')"
           style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">KEYWORD</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--orange);" id="addModalHint">SERIAL: exact number found in tool comment (e.g. 48410)</div>
@@ -650,7 +635,7 @@ function openAddToolModal(tab) {
   document.body.appendChild(modal);
 }
 
-function addModalSetType(type, tab) {
+function addModalSetType(type) {
   const modal = document.getElementById('addToolModal');
   if (!modal) return;
   modal._addType = type;
@@ -685,13 +670,14 @@ function confirmAddTool(tab) {
   modal.remove();
 }
 
-function _addToolEntry(matchType, matchVal, okuma, desc, logFn, clearIds) {
+function _addToolEntry(matchType, matchVal, okuma, desc, altVals, logFn, clearIds) {
   if (!matchVal)         { alert('Serial number or keyword is required.'); return; }
   if (!okuma || okuma<1) { alert('Okuma tool number is required.'); return; }
   if (toolLibrary.find(t => t.matchVal === matchVal && t.okuma === okuma)) {
     alert('This entry already exists.'); return;
   }
-  toolLibrary.push({ matchType, matchVal, okuma, desc });
+  toolLibrary.push({ matchType, matchVal, okuma, desc,
+    ...(altVals && altVals.length ? { altVals } : {}) });
   saveLibrary();
   renderAllTables();
   clearIds.forEach(id => { document.getElementById(id).value = ''; });
@@ -699,23 +685,23 @@ function _addToolEntry(matchType, matchVal, okuma, desc, logFn, clearIds) {
 }
 
 function addTool() {
-  _addToolEntry(
-    currentMatchType,
+  const altRaw = document.getElementById('newAltVals')?.value || '';
+  const altVals = altRaw.split(',').map(v=>v.trim()).filter(v=>v.length>0);
+  _addToolEntry(currentMatchType,
     document.getElementById('newSerial').value.trim(),
     parseInt(document.getElementById('newOkuma').value),
     document.getElementById('newDesc').value.trim(),
-    log, ['newSerial','newOkuma','newDesc']
-  );
+    altVals, log, ['newSerial','newOkuma','newDesc','newAltVals']);
 }
 
 function addToolFromPdfTab() {
-  _addToolEntry(
-    pdfCurrentMatchType,
+  const altRaw = document.getElementById('pdfNewAltVals')?.value || '';
+  const altVals = altRaw.split(',').map(v=>v.trim()).filter(v=>v.length>0);
+  _addToolEntry(pdfCurrentMatchType,
     document.getElementById('pdfNewSerial').value.trim(),
     parseInt(document.getElementById('pdfNewOkuma').value),
     document.getElementById('pdfNewDesc').value.trim(),
-    pdfLog, ['pdfNewSerial','pdfNewOkuma','pdfNewDesc']
-  );
+    altVals, pdfLog, ['pdfNewSerial','pdfNewOkuma','pdfNewDesc','pdfNewAltVals']);
 }
 
 // ════════════════════════════════════════
@@ -1322,7 +1308,6 @@ async function runPdfConversion() {
         }
       }
     }
-    pdfLog('info', 'Extracted ' + allWords.length + ' tokens across ' + numPages + ' pages.');
 
     const lineMap = {};
     for (const w of allWords) {
@@ -1334,8 +1319,8 @@ async function runPdfConversion() {
       .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })
       .map(key => ({ key, words: lineMap[key].sort((a,b)=>a.x-b.x), text: lineMap[key].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ') }));
 
-    const mcamToOkuma = {};
-    pdfLog('info', 'Matching tools...');
+    const mcamToOkuma  = {};
+    const unmatchedTools = {}; // mcamNum -> best tool text found
 
     for (let li = 0; li < lines.length; li++) {
       const curTxt = lines[li].text.trim();
@@ -1344,40 +1329,60 @@ async function runPdfConversion() {
       if (!mH) continue;
       const mcamNum = mH[1];
       if (mcamToOkuma[mcamNum]) continue;
+      let bestTxt = '';
       for (let lj = 0; lj < lines.length; lj++) {
         if (lj === li) continue;
         const [pg2, y2] = lines[lj].key.split('_').map(Number);
         if (pg2 !== curPage || Math.abs(y2 - curY) > 15) continue;
         const txt = lines[lj].text.trim();
         if (txt.length < 5 || /^(STICKOUT|TOOL LIST|OPERATION LIST|PART CYCLE|PROGRAM NUMBER)/i.test(txt)) continue;
+        if (!bestTxt && txt.length > 5) bestTxt = txt;
         for (const entry of toolLibrary) {
           if (matchesLibraryEntry(entry, txt)) {
             mcamToOkuma[mcamNum] = String(entry.okuma);
-            pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']  txt:"' + txt.substring(0,50) + '"');
             break;
           }
         }
         if (mcamToOkuma[mcamNum]) break;
       }
-      if (!mcamToOkuma[mcamNum]) pdfLog('warn', '  #' + mcamNum + ' not matched');
+      if (!mcamToOkuma[mcamNum] && !(mcamNum in unmatchedTools)) {
+        unmatchedTools[mcamNum] = bestTxt;
+      }
     }
 
     for (let li = 0; li < lines.length; li++) {
-      const mOp = lines[li].text.match(/^\d+\s+#(\d+)\s+-/);
+      const mOp = lines[li].text.match(/^\s*\d+\s+#(\d+)\s*-/);
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
       for (const entry of toolLibrary) {
         if (matchesLibraryEntry(entry, lines[li].text)) {
           mcamToOkuma[mcamNum] = String(entry.okuma);
-          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
           break;
         }
       }
     }
 
-    if (!Object.keys(mcamToOkuma).length) pdfLog('warn', 'WARNING: No tools matched. Check library.');
-    else pdfLog('info', 'Tool map: ' + Object.keys(mcamToOkuma).length + ' tools resolved.');
+    // ── Log results ──
+    const mappedCount   = Object.keys(mcamToOkuma).length;
+    const unmatchedList = Object.keys(unmatchedTools);
+
+    if (mappedCount > 0) {
+      pdfLog('info', '✓ ' + mappedCount + ' tool' + (mappedCount > 1 ? 's' : '') + ' matched successfully');
+    }
+    if (unmatchedList.length > 0) {
+      pdfLog('warn', '');
+      pdfLog('warn', '⚠ ' + unmatchedList.length + ' TOOL' + (unmatchedList.length > 1 ? 'S' : '') + ' NOT IN LIBRARY — ACTION REQUIRED:');
+      for (const mcamNum of unmatchedList) {
+        const toolTxt = unmatchedTools[mcamNum] ? unmatchedTools[mcamNum].substring(0, 60) : 'unknown';
+        pdfLog('warn', '');
+        pdfLog('warn', '  #' + mcamNum + ': "' + toolTxt + '"');
+        pdfLog('warn', '  → FIX: Click + ADD TOOL and add this tool to the library');
+      }
+      pdfLog('warn', '');
+    } else if (mappedCount === 0) {
+      pdfLog('warn', 'WARNING: No tools matched — check library or PDF format.');
+    }
 
     const replacements = [];
     const addRep = (word, newText, extra={}) => {
@@ -1487,13 +1492,10 @@ async function runPdfConversion() {
       }
     }
 
-    pdfLog('info', 'Found ' + replacements.length + ' tokens to replace.');
     if (replacements.length === 0) {
-      pdfLog('warn', 'No replacements found. Check library or PDF format.');
+      pdfLog('warn', 'No replacements found — check library or PDF format.');
       btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF'; return;
     }
-
-    pdfLog('info', 'Applying replacements...');
     const libDoc   = await PDFDocument.load(pdfBytes.slice());
     const font     = await libDoc.embedFont(StandardFonts.HelveticaBold);
     const libPages = libDoc.getPages();
@@ -1519,14 +1521,12 @@ async function runPdfConversion() {
       repCount++;
     }
 
-    pdfLog('ok', '══════════════════════════════════════════');
-    pdfLog('ok', ' DONE — ' + repCount + ' replacements applied');
-    pdfLog('ok', '══════════════════════════════════════════');
+    pdfLog('ok', '✓ DONE — ' + repCount + ' numbers updated across ' + numPages + ' page' + (numPages>1?'s':''));
 
     document.getElementById('pdfStatPages').textContent    = numPages;
     document.getElementById('pdfStatTools').textContent    = Object.keys(mcamToOkuma).length;
     document.getElementById('pdfStatNums').textContent     = repCount;
-    document.getElementById('pdfStatUnmapped').textContent = document.getElementById('pdfLogBox').querySelectorAll('.log-warn').length;
+    document.getElementById('pdfStatUnmapped').textContent = unmatchedList.length;
     document.getElementById('pdfStatsRow').style.display   = 'flex';
 
     const outBytes = await libDoc.save();
@@ -1537,7 +1537,6 @@ async function runPdfConversion() {
     document.getElementById('pdfDlMeta').textContent        = '  ·  ' + outName + '  ·  ' + repCount + ' numbers updated';
     document.getElementById('pdfDownloadBar').classList.add('show');
 
-    pdfLog('info', 'Rendering preview...');
     const prevDoc = await pdfjsLib.getDocument({ data: outBytes }).promise;
     const wrap    = document.getElementById('pdfPreviewWrap');
     wrap.innerHTML = '';
@@ -1552,7 +1551,7 @@ async function runPdfConversion() {
     }
     document.getElementById('pdfPreviewPanel').style.display = 'block';
     document.getElementById('pdfEmptyState').style.display   = 'none';
-    pdfLog('ok', 'Preview rendered. Ready to download.');
+    pdfLog('ok', 'Preview ready — download above.');
 
   } catch(err) {
     pdfLog('error', 'ERROR: ' + err.message);
@@ -1570,6 +1569,5 @@ function esc(str) {
 }
 
 // ── Init ──
-loadLibrary();   // Load from localStorage immediately
+loadLibrary();
 renderAllTables();
-// Firebase will call renderAllTables() again once synced
