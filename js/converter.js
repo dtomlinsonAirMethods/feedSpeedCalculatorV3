@@ -308,22 +308,68 @@ function matchesLibraryEntry(entry, text) {
 }
 
 // ════════════════════════════════════════
-//  TOOL LIBRARY PERSISTENCE
+//  TOOL LIBRARY PERSISTENCE — FIREBASE + localStorage fallback
 // ════════════════════════════════════════
 
+// Save to Firebase (primary) and localStorage (offline fallback)
 function saveLibrary() {
+  // Always save to localStorage as offline cache
   try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
+  // Push to Firebase if available
+  if (window._fbDatabase) {
+    const { ref, set } = window._fbRTDB;
+    set(ref(window._fbDatabase, 'toolLibrary'), toolLibrary)
+      .catch(err => console.warn('Firebase save failed:', err));
+  }
 }
 
+// Load from localStorage immediately (fast, offline-safe)
+// Firebase listener will override once connected
 function loadLibrary() {
   try {
     const s = localStorage.getItem('okumaToolLibrary');
     if (s) {
       const parsed = JSON.parse(s);
-      // Only use saved if it has content
-      if (Array.isArray(parsed) && parsed.length > 0) toolLibrary = parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        toolLibrary = parsed;
+      }
     }
   } catch(e) {}
+}
+
+// Called after Firebase is ready — sets up real-time listener
+function initFirebaseSync() {
+  if (!window._fbDatabase) return;
+  const { ref, onValue } = window._fbRTDB;
+  const libRef = ref(window._fbDatabase, 'toolLibrary');
+
+  onValue(libRef, snapshot => {
+    const data = snapshot.val();
+    if (Array.isArray(data) && data.length > 0) {
+      toolLibrary = data;
+      // Update localStorage cache
+      try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
+      renderAllTables();
+      // Show a subtle indicator that library synced
+      const pill = document.querySelector('.status-pill');
+      if (pill) {
+        const orig = pill.textContent;
+        pill.textContent = '● LIBRARY SYNCED';
+        pill.style.color = 'var(--green)';
+        pill.style.borderColor = 'var(--green)';
+        setTimeout(() => {
+          pill.textContent = orig;
+          pill.style.color = '';
+          pill.style.borderColor = '';
+        }, 2000);
+      }
+    } else if (data === null) {
+      // Firebase is empty — push our local library up as the source of truth
+      saveLibrary();
+    }
+  }, err => {
+    console.warn('Firebase sync error:', err);
+  });
 }
 
 // ════════════════════════════════════════
@@ -1414,5 +1460,6 @@ function esc(str) {
 }
 
 // ── Init ──
-loadLibrary();
+loadLibrary();   // Load from localStorage immediately
 renderAllTables();
+// Firebase will call renderAllTables() again once synced
