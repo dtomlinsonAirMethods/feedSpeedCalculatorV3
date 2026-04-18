@@ -14,7 +14,7 @@
       <div class="brand-name">OKUMA <span>GENOS</span> CONVERTER</div>
       <div class="brand-sub">HAAS &rarr; OKUMA // POST PROCESSOR</div>
     </div>
-    <div class="status-pill">&#9679; SYSTEM READY</div>
+    <div class="status-pill">● CONNECTING...</div>
   </header>
 
   <!-- CONVERTER SUB-TABS -->
@@ -276,39 +276,6 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
-</script>
-
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-  const firebaseConfig = {
-    apiKey:            "AIzaSyCI-aziX0DWC84KdrroSY4svRtwwQfTXc0",
-    authDomain:        "okuma-tool-library.firebaseapp.com",
-    databaseURL:       "https://okuma-tool-library-default-rtdb.firebaseio.com",
-    projectId:         "okuma-tool-library",
-    storageBucket:     "okuma-tool-library.firebasestorage.app",
-    messagingSenderId: "378232388099",
-    appId:             "1:378232388099:web:90733678ce97eb398d6c36"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getDatabase(app);
-
-  // Expose to global scope for converter.js
-  window._fbDatabase = db;
-  window._fbRTDB     = { ref, set, onValue };
-
-  // Poll until converter.js has loaded, then start sync
-  function tryInitSync() {
-    if (typeof initFirebaseSync === 'function') {
-      initFirebaseSync();
-    } else {
-      setTimeout(tryInitSync, 50);
-    }
-  }
-  tryInitSync();
 </script>
 
 <!-- All app logic -->

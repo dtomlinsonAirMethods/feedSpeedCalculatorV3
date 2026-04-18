@@ -313,13 +313,13 @@ function matchesLibraryEntry(entry, text) {
 
 // Save to Firebase (primary) and localStorage (offline fallback)
 function saveLibrary() {
-  // Always save to localStorage as offline cache
   try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
-  // Push to Firebase if available
   if (window._fbDatabase) {
+    setStatusPill('saving');
     const { ref, set } = window._fbRTDB;
     set(ref(window._fbDatabase, 'toolLibrary'), toolLibrary)
-      .catch(err => console.warn('Firebase save failed:', err));
+      .then(() => setStatusPill('synced'))
+      .catch(err => { console.warn('Firebase save failed:', err); setStatusPill('offline'); });
   }
 }
 
@@ -337,9 +337,29 @@ function loadLibrary() {
   } catch(e) {}
 }
 
+// Update the status pill
+function setStatusPill(state) {
+  const pill = document.querySelector('.status-pill');
+  if (!pill) return;
+  const states = {
+    connecting: { text: '● CONNECTING...', color: 'var(--yellow)' },
+    synced:     { text: '● LIBRARY SYNCED', color: 'var(--green)' },
+    offline:    { text: '● OFFLINE — LOCAL CACHE', color: 'var(--dim)' },
+    saving:     { text: '● SAVING...', color: 'var(--accent)' },
+  };
+  const s = states[state] || states.offline;
+  pill.textContent = s.text;
+  pill.style.color = s.color;
+  pill.style.borderColor = s.color;
+}
+
 // Called after Firebase is ready — sets up real-time listener
 function initFirebaseSync() {
-  if (!window._fbDatabase) return;
+  if (!window._fbDatabase) {
+    setStatusPill('offline');
+    return;
+  }
+  setStatusPill('connecting');
   const { ref, onValue } = window._fbRTDB;
   const libRef = ref(window._fbDatabase, 'toolLibrary');
 
@@ -347,28 +367,17 @@ function initFirebaseSync() {
     const data = snapshot.val();
     if (Array.isArray(data) && data.length > 0) {
       toolLibrary = data;
-      // Update localStorage cache
       try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
       renderAllTables();
-      // Show a subtle indicator that library synced
-      const pill = document.querySelector('.status-pill');
-      if (pill) {
-        const orig = pill.textContent;
-        pill.textContent = '● LIBRARY SYNCED';
-        pill.style.color = 'var(--green)';
-        pill.style.borderColor = 'var(--green)';
-        setTimeout(() => {
-          pill.textContent = orig;
-          pill.style.color = '';
-          pill.style.borderColor = '';
-        }, 2000);
-      }
+      setStatusPill('synced');
     } else if (data === null) {
-      // Firebase is empty — push our local library up as the source of truth
+      // Firebase empty — push local library as source of truth
       saveLibrary();
+      setStatusPill('synced');
     }
   }, err => {
     console.warn('Firebase sync error:', err);
+    setStatusPill('offline');
   });
 }
 
@@ -417,15 +426,18 @@ function renderToolTable(bodyId, countId, filter) {
 
   document.getElementById(bodyId).innerHTML = rows.length
     ? rows.map(t => `<tr class="lib-row">
-        <td class="okuma-num" style="width:50px;">T${t.okuma}</td>
-        <td class="serial">${esc(t.matchVal || '')}</td>
-        <td class="desc" title="${esc(t.desc || '')}">${esc(t.desc || '—')}</td>
-        <td class="lib-row-actions">
-          <button class="lib-action-btn lib-edit"   onclick="editTool('${uid(t)}')"   title="Edit">&#9998;</button>
-          <button class="lib-action-btn lib-delete" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button>
+        <td class="okuma-num" style="width:50px;position:relative;">T${t.okuma}
+          <div class="lib-row-actions">
+            <button class="lib-action-btn lib-edit"   onclick="editTool('${uid(t)}')"   title="Edit">&#9998;</button>
+            <button class="lib-action-btn lib-delete" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button>
+          </div>
         </td>
+        <td class="serial">${esc(t.matchVal || '')}</td>
+        <td class="desc">${esc(t.desc || '—')}</td>
+        <td class="alt-vals-cell"><div class="alt-vals-inner">${t.matchType === 'keyword' && t.altVals && t.altVals.filter(v=>v).length ? t.altVals.filter(v=>v).map(v=>esc(v)).join(', ') : ''}</div></td>
+        <td style="width:0;padding:0;"></td>
       </tr>`).join('')
-    : `<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+    : `<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
 
   if (document.getElementById(countId))
     document.getElementById(countId).textContent = toolLibrary.length + ' TOOLS';
@@ -497,6 +509,12 @@ function editTool(uid) {
         <input id="editDesc" value="${esc(entry.desc || '')}"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
+      <div id="editAltValsRow" style="display:none;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="color:var(--dim);font-size:9px;letter-spacing:1px;">(COMMA SEPARATED)</span></label>
+        <input id="editAltVals" value="${esc((entry.altVals||[]).filter(v=>v).join(', '))}"
+          placeholder="e.g. #16 DRILL, NO. 16 DRILL"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="document.getElementById('editModal').remove()"
           style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
@@ -525,6 +543,8 @@ function editSetType(type) {
   btnK.style.color       = !isSer ? '#000' : 'var(--dim)';
   btnK.style.borderColor = !isSer ? 'var(--accent)' : 'var(--border)';
   document.getElementById('editMatchLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
+  const altRow = document.getElementById('editAltValsRow');
+  if (altRow) altRow.style.display = isSer ? 'none' : 'flex';
 }
 
 function saveEditTool(origMatchVal, origOkuma) {
@@ -537,7 +557,10 @@ function saveEditTool(origMatchVal, origOkuma) {
   if (!newOkuma||newOkuma<1) { alert('Tool number is required.'); return; }
   const i = toolLibrary.findIndex(t => t.matchVal === origMatchVal && t.okuma === origOkuma);
   if (i === -1) { alert('Tool not found.'); return; }
-  toolLibrary[i] = { matchType: newType, matchVal: newVal, okuma: newOkuma, desc: newDesc };
+  const newAltVals = (document.getElementById('editAltVals')?.value || '')
+    .split(',').map(v => v.trim()).filter(v => v.length > 0);
+  toolLibrary[i] = { matchType: newType, matchVal: newVal, okuma: newOkuma, desc: newDesc,
+    ...(newAltVals.length ? { altVals: newAltVals } : {}) };
   saveLibrary();
   renderAllTables();
   modal.remove();
@@ -572,8 +595,92 @@ function setPdfMatchType(type) {
 //  ADD TOOL FORMS
 // ════════════════════════════════════════
 
-function toggleAddForm()    { document.getElementById('addToolForm').classList.toggle('open'); }
-function togglePdfAddForm() { document.getElementById('pdfAddToolForm').classList.toggle('open'); }
+function toggleAddForm()    { openAddToolModal('gcode'); }
+function togglePdfAddForm() { openAddToolModal('pdf'); }
+
+function openAddToolModal(tab) {
+  const existing = document.getElementById('addToolModal');
+  if (existing) existing.remove();
+
+  const isPdf = tab === 'pdf';
+  const modal = document.createElement('div');
+  modal.id = 'addToolModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:520px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">ADD TOOL</div>
+      <div style="display:flex;gap:8px;">
+        <button id="addBtnSerial" onclick="addModalSetType('serial','${tab}')"
+          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--orange);background:var(--orange);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">SERIAL #</button>
+        <button id="addBtnKeyword" onclick="addModalSetType('keyword','${tab}')"
+          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">KEYWORD</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--orange);" id="addModalHint">SERIAL: exact number found in tool comment (e.g. 48410)</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label id="addModalMatchLabel" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Serial Number</label>
+        <input id="addModalMatchVal" placeholder="e.g. 48410"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
+      <div id="addModalAltValsRow" style="display:none;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
+        <input id="addModalAltVals" placeholder="e.g. #16 DRILL, NO. 16 DRILL"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Okuma Tool #</label>
+        <input id="addModalOkuma" type="number" placeholder="39" min="1"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:18px;padding:6px 10px;border-radius:3px;outline:none;width:100%;text-align:center;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Description (optional)</label>
+        <input id="addModalDesc" placeholder="1/2 Helical EM"
+          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="document.getElementById('addToolModal').remove()"
+          style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
+        <button onclick="confirmAddTool('${tab}')"
+          style="padding:10px 24px;background:var(--green);border:none;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">ADD</button>
+      </div>
+    </div>`;
+  modal._addType = 'serial';
+  document.body.appendChild(modal);
+}
+
+function addModalSetType(type, tab) {
+  const modal = document.getElementById('addToolModal');
+  if (!modal) return;
+  modal._addType = type;
+  const isSer = type === 'serial';
+  const btnS = document.getElementById('addBtnSerial');
+  const btnK = document.getElementById('addBtnKeyword');
+  btnS.style.background  = isSer ? 'var(--orange)' : 'transparent';
+  btnS.style.color       = isSer ? '#000' : 'var(--dim)';
+  btnS.style.borderColor = isSer ? 'var(--orange)' : 'var(--border)';
+  btnK.style.background  = !isSer ? 'var(--accent)' : 'transparent';
+  btnK.style.color       = !isSer ? '#000' : 'var(--dim)';
+  btnK.style.borderColor = !isSer ? 'var(--accent)' : 'var(--border)';
+  document.getElementById('addModalMatchLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
+  document.getElementById('addModalMatchVal').placeholder   = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
+  document.getElementById('addModalHint').textContent       = isSer ? 'SERIAL: exact number found in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
+  document.getElementById('addModalHint').style.color       = isSer ? 'var(--orange)' : 'var(--accent)';
+  const altRow = document.getElementById('addModalAltValsRow');
+  if (altRow) altRow.style.display = isSer ? 'none' : 'flex';
+}
+
+function confirmAddTool(tab) {
+  const modal    = document.getElementById('addToolModal');
+  if (!modal) return;
+  const matchType = modal._addType;
+  const matchVal  = document.getElementById('addModalMatchVal').value.trim();
+  const okuma     = parseInt(document.getElementById('addModalOkuma').value);
+  const desc      = document.getElementById('addModalDesc').value.trim();
+  const altRaw    = document.getElementById('addModalAltVals')?.value || '';
+  const altVals   = altRaw.split(',').map(v => v.trim()).filter(v => v.length > 0);
+  const logFn     = tab === 'pdf' ? pdfLog : log;
+  _addToolEntry(matchType, matchVal, okuma, desc, altVals, logFn, []);
+  modal.remove();
+}
 
 function _addToolEntry(matchType, matchVal, okuma, desc, logFn, clearIds) {
   if (!matchVal)         { alert('Serial number or keyword is required.'); return; }
