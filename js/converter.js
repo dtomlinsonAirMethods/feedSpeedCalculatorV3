@@ -312,12 +312,15 @@ function matchesLibraryEntry(entry, text) {
 // ════════════════════════════════════════
 
 // Save to Firebase (primary) and localStorage (offline fallback)
+const FB_WRITE_TOKEN = 'okuma-genos-2024';  // shared write token
+
 function saveLibrary() {
   try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
   if (window._fbDatabase) {
     setStatusPill('saving');
     const { ref, set } = window._fbRTDB;
-    set(ref(window._fbDatabase, 'toolLibrary'), toolLibrary)
+    // Write token stored alongside data — rules check for its presence
+    set(ref(window._fbDatabase, 'data'), { token: FB_WRITE_TOKEN, toolLibrary })
       .then(() => setStatusPill('synced'))
       .catch(err => { console.warn('Firebase save failed:', err); setStatusPill('offline'); });
   }
@@ -361,7 +364,7 @@ function initFirebaseSync() {
   }
   setStatusPill('connecting');
   const { ref, onValue } = window._fbRTDB;
-  const libRef = ref(window._fbDatabase, 'toolLibrary');
+  const libRef = ref(window._fbDatabase, 'data/toolLibrary');
 
   onValue(libRef, snapshot => {
     const data = snapshot.val();
@@ -370,7 +373,7 @@ function initFirebaseSync() {
       try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
       renderAllTables();
       setStatusPill('synced');
-    } else if (data === null) {
+    } else if (data === null || data === undefined) {
       // Firebase empty — push local library as source of truth
       saveLibrary();
       setStatusPill('synced');
