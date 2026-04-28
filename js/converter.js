@@ -311,17 +311,8 @@ function matchesLibraryEntry(entry, text) {
 //  TOOL LIBRARY PERSISTENCE
 // ════════════════════════════════════════
 
-const FB_WRITE_TOKEN = 'okuma-genos-2024';
-
 function saveLibrary() {
   try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
-  if (window._fbDatabase) {
-    setStatusPill('saving');
-    const { ref, set } = window._fbRTDB;
-    set(ref(window._fbDatabase, 'data'), { token: FB_WRITE_TOKEN, toolLibrary })
-      .then(() => setStatusPill('synced'))
-      .catch(err => { console.warn('Firebase save failed:', err); setStatusPill('offline'); });
-  }
 }
 
 function loadLibrary() {
@@ -329,42 +320,10 @@ function loadLibrary() {
     const s = localStorage.getItem('okumaToolLibrary');
     if (s) {
       const parsed = JSON.parse(s);
+      // Only use saved if it has content
       if (Array.isArray(parsed) && parsed.length > 0) toolLibrary = parsed;
     }
   } catch(e) {}
-}
-
-function setStatusPill(state) {
-  const pill = document.querySelector('.status-pill');
-  if (!pill) return;
-  const states = {
-    connecting: { text: '● CONNECTING...', color: 'var(--yellow)' },
-    synced:     { text: '● LIBRARY SYNCED', color: 'var(--green)' },
-    offline:    { text: '● OFFLINE — LOCAL CACHE', color: 'var(--dim)' },
-    saving:     { text: '● SAVING...', color: 'var(--accent)' },
-  };
-  const s = states[state] || states.offline;
-  pill.textContent = s.text;
-  pill.style.color = s.color;
-  pill.style.borderColor = s.color;
-}
-
-function initFirebaseSync() {
-  if (!window._fbDatabase) { setStatusPill('offline'); return; }
-  setStatusPill('connecting');
-  const { ref, onValue } = window._fbRTDB;
-  onValue(ref(window._fbDatabase, 'data/toolLibrary'), snapshot => {
-    const data = snapshot.val();
-    if (Array.isArray(data) && data.length > 0) {
-      toolLibrary = data;
-      try { localStorage.setItem('okumaToolLibrary', JSON.stringify(toolLibrary)); } catch(e) {}
-      renderAllTables();
-      setStatusPill('synced');
-    } else if (data === null || data === undefined) {
-      saveLibrary();
-      setStatusPill('synced');
-    }
-  }, err => { console.warn('Firebase sync error:', err); setStatusPill('offline'); });
 }
 
 // ════════════════════════════════════════
@@ -412,18 +371,15 @@ function renderToolTable(bodyId, countId, filter) {
 
   document.getElementById(bodyId).innerHTML = rows.length
     ? rows.map(t => `<tr class="lib-row">
-        <td class="okuma-num" style="width:50px;position:relative;">T${t.okuma}
-          <div class="lib-row-actions">
-            <button class="lib-action-btn lib-edit"   onclick="editTool('${uid(t)}')"   title="Edit">&#9998;</button>
-            <button class="lib-action-btn lib-delete" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button>
-          </div>
-        </td>
+        <td class="okuma-num" style="width:50px;">T${t.okuma}</td>
         <td class="serial">${esc(t.matchVal || '')}</td>
-        <td class="desc">${esc(t.desc || '—')}</td>
-        <td class="alt-vals-cell"><div class="alt-vals-inner">${t.matchType === 'keyword' && t.altVals && t.altVals.filter(v=>v).length ? t.altVals.filter(v=>v).map(v=>esc(v)).join(', ') : ''}</div></td>
-        <td style="width:0;padding:0;"></td>
+        <td class="desc" title="${esc(t.desc || '')}">${esc(t.desc || '—')}</td>
+        <td class="lib-row-actions">
+          <button class="lib-action-btn lib-edit"   onclick="editTool('${uid(t)}')"   title="Edit">&#9998;</button>
+          <button class="lib-action-btn lib-delete" onclick="removeTool('${uid(t)}')" title="Remove">&#10005;</button>
+        </td>
       </tr>`).join('')
-    : `<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
+    : `<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">No tools found</td></tr>`;
 
   if (document.getElementById(countId))
     document.getElementById(countId).textContent = toolLibrary.length + ' TOOLS';
@@ -435,17 +391,17 @@ function renderAllTables() {
   updateSortHeaders();
 }
 
+// Columns: TOOL # | MATCH VALUE | DESCRIPTION (no TYPE column)
 const SORT_COLS   = ['okuma', 'val', 'desc'];
+const SORT_LABELS = ['TOOL #', 'MATCH VALUE', 'DESCRIPTION'];
 
 function updateSortHeaders() {
   ['toolBody', 'pdfToolBody'].forEach(bodyId => {
     const thead = document.getElementById(bodyId)?.closest('table')?.querySelector('thead tr');
     if (!thead) return;
     const ths = thead.querySelectorAll('th');
-    const colMap   = { 0: 'okuma', 1: 'val', 2: 'desc' };
-    const labelMap = { 0: 'TOOL #', 1: 'MATCH VALUE', 2: 'DESCRIPTION' };
-    ths.forEach((th, i) => {
-      if (labelMap[i] !== undefined) th.textContent = labelMap[i] + sortIndicator(colMap[i]);
+    SORT_COLS.forEach((col, i) => {
+      if (ths[i]) ths[i].textContent = SORT_LABELS[i] + sortIndicator(col);
     });
   });
 }
@@ -495,12 +451,6 @@ function editTool(uid) {
         <input id="editDesc" value="${esc(entry.desc || '')}"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
-      <div id="editAltValsRow" style="display:none;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
-        <input id="editAltVals" value="${esc((entry.altVals||[]).filter(v=>v).join(', '))}"
-          placeholder="e.g. #16 DRILL, NO. 16 DRILL"
-          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
-      </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="document.getElementById('editModal').remove()"
           style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
@@ -529,8 +479,6 @@ function editSetType(type) {
   btnK.style.color       = !isSer ? '#000' : 'var(--dim)';
   btnK.style.borderColor = !isSer ? 'var(--accent)' : 'var(--border)';
   document.getElementById('editMatchLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
-  const altRow = document.getElementById('editAltValsRow');
-  if (altRow) altRow.style.display = isSer ? 'none' : 'flex';
 }
 
 function saveEditTool(origMatchVal, origOkuma) {
@@ -543,10 +491,7 @@ function saveEditTool(origMatchVal, origOkuma) {
   if (!newOkuma||newOkuma<1) { alert('Tool number is required.'); return; }
   const i = toolLibrary.findIndex(t => t.matchVal === origMatchVal && t.okuma === origOkuma);
   if (i === -1) { alert('Tool not found.'); return; }
-  const newAltVals = (document.getElementById('editAltVals')?.value || '')
-    .split(',').map(v => v.trim()).filter(v => v.length > 0);
-  toolLibrary[i] = { matchType: newType, matchVal: newVal, okuma: newOkuma, desc: newDesc,
-    ...(newAltVals.length ? { altVals: newAltVals } : {}) };
+  toolLibrary[i] = { matchType: newType, matchVal: newVal, okuma: newOkuma, desc: newDesc };
   saveLibrary();
   renderAllTables();
   modal.remove();
@@ -565,8 +510,6 @@ function setMatchType(type) {
   document.getElementById('matchHint').textContent       = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('matchValLabel').textContent   = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('newSerial').placeholder       = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
-  const addAlt = document.getElementById('addAltValsRow');
-  if (addAlt) addAlt.style.display = isSer ? 'none' : 'flex';
 }
 
 function setPdfMatchType(type) {
@@ -577,107 +520,22 @@ function setPdfMatchType(type) {
   document.getElementById('pdfMatchHint').textContent    = isSer ? 'SERIAL: exact number in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
   document.getElementById('pdfMatchValLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
   document.getElementById('pdfNewSerial').placeholder    = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
-  const pdfAddAlt = document.getElementById('pdfAddAltValsRow');
-  if (pdfAddAlt) pdfAddAlt.style.display = isSer ? 'none' : 'flex';
 }
 
 // ════════════════════════════════════════
 //  ADD TOOL FORMS
 // ════════════════════════════════════════
 
-function toggleAddForm()    { openAddToolModal('gcode'); }
-function togglePdfAddForm() { openAddToolModal('pdf'); }
+function toggleAddForm()    { document.getElementById('addToolForm').classList.toggle('open'); }
+function togglePdfAddForm() { document.getElementById('pdfAddToolForm').classList.toggle('open'); }
 
-function openAddToolModal(tab) {
-  const existing = document.getElementById('addToolModal');
-  if (existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = 'addToolModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
-  modal.innerHTML = `
-    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:520px;padding:24px;display:flex;flex-direction:column;gap:16px;">
-      <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">ADD TOOL</div>
-      <div style="display:flex;gap:8px;">
-        <button id="addBtnSerial" onclick="addModalSetType('serial')"
-          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--orange);background:var(--orange);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">SERIAL #</button>
-        <button id="addBtnKeyword" onclick="addModalSetType('keyword')"
-          style="flex:1;padding:7px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;">KEYWORD</button>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--orange);" id="addModalHint">SERIAL: exact number found in tool comment (e.g. 48410)</div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <label id="addModalMatchLabel" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Serial Number</label>
-        <input id="addModalMatchVal" placeholder="e.g. 48410"
-          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
-      </div>
-      <div id="addModalAltValsRow" style="display:none;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
-        <input id="addModalAltVals" placeholder="e.g. #16 DRILL, NO. 16 DRILL"
-          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Okuma Tool #</label>
-        <input id="addModalOkuma" type="number" placeholder="39" min="1"
-          style="background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:18px;padding:6px 10px;border-radius:3px;outline:none;width:100%;text-align:center;">
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Description (optional)</label>
-        <input id="addModalDesc" placeholder="1/2 Helical EM"
-          style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button onclick="document.getElementById('addToolModal').remove()"
-          style="padding:10px 20px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">CANCEL</button>
-        <button onclick="confirmAddTool('${tab}')"
-          style="padding:10px 24px;background:var(--green);border:none;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">ADD</button>
-      </div>
-    </div>`;
-  modal._addType = 'serial';
-  document.body.appendChild(modal);
-}
-
-function addModalSetType(type) {
-  const modal = document.getElementById('addToolModal');
-  if (!modal) return;
-  modal._addType = type;
-  const isSer = type === 'serial';
-  const btnS = document.getElementById('addBtnSerial');
-  const btnK = document.getElementById('addBtnKeyword');
-  btnS.style.background  = isSer ? 'var(--orange)' : 'transparent';
-  btnS.style.color       = isSer ? '#000' : 'var(--dim)';
-  btnS.style.borderColor = isSer ? 'var(--orange)' : 'var(--border)';
-  btnK.style.background  = !isSer ? 'var(--accent)' : 'transparent';
-  btnK.style.color       = !isSer ? '#000' : 'var(--dim)';
-  btnK.style.borderColor = !isSer ? 'var(--accent)' : 'var(--border)';
-  document.getElementById('addModalMatchLabel').textContent = isSer ? 'Serial Number' : 'Keyword / Phrase';
-  document.getElementById('addModalMatchVal').placeholder   = isSer ? 'e.g. 48410' : 'e.g. NO. 40 STUB DRILL';
-  document.getElementById('addModalHint').textContent       = isSer ? 'SERIAL: exact number found in tool comment (e.g. 48410)' : 'KEYWORD: phrase matched in tool comment';
-  document.getElementById('addModalHint').style.color       = isSer ? 'var(--orange)' : 'var(--accent)';
-  const altRow = document.getElementById('addModalAltValsRow');
-  if (altRow) altRow.style.display = isSer ? 'none' : 'flex';
-}
-
-function confirmAddTool(tab) {
-  const modal    = document.getElementById('addToolModal');
-  if (!modal) return;
-  const matchType = modal._addType;
-  const matchVal  = document.getElementById('addModalMatchVal').value.trim();
-  const okuma     = parseInt(document.getElementById('addModalOkuma').value);
-  const desc      = document.getElementById('addModalDesc').value.trim();
-  const altRaw    = document.getElementById('addModalAltVals')?.value || '';
-  const altVals   = altRaw.split(',').map(v => v.trim()).filter(v => v.length > 0);
-  const logFn     = tab === 'pdf' ? pdfLog : log;
-  _addToolEntry(matchType, matchVal, okuma, desc, altVals, logFn, []);
-  modal.remove();
-}
-
-function _addToolEntry(matchType, matchVal, okuma, desc, altVals, logFn, clearIds) {
+function _addToolEntry(matchType, matchVal, okuma, desc, logFn, clearIds) {
   if (!matchVal)         { alert('Serial number or keyword is required.'); return; }
   if (!okuma || okuma<1) { alert('Okuma tool number is required.'); return; }
   if (toolLibrary.find(t => t.matchVal === matchVal && t.okuma === okuma)) {
     alert('This entry already exists.'); return;
   }
-  toolLibrary.push({ matchType, matchVal, okuma, desc,
-    ...(altVals && altVals.length ? { altVals } : {}) });
+  toolLibrary.push({ matchType, matchVal, okuma, desc });
   saveLibrary();
   renderAllTables();
   clearIds.forEach(id => { document.getElementById(id).value = ''; });
@@ -685,23 +543,23 @@ function _addToolEntry(matchType, matchVal, okuma, desc, altVals, logFn, clearId
 }
 
 function addTool() {
-  const altRaw = document.getElementById('newAltVals')?.value || '';
-  const altVals = altRaw.split(',').map(v=>v.trim()).filter(v=>v.length>0);
-  _addToolEntry(currentMatchType,
+  _addToolEntry(
+    currentMatchType,
     document.getElementById('newSerial').value.trim(),
     parseInt(document.getElementById('newOkuma').value),
     document.getElementById('newDesc').value.trim(),
-    altVals, log, ['newSerial','newOkuma','newDesc','newAltVals']);
+    log, ['newSerial','newOkuma','newDesc']
+  );
 }
 
 function addToolFromPdfTab() {
-  const altRaw = document.getElementById('pdfNewAltVals')?.value || '';
-  const altVals = altRaw.split(',').map(v=>v.trim()).filter(v=>v.length>0);
-  _addToolEntry(pdfCurrentMatchType,
+  _addToolEntry(
+    pdfCurrentMatchType,
     document.getElementById('pdfNewSerial').value.trim(),
     parseInt(document.getElementById('pdfNewOkuma').value),
     document.getElementById('pdfNewDesc').value.trim(),
-    altVals, pdfLog, ['pdfNewSerial','pdfNewOkuma','pdfNewDesc','pdfNewAltVals']);
+    pdfLog, ['pdfNewSerial','pdfNewOkuma','pdfNewDesc']
+  );
 }
 
 // ════════════════════════════════════════
@@ -1018,7 +876,7 @@ function convertGCode(content, fname, wcsInc) {
   const sameTools = new Set(); // tNums where Haas# already == Okuma#
   const unmapped = [];
   const logLines = [];
-  const headerRe = /^\(T(\d+)\s*[-–]/i;
+  const headerRe = /(?:^N\d+\s*)?\(T(\d+)\s*[-–]/i;
 
   const addLog = (type, msg) => logLines.push({ type, msg });
 
@@ -1029,7 +887,7 @@ function convertGCode(content, fname, wcsInc) {
 
   for (const line of lines) {
     const s = line.trim();
-    if (!s.startsWith('(')) continue;
+    if (!s.startsWith('(') && !/^N\d+\s*\(T/.test(s)) continue;
     const m = s.match(headerRe);
     if (!m) continue;
     const tNum = m[1];
@@ -1308,6 +1166,7 @@ async function runPdfConversion() {
         }
       }
     }
+    pdfLog('info', 'Extracted ' + allWords.length + ' tokens across ' + numPages + ' pages.');
 
     const lineMap = {};
     for (const w of allWords) {
@@ -1319,8 +1178,8 @@ async function runPdfConversion() {
       .sort((a,b) => { const [pa,ya]=a.split('_').map(Number); const [pb,yb]=b.split('_').map(Number); return pa!==pb?pa-pb:yb-ya; })
       .map(key => ({ key, words: lineMap[key].sort((a,b)=>a.x-b.x), text: lineMap[key].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ') }));
 
-    const mcamToOkuma  = {};
-    const unmatchedTools = {}; // mcamNum -> best tool text found
+    const mcamToOkuma = {};
+    pdfLog('info', 'Matching tools...');
 
     for (let li = 0; li < lines.length; li++) {
       const curTxt = lines[li].text.trim();
@@ -1329,60 +1188,40 @@ async function runPdfConversion() {
       if (!mH) continue;
       const mcamNum = mH[1];
       if (mcamToOkuma[mcamNum]) continue;
-      let bestTxt = '';
       for (let lj = 0; lj < lines.length; lj++) {
         if (lj === li) continue;
         const [pg2, y2] = lines[lj].key.split('_').map(Number);
         if (pg2 !== curPage || Math.abs(y2 - curY) > 15) continue;
         const txt = lines[lj].text.trim();
         if (txt.length < 5 || /^(STICKOUT|TOOL LIST|OPERATION LIST|PART CYCLE|PROGRAM NUMBER)/i.test(txt)) continue;
-        if (!bestTxt && txt.length > 5) bestTxt = txt;
         for (const entry of toolLibrary) {
           if (matchesLibraryEntry(entry, txt)) {
             mcamToOkuma[mcamNum] = String(entry.okuma);
+            pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  [' + entry.matchVal + ']  txt:"' + txt.substring(0,50) + '"');
             break;
           }
         }
         if (mcamToOkuma[mcamNum]) break;
       }
-      if (!mcamToOkuma[mcamNum] && !(mcamNum in unmatchedTools)) {
-        unmatchedTools[mcamNum] = bestTxt;
-      }
+      if (!mcamToOkuma[mcamNum]) pdfLog('warn', '  #' + mcamNum + ' not matched');
     }
 
     for (let li = 0; li < lines.length; li++) {
-      const mOp = lines[li].text.match(/^\s*\d+\s+#(\d+)\s*-/);
+      const mOp = lines[li].text.match(/^\d+\s+#(\d+)\s+-/);
       if (!mOp) continue;
       const mcamNum = mOp[1];
       if (mcamToOkuma[mcamNum]) continue;
       for (const entry of toolLibrary) {
         if (matchesLibraryEntry(entry, lines[li].text)) {
           mcamToOkuma[mcamNum] = String(entry.okuma);
+          pdfLog('map', '  #' + mcamNum + ' → T' + entry.okuma + '  (op list)');
           break;
         }
       }
     }
 
-    // ── Log results ──
-    const mappedCount   = Object.keys(mcamToOkuma).length;
-    const unmatchedList = Object.keys(unmatchedTools);
-
-    if (mappedCount > 0) {
-      pdfLog('info', '✓ ' + mappedCount + ' tool' + (mappedCount > 1 ? 's' : '') + ' matched successfully');
-    }
-    if (unmatchedList.length > 0) {
-      pdfLog('warn', '');
-      pdfLog('warn', '⚠ ' + unmatchedList.length + ' TOOL' + (unmatchedList.length > 1 ? 'S' : '') + ' NOT IN LIBRARY — ACTION REQUIRED:');
-      for (const mcamNum of unmatchedList) {
-        const toolTxt = unmatchedTools[mcamNum] ? unmatchedTools[mcamNum].substring(0, 60) : 'unknown';
-        pdfLog('warn', '');
-        pdfLog('warn', '  #' + mcamNum + ': "' + toolTxt + '"');
-        pdfLog('warn', '  → FIX: Click + ADD TOOL and add this tool to the library');
-      }
-      pdfLog('warn', '');
-    } else if (mappedCount === 0) {
-      pdfLog('warn', 'WARNING: No tools matched — check library or PDF format.');
-    }
+    if (!Object.keys(mcamToOkuma).length) pdfLog('warn', 'WARNING: No tools matched. Check library.');
+    else pdfLog('info', 'Tool map: ' + Object.keys(mcamToOkuma).length + ' tools resolved.');
 
     const replacements = [];
     const addRep = (word, newText, extra={}) => {
@@ -1492,10 +1331,13 @@ async function runPdfConversion() {
       }
     }
 
+    pdfLog('info', 'Found ' + replacements.length + ' tokens to replace.');
     if (replacements.length === 0) {
-      pdfLog('warn', 'No replacements found — check library or PDF format.');
+      pdfLog('warn', 'No replacements found. Check library or PDF format.');
       btn.disabled = false; btn.innerHTML = '&#128196; CONVERT PDF'; return;
     }
+
+    pdfLog('info', 'Applying replacements...');
     const libDoc   = await PDFDocument.load(pdfBytes.slice());
     const font     = await libDoc.embedFont(StandardFonts.HelveticaBold);
     const libPages = libDoc.getPages();
@@ -1521,12 +1363,14 @@ async function runPdfConversion() {
       repCount++;
     }
 
-    pdfLog('ok', '✓ DONE — ' + repCount + ' numbers updated across ' + numPages + ' page' + (numPages>1?'s':''));
+    pdfLog('ok', '══════════════════════════════════════════');
+    pdfLog('ok', ' DONE — ' + repCount + ' replacements applied');
+    pdfLog('ok', '══════════════════════════════════════════');
 
     document.getElementById('pdfStatPages').textContent    = numPages;
     document.getElementById('pdfStatTools').textContent    = Object.keys(mcamToOkuma).length;
     document.getElementById('pdfStatNums').textContent     = repCount;
-    document.getElementById('pdfStatUnmapped').textContent = unmatchedList.length;
+    document.getElementById('pdfStatUnmapped').textContent = document.getElementById('pdfLogBox').querySelectorAll('.log-warn').length;
     document.getElementById('pdfStatsRow').style.display   = 'flex';
 
     const outBytes = await libDoc.save();
@@ -1537,6 +1381,7 @@ async function runPdfConversion() {
     document.getElementById('pdfDlMeta').textContent        = '  ·  ' + outName + '  ·  ' + repCount + ' numbers updated';
     document.getElementById('pdfDownloadBar').classList.add('show');
 
+    pdfLog('info', 'Rendering preview...');
     const prevDoc = await pdfjsLib.getDocument({ data: outBytes }).promise;
     const wrap    = document.getElementById('pdfPreviewWrap');
     wrap.innerHTML = '';
@@ -1551,7 +1396,7 @@ async function runPdfConversion() {
     }
     document.getElementById('pdfPreviewPanel').style.display = 'block';
     document.getElementById('pdfEmptyState').style.display   = 'none';
-    pdfLog('ok', 'Preview ready — download above.');
+    pdfLog('ok', 'Preview rendered. Ready to download.');
 
   } catch(err) {
     pdfLog('error', 'ERROR: ' + err.message);
