@@ -876,7 +876,7 @@ function convertGCode(content, fname, wcsInc) {
   const sameTools = new Set(); // tNums where Haas# already == Okuma#
   const unmapped = [];
   const logLines = [];
-  const headerRe = /(?:^N\d+\s*)?\(T(\d+)\s*[-–]/i;
+  const headerRe = /^\(T(\d+)\s*[-–]/i;
 
   const addLog = (type, msg) => logLines.push({ type, msg });
 
@@ -887,7 +887,7 @@ function convertGCode(content, fname, wcsInc) {
 
   for (const line of lines) {
     const s = line.trim();
-    if (!s.startsWith('(') && !/^N\d+\s*\(T/.test(s)) continue;
+    if (!s.startsWith('(')) continue;
     const m = s.match(headerRe);
     if (!m) continue;
     const tNum = m[1];
@@ -976,7 +976,8 @@ function runConversion() {
   document.getElementById('logBox').innerHTML = '';
   document.getElementById('emptyState').style.display = 'none';
 
-  const wcsInc = parseInt(document.getElementById('wcsIncrement').value) || 1;
+  const _wcsRaw = document.getElementById('wcsIncrement').value;
+  const wcsInc  = _wcsRaw !== '' ? parseInt(_wcsRaw) : 1;
 
   resultCards  = pendingFiles.map(f => convertGCode(f.content, f.name, wcsInc));
   currentCard  = 0;
