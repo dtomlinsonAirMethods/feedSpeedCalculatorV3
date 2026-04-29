@@ -74,10 +74,6 @@ let filePath = process.argv[2];
 // Strip surrounding quotes if Mastercam passed the path quoted
 if (filePath) filePath = filePath.replace(/^["']|["']$/g, '').trim();
 
-const COORD_PORT  = 19236; // coordinator port — collects file paths before showing dialog
-const SIGNAL_PORT = 19235;
-const MAIN_PORT   = 19234;
-
 // Debug log removed
 
 // If no file passed (Mastercam didn't send it), open a file picker
@@ -120,65 +116,22 @@ const fileContent0 = isOkumaPath ? (() => { try { return fs.readFileSync(filePat
 // ── Main flow ─────────────────────────────────────────────────
 async function main() {
   if (!isOkumaPath) {
+    // Not an Okuma program — just open in CimcoEdit silently
     launchCimco(filePath);
     return;
   }
 
-  // Try to register with coordinator (another instance is collecting files)
-  const registered = await new Promise(resolve => {
-    const req = http.request({ hostname:'127.0.0.1', port:COORD_PORT,
-      path:'/register', method:'POST',
-      headers:{'Content-Type':'application/json'}
-    }, res => { resolve(res.statusCode === 200); });
-    req.on('error', () => resolve(false));
-    req.setTimeout(500, () => { req.destroy(); resolve(false); });
-    req.write(JSON.stringify({ filePath, fileName }));
-    req.end();
-  });
+  // Ask user whether to convert
+  const doConvert = await askYesNo(
+    `Convert to Okuma format?\n\nFile: ${fileName}\n\nYES = convert then open in CimcoEdit\nNO  = open as-is in CimcoEdit`
+  );
 
-  if (registered) {
-    // Another instance is coordinating — just exit, it will handle everything
-    process.exit(0);
+  if (!doConvert) {
+    launchCimco(filePath);
+    return;
   }
 
-  // We are the coordinator — collect files then show dialog
-  const pendingFiles = [{ filePath, fileName }];
-
-  // Start coordinator server to collect additional files
-  const coordServer = http.createServer((req, res) => {
-    if (req.method === 'POST' && req.url === '/register') {
-      let body = '';
-      req.on('data', d => body += d);
-      req.on('end', () => {
-        try {
-          pendingFiles.push(JSON.parse(body));
-          res.writeHead(200); res.end('ok');
-        } catch(e) { res.writeHead(400); res.end(); }
-      });
-    } else { res.writeHead(404); res.end(); }
-  });
-
-  await new Promise(resolve => coordServer.listen(COORD_PORT, '127.0.0.1', resolve));
-
-  // Wait 4 seconds for Mastercam to call bat for remaining files
-  await new Promise(resolve => setTimeout(resolve, 4000));
-  coordServer.close();
-
-  // Show single consolidated checkbox dialog
-  const filesToConvert = await showFileSelectionDialog(pendingFiles);
-
-  if (!filesToConvert || filesToConvert.length === 0) {
-    // User cancelled or deselected all — open all in CimcoEdit as-is
-    pendingFiles.forEach(f => launchCimco(f.filePath));
-    process.exit(0);
-  }
-
-  // Open non-selected files in CimcoEdit as-is
-  pendingFiles.forEach(f => {
-    if (!filesToConvert.find(c => c.filePath === f.filePath)) launchCimco(f.filePath);
-  });
-
-  // Fetch tool library from Firebase once for all files
+  // Fetch tool library from Firebase
   let toolLibrary = [];
   try {
     toolLibrary = await fetchLibrary();
@@ -188,31 +141,22 @@ async function main() {
     toolLibrary = getFallbackLibrary();
   }
 
-  // Convert all selected files
-  const allResults = [];
-  for (const f of filesToConvert) {
-    const fileContent = (() => { try { return fs.readFileSync(f.filePath, 'utf8'); } catch(e) { return ''; } })();
-    const { output, toolMap, sameTools, unmapped, changedLines } = convertFile(fileContent, toolLibrary);
-    try { fs.writeFileSync(f.filePath, output, 'utf8'); } catch(e) {
-      showDialog('error', `Could not save:\n${f.fileName}\n${e.message}`);
-    }
-    launchCimco(f.filePath);
+  // Reuse already-read content
+  const content = fileContent0;
 
-    const wcsCount  = output.split('\n').filter(l => /G15\s+H/.test(l)).length;
-    const origArr   = fileContent.split(/\r?\n/);
-    const convArr   = output.split(/\r?\n/);
-    allResults.push({
-      type:      'gcode',
-      file:      f.fileName,
-      toolMap,
-      sameTools: Array.from(sameTools),
-      unmapped,
-      changedLines,
-      wcsCount,
-      diffLines: origArr.map((orig, i) => ({ orig, conv: convArr[i]||'', changed: orig!==(convArr[i]||'') })).slice(0,500),
-      totalLines: origArr.length
-    });
+  // Convert
+  const { output, toolMap, sameTools, unmapped, changedLines } = convertFile(content, toolLibrary);
+
+  // Overwrite original
+  try {
+    fs.writeFileSync(filePath, output, 'utf8');
+  } catch (e) {
+    showDialog('error', `Could not save converted file:\n${e.message}`);
+    process.exit(1);
   }
+
+  // Launch CimcoEdit first
+  launchCimco(filePath);
 
   // Build result for this file
   const unmappedKeys = Object.keys(unmapped);
@@ -255,7 +199,8 @@ async function main() {
     process.exit(0);
   }
 
-  // No existing server — start one, allResults built by convert loop above
+  // No existing server — start one
+  const allResults = [result];
 
   // Main server — serves all results to PWA
   const server = http.createServer((req, res) => {
@@ -456,87 +401,6 @@ function launchCimco(filePath) {
     spawn(CIMCO_PATH, [filePath], { detached: true, stdio: 'ignore' }).unref();
   } catch (e) {
     showDialog('error', `Could not launch CimcoEdit:\n${e.message}\n\nPath: ${CIMCO_PATH}`);
-  }
-}
-
-// ── File selection checkbox dialog ───────────────────────────
-async function showFileSelectionDialog(files) {
-  const { execFileSync } = require('child_process');
-  const os = require('os');
-  const tmpScript = os.tmpdir() + '\\okuma_select.ps1';
-
-  const nl = '\n';
-  let psLines = [];
-  psLines.push('Add-Type -AssemblyName System.Windows.Forms');
-  psLines.push('Add-Type -AssemblyName System.Drawing');
-  psLines.push('$form = New-Object System.Windows.Forms.Form');
-  psLines.push('$form.Text = "Okuma Genos Converter"');
-  psLines.push('$form.Width = 520');
-  psLines.push('$form.Height = ' + (140 + files.length * 28 + 60));
-  psLines.push('$form.StartPosition = "CenterScreen"');
-  psLines.push('$form.FormBorderStyle = "FixedDialog"');
-  psLines.push('$form.MaximizeBox = $false');
-  psLines.push('$form.MinimizeBox = $false');
-  psLines.push('$lbl = New-Object System.Windows.Forms.Label');
-  psLines.push('$lbl.Text = "Select files to convert to Okuma format:"');
-  psLines.push('$lbl.Location = New-Object System.Drawing.Point(20, 20)');
-  psLines.push('$lbl.Width = 460');
-  psLines.push('$lbl.Height = 30');
-  psLines.push('$form.Controls.Add($lbl)');
-
-  files.forEach((f, i) => {
-    const y = 60 + i * 28;
-    psLines.push('$cb' + i + ' = New-Object System.Windows.Forms.CheckBox');
-    psLines.push('$cb' + i + '.Text = "' + f.fileName.replace(/"/g, "'") + '"');
-    psLines.push('$cb' + i + '.Checked = $true');
-    psLines.push('$cb' + i + '.Width = 460');
-    psLines.push('$cb' + i + '.Height = 24');
-    psLines.push('$cb' + i + '.Location = New-Object System.Drawing.Point(20, ' + y + ')');
-    psLines.push('$form.Controls.Add($cb' + i + ')');
-  });
-
-  const btnY = 60 + files.length * 28 + 14;
-  psLines.push('$btn = New-Object System.Windows.Forms.Button');
-  psLines.push('$btn.Text = "CONVERT"');
-  psLines.push('$btn.Location = New-Object System.Drawing.Point(20, ' + btnY + ')');
-  psLines.push('$btn.Width = 120');
-  psLines.push('$btn.Height = 32');
-  psLines.push('$btn.DialogResult = [System.Windows.Forms.DialogResult]::OK');
-  psLines.push('$form.AcceptButton = $btn');
-  psLines.push('$form.Controls.Add($btn)');
-  psLines.push('$btnC = New-Object System.Windows.Forms.Button');
-  psLines.push('$btnC.Text = "CANCEL"');
-  psLines.push('$btnC.Location = New-Object System.Drawing.Point(160, ' + btnY + ')');
-  psLines.push('$btnC.Width = 100');
-  psLines.push('$btnC.Height = 32');
-  psLines.push('$btnC.DialogResult = [System.Windows.Forms.DialogResult]::Cancel');
-  psLines.push('$form.CancelButton = $btnC');
-  psLines.push('$form.Controls.Add($btnC)');
-  psLines.push('$result = $form.ShowDialog()');
-  psLines.push('if ($result -eq [System.Windows.Forms.DialogResult]::OK) {');
-  psLines.push('  $selected = @()');
-  files.forEach((f, i) => {
-    const safePath = f.filePath.split('\\').join('\\\\');
-    const safeName = f.fileName.replace(/"/g, "'");
-    psLines.push('  if ($cb' + i + '.Checked) { $selected += "' + safePath + '|' + safeName + '" }');
-  });
-  psLines.push('  $selected -join ";"');
-  psLines.push('}');
-
-  try {
-    fs.writeFileSync(tmpScript, psLines.join('\n'));
-    const result = execFileSync('powershell', [
-      '-ExecutionPolicy', 'Bypass', '-File', tmpScript
-    ], { encoding: 'utf8' }).trim();
-    try { fs.unlinkSync(tmpScript); } catch(e) {}
-    if (!result) return null;
-    return result.split(';').filter(Boolean).map(entry => {
-      const pipeIdx = entry.indexOf('|');
-      return { filePath: entry.slice(0, pipeIdx), fileName: entry.slice(pipeIdx + 1) };
-    });
-  } catch(e) {
-    try { fs.unlinkSync(tmpScript); } catch(e2) {}
-    return null;
   }
 }
 

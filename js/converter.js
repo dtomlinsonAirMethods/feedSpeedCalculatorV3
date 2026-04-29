@@ -1605,14 +1605,18 @@ function openMastercamSetup() {
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download both files and place them in the same folder on your computer.</div>
-          <div style="display:flex;gap:8px;margin-top:4px;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download all 3 files and place them in the same folder on your computer.</div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.vbs','OkumaConverter.vbs')"
+              style="flex:1;min-width:120px;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              &#11015; OkumaConverter.vbs
+            </button>
             <button onclick="downloadFile(RAW_BASE+'OkumaConverter.bat','OkumaConverter.bat')"
-              style="flex:1;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              style="flex:1;min-width:120px;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
               &#11015; OkumaConverter.bat
             </button>
             <button onclick="downloadFile(RAW_BASE+'OkumaConverter.js','OkumaConverter.js')"
-              style="flex:1;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              style="flex:1;min-width:120px;padding:8px;background:var(--orange);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
               &#11015; OkumaConverter.js
             </button>
           </div>
@@ -1623,7 +1627,7 @@ function openMastercamSetup() {
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
             In Mastercam:<br>
             <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
-            Browse to <span style="color:var(--text);">OkumaConverter.bat</span> in the folder you chose above.
+            Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder you chose above.
           </div>
         </div>
 

@@ -11,5 +11,5 @@ End If
 Dim scriptDir
 scriptDir = Left(WScript.ScriptFullName, InStrRev(WScript.ScriptFullName, "\"))
 
-' Run node hidden (0 = hidden window, False = don't wait)
+' 0 = hidden window, False = don't wait
 objShell.Run "node """ & scriptDir & "OkumaConverter.js"" """ & filePath & """", 0, False
