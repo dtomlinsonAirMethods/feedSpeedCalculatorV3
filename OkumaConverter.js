@@ -123,7 +123,7 @@ async function main() {
 
   // Ask user whether to convert
   const doConvert = await askYesNo(
-    `Convert to Okuma format?\n\nFile: ${fileName}\n\nYES = convert then open in CimcoEdit\nNO  = open as-is in CimcoEdit`
+    `Convert ${fileName} to Okuma format?`
   );
 
   if (!doConvert) {
@@ -253,21 +253,9 @@ async function main() {
   }
   if (!launched) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
 
-  // Keep alive — poll for new results and auto-close after 60s of inactivity
-  let lastActivity = Date.now();
-  const prevCount  = allResults.length;
-
-  const keepAlive = setInterval(() => {
-    if (allResults.length > prevCount) lastActivity = Date.now();
-    if (Date.now() - lastActivity > 60000) {
-      clearInterval(keepAlive);
-      server.close();
-      signalServer.close();
-      process.exit(0);
-    }
-  }, 1000);
-
-  server.on('close', () => { signalServer.close(); });
+  // Keep process alive — close after 60s
+  server.on('close', () => { signalServer.close(); process.exit(0); });
+  setTimeout(() => { server.close(); }, 60000).unref();
 }
 
 // ── Conversion logic ──────────────────────────────────────────
@@ -415,15 +403,73 @@ function showDialog(type, message) {
 }
 
 function askYesNo(message) {
-  const title = 'Okuma Genos Converter';
-  const safe  = message.replace(/'/g, "''").replace(/`/g, '``');
-  const cmd   = `Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('${safe}','${title}','YesNo',32)`;
+  const { execFileSync } = require('child_process');
+  const os = require('os');
+  const tmp = os.tmpdir() + '\\okuma_ask.ps1';
+  const safe = message.replace(/"/g, "'");
+  const ps = [
+    'Add-Type -AssemblyName System.Windows.Forms',
+    'Add-Type -AssemblyName System.Drawing',
+    // Detect dark mode
+    '$dark = $false',
+    'try {',
+    '  $reg = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name AppsUseLightTheme -ErrorAction Stop',
+    '  $dark = ($reg.AppsUseLightTheme -eq 0)',
+    '} catch {}',
+    '$bg  = if ($dark) { [System.Drawing.Color]::FromArgb(32,32,32) }  else { [System.Drawing.Color]::White }',
+    '$fg  = if ($dark) { [System.Drawing.Color]::White }               else { [System.Drawing.Color]::Black }',
+    '$btn1bg = [System.Drawing.Color]::FromArgb(0,200,118)',
+    '$form = New-Object System.Windows.Forms.Form',
+    '$form.Text = "Okuma Genos Converter"',
+    '$form.Width = 420',
+    '$form.Height = 150',
+    '$form.StartPosition = "CenterScreen"',
+    '$form.FormBorderStyle = "FixedDialog"',
+    '$form.MaximizeBox = $false',
+    '$form.MinimizeBox = $false',
+    '$form.TopMost = $true',
+    '$form.BackColor = $bg',
+    '$lbl = New-Object System.Windows.Forms.Label',
+    '$lbl.Text = "' + safe + '"',
+    '$lbl.Location = New-Object System.Drawing.Point(20,18)',
+    '$lbl.Width = 370',
+    '$lbl.Height = 40',
+    '$lbl.Font = New-Object System.Drawing.Font("Segoe UI",10)',
+    '$lbl.ForeColor = $fg',
+    '$form.Controls.Add($lbl)',
+    '$btnY = New-Object System.Windows.Forms.Button',
+    '$btnY.Text = "YES — CONVERT"',
+    '$btnY.Location = New-Object System.Drawing.Point(20,70)',
+    '$btnY.Width = 140',
+    '$btnY.Height = 34',
+    '$btnY.BackColor = $btn1bg',
+    '$btnY.ForeColor = [System.Drawing.Color]::Black',
+    '$btnY.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)',
+    '$btnY.DialogResult = [System.Windows.Forms.DialogResult]::Yes',
+    '$form.AcceptButton = $btnY',
+    '$form.Controls.Add($btnY)',
+    '$btnN = New-Object System.Windows.Forms.Button',
+    '$btnN.Text = "NO"',
+    '$btnN.Location = New-Object System.Drawing.Point(175,70)',
+    '$btnN.Width = 80',
+    '$btnN.Height = 34',
+    '$btnN.BackColor = if ($dark) { [System.Drawing.Color]::FromArgb(60,60,60) } else { [System.Drawing.Color]::LightGray }',
+    '$btnN.ForeColor = $fg',
+    '$btnN.Font = New-Object System.Drawing.Font("Segoe UI",9)',
+    '$btnN.DialogResult = [System.Windows.Forms.DialogResult]::No',
+    '$form.CancelButton = $btnN',
+    '$form.Controls.Add($btnN)',
+    '$result = $form.ShowDialog()',
+    'if ($result -eq [System.Windows.Forms.DialogResult]::Yes) { Write-Output "Yes" } else { Write-Output "No" }',
+  ].join('\n');
   try {
-    const result = require('child_process').execFileSync(
-      'powershell', ['-Command', cmd], { encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }
-    ).trim();
+    require('fs').writeFileSync(tmp, ps);
+    const result = execFileSync('powershell', ['-ExecutionPolicy','Bypass','-File',tmp],
+      { encoding:'utf8', stdio:['ignore','pipe','ignore'] }).trim();
+    try { require('fs').unlinkSync(tmp); } catch(e) {}
     return result === 'Yes';
-  } catch (e) {
+  } catch(e) {
+    try { require('fs').unlinkSync(tmp); } catch(e2) {}
     return false;
   }
 }
