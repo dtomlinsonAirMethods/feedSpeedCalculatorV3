@@ -18,9 +18,10 @@
   </header>
 
   <!-- CONVERTER SUB-TABS -->
-  <div class="conv-tab-bar">
+  <div class="conv-tab-bar" style="display:flex;align-items:center;">
     <button class="conv-tab-btn active" id="ctab-gcode" onclick="switchConvTab('gcode')">&#9881; G-CODE</button>
     <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">&#128196; PDF SETUP SHEET</button>
+    <button class="conv-tab-btn" onclick="openMastercamSetup()" style="margin-left:auto;color:var(--dim);font-size:11px;">&#9881; MASTERCAM INTEGRATION</button>
   </div>
 
   <!-- ══════════════════════════════════════════

@@ -1564,47 +1564,207 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── Mastercam Integration Setup ──────────────────────────────
+const RAW_BASE = 'https://raw.githubusercontent.com/dtomlinsonairmethods/feedSpeedCalculatorV3/main/';
+
+function openMastercamSetup() {
+  const existing = document.getElementById('mcSetupModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'mcSetupModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;width:100%;max-width:560px;padding:24px;display:flex;flex-direction:column;gap:18px;max-height:90vh;overflow-y:auto;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent);">&#9881; MASTERCAM INTEGRATION</div>
+        <button onclick="document.getElementById('mcSetupModal').remove()"
+          style="background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;">&#10005;</button>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);line-height:1.6;">
+        Set up the Mastercam bat tool to automatically convert G-code after posting.
+        CimcoEdit will open with the converted file, and this app will show the conversion log.
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download both files and place them in the same folder on your computer.</div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <a href="${RAW_BASE}OkumaConverter.bat" download="OkumaConverter.bat"
+              style="flex:1;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">
+              &#11015; OkumaConverter.bat
+            </a>
+            <a href="${RAW_BASE}OkumaConverter.js" download="OkumaConverter.js"
+              style="flex:1;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">
+              &#11015; OkumaConverter.js
+            </a>
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 2 — POINT MASTERCAM TO THE BAT FILE</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
+            In Mastercam:<br>
+            <span style="color:var(--text);">System Configuration → Files → Editor</span><br>
+            Browse to <span style="color:var(--text);">OkumaConverter.bat</span> in the folder you chose above.
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 3 — FIRST RUN</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
+            Post any program from Mastercam.<br>
+            If CimcoEdit is not found automatically, a file picker will appear once asking you to locate <span style="color:var(--text);">CIMCOEdit.exe</span>.<br>
+            That path is saved — you will not be asked again.
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--green);">REQUIREMENTS</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
+            ✓ Node.js must be installed on your machine<br>
+            ✓ Check by opening Command Prompt and typing: <span style="color:var(--text);">node --version</span><br>
+            ✓ Download Node.js at <span style="color:var(--accent);">nodejs.org</span> if not installed
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
+        <label style="font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="mcSetupDone" onchange="if(this.checked){localStorage.setItem('mcSetupDone','1');}else{localStorage.removeItem('mcSetupDone');}">
+          Don't show this again
+        </label>
+        <button onclick="document.getElementById('mcSetupModal').remove()"
+          style="padding:10px 24px;background:var(--accent);border:none;color:#000;font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:1px;border-radius:3px;cursor:pointer;">DONE</button>
+      </div>
+
+    </div>`;
+
+  // Pre-check if already dismissed
+  if (localStorage.getItem('mcSetupDone')) {
+    modal.querySelector('#mcSetupDone').checked = true;
+  }
+
+  document.body.appendChild(modal);
+}
+
 // ── Init ──
 loadLibrary();
 renderAllTables();
 
-// ── Handle URL params from Node converter (unmapped tools) ──
+// First-run setup prompt
+if (!localStorage.getItem('mcSetupDone')) {
+  setTimeout(openMastercamSetup, 1500);
+}
+
+// ── Handle URL params from Node converter (bat integration) ──
 (function checkUrlParams() {
-  const params  = new URLSearchParams(window.location.search);
-  if (!params.get('addTool')) return;
-  const hints   = params.get('hints') || '';
+  const params = new URLSearchParams(window.location.search);
+  if (!params.get('fromBat')) return;
+
+  const fileName   = params.get('file')     || 'Unknown file';
+  const mappedRaw  = params.get('mapped')   || '';
+  const unmappedRaw= params.get('unmapped') || '';
+  const linesChanged = parseInt(params.get('lines') || '0');
+  const wcsChanged   = parseInt(params.get('wcs')   || '0');
+  const hasUnmapped  = params.get('hasUnmapped') === '1';
+
+  // Parse mapped tools: "1:10,2:26" → [{haas:1, okuma:10}, ...]
+  const mappedTools = mappedRaw ? mappedRaw.split(',').filter(Boolean).map(p => {
+    const [h, o] = p.split(':');
+    return { haas: h, okuma: o };
+  }) : [];
+
+  // Parse unmapped: "1=HELICAL%20...,2=OTHER%20..." → [{tNum, desc}, ...]
+  const unmappedTools = unmappedRaw ? unmappedRaw.split(',').filter(Boolean).map(p => {
+    const eq = p.indexOf('=');
+    return { tNum: p.slice(0, eq), desc: decodeURIComponent(p.slice(eq+1)) };
+  }) : [];
+
+  window.history.replaceState({}, '', window.location.pathname);
+
   setTimeout(() => {
-    const hintList  = hints ? hints.split(',').map(h => decodeURIComponent(h)) : [];
-    const firstHint = hintList[0] || '';
-    openAddToolModal('gcode');
-    setTimeout(() => {
-      // Inject warning banner into modal
-      const modalBox = document.querySelector('#addToolModal > div');
-      if (modalBox && hintList.length > 0) {
-        const banner = document.createElement('div');
-        banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;order:-1;';
-        let html = '<strong style="font-size:13px;">⚠ ' + hintList.length + ' TOOL' + (hintList.length>1?'S':'') + ' NOT IN LIBRARY</strong><br>';
-        html += 'The following tool' + (hintList.length>1?' descriptions were':' description was') + ' not matched during G-code conversion.<br>';
-        html += 'Add ' + (hintList.length>1?'each one':'it') + ' to the library so future programs convert correctly.<br><br>';
-        hintList.forEach((h, i) => {
-          html += '<span style="color:var(--text);">' + (i+1) + '. ' + h + '</span><br>';
+    // Switch to G-code tab
+    switchConvTab('gcode');
+
+    // Clear and populate the log
+    const logBox = document.getElementById('logBox');
+    if (logBox) {
+      logBox.innerHTML = '';
+      const addL = (type, msg) => {
+        const span = document.createElement('span');
+        span.className = 'log-' + type;
+        span.textContent = msg;
+        logBox.appendChild(span);
+        logBox.appendChild(document.createElement('br'));
+      };
+
+      addL('info', '══════════════════════════════════════════');
+      addL('info', ' BAT CONVERSION — ' + fileName);
+      addL('info', '══════════════════════════════════════════');
+      addL('info', 'Scanning header...');
+
+      mappedTools.forEach(t => {
+        addL('map', '  T' + t.haas + ' → T' + t.okuma);
+      });
+
+      addL('info', 'Converting... (WCS +1)');
+      addL('ok',   'DONE — ' + linesChanged + ' lines changed');
+      addL('info', '   WCS changed   : ' + wcsChanged);
+      addL('info', '   Tools changed : ' + mappedTools.length);
+      addL('info', '   Lines changed : ' + linesChanged);
+
+      if (unmappedTools.length > 0) {
+        addL('warn', '');
+        addL('warn', '⚠ ' + unmappedTools.length + ' TOOL' + (unmappedTools.length>1?'S':'') + ' NOT IN LIBRARY:');
+        unmappedTools.forEach(t => {
+          addL('warn', '  T' + t.tNum + ': ' + t.desc);
+          addL('warn', '  → Add this tool using the modal below');
         });
-        banner.innerHTML = html;
-        // Insert at top of modal
-        const title = modalBox.querySelector('div');
-        if (title) modalBox.insertBefore(banner, title.nextSibling);
-        else modalBox.prepend(banner);
       }
 
-      // Pre-fill first hint
-      if (firstHint) {
-        const isSerial = /^\d+$/.test(firstHint.trim());
-        addModalSetType(isSerial ? 'serial' : 'keyword');
-        const matchInput = document.getElementById('addModalMatchVal');
-        if (matchInput) matchInput.value = firstHint;
-      }
+      addL('info', '══════════════════════════════════════════');
+    }
 
-      window.history.replaceState({}, '', window.location.pathname);
-    }, 150);
-  }, 800);
+    // Hide empty state, show log
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+
+    // If unmapped tools, open add modal with banner
+    if (hasUnmapped && unmappedTools.length > 0) {
+      setTimeout(() => {
+        openAddToolModal('gcode');
+        setTimeout(() => {
+          const modalBox = document.querySelector('#addToolModal > div');
+          if (modalBox) {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;';
+            let html = '<strong style="font-size:13px;">⚠ ' + unmappedTools.length + ' TOOL' + (unmappedTools.length>1?'S':'') + ' NOT IN LIBRARY</strong><br>';
+            html += 'The following tool' + (unmappedTools.length>1?' descriptions were':' description was') + ' not matched during conversion.<br>';
+            html += 'Add ' + (unmappedTools.length>1?'each one':'it') + ' to the library so future programs convert correctly.<br><br>';
+            unmappedTools.forEach((t, i) => {
+              html += '<span style="color:var(--text);">' + (i+1) + '. ' + t.desc + '</span><br>';
+            });
+            banner.innerHTML = html;
+            const titleEl = modalBox.querySelector('div');
+            if (titleEl) modalBox.insertBefore(banner, titleEl.nextSibling);
+            else modalBox.prepend(banner);
+          }
+          // Pre-fill first unmapped tool
+          const first = unmappedTools[0];
+          if (first) {
+            const isSerial = /^\d+$/.test(first.desc.trim());
+            addModalSetType(isSerial ? 'serial' : 'keyword');
+            const matchInput = document.getElementById('addModalMatchVal');
+            if (matchInput) matchInput.value = first.desc;
+          }
+        }, 150);
+      }, 300);
+    }
+  }, 600);
 })();
