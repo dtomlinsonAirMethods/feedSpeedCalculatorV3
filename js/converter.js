@@ -1578,20 +1578,33 @@ renderAllTables();
     const firstHint = hintList[0] || '';
     openAddToolModal('gcode');
     setTimeout(() => {
+      // Inject warning banner into modal
+      const modalBox = document.querySelector('#addToolModal > div');
+      if (modalBox && hintList.length > 0) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;order:-1;';
+        let html = '<strong style="font-size:13px;">⚠ ' + hintList.length + ' TOOL' + (hintList.length>1?'S':'') + ' NOT IN LIBRARY</strong><br>';
+        html += 'The following tool' + (hintList.length>1?' descriptions were':' description was') + ' not matched during G-code conversion.<br>';
+        html += 'Add ' + (hintList.length>1?'each one':'it') + ' to the library so future programs convert correctly.<br><br>';
+        hintList.forEach((h, i) => {
+          html += '<span style="color:var(--text);">' + (i+1) + '. ' + h + '</span><br>';
+        });
+        banner.innerHTML = html;
+        // Insert at top of modal
+        const title = modalBox.querySelector('div');
+        if (title) modalBox.insertBefore(banner, title.nextSibling);
+        else modalBox.prepend(banner);
+      }
+
+      // Pre-fill first hint
       if (firstHint) {
         const isSerial = /^\d+$/.test(firstHint.trim());
         addModalSetType(isSerial ? 'serial' : 'keyword');
         const matchInput = document.getElementById('addModalMatchVal');
         if (matchInput) matchInput.value = firstHint;
-        if (hintList.length > 1) {
-          const hint = document.getElementById('addModalHint');
-          if (hint) {
-            hint.textContent = '⚠ ' + hintList.length + ' unmapped: ' + hintList.join(' | ');
-            hint.style.color = 'var(--yellow)';
-          }
-        }
       }
+
       window.history.replaceState({}, '', window.location.pathname);
-    }, 100);
+    }, 150);
   }, 800);
 })();
