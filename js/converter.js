@@ -1609,7 +1609,7 @@ function openMastercamSetup() {
           <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 2 — POINT MASTERCAM TO THE BAT FILE</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
             In Mastercam:<br>
-            <span style="color:var(--text);">System Configuration → Files → Editor</span><br>
+            <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
             Browse to <span style="color:var(--text);">OkumaConverter.bat</span> in the folder you chose above.
           </div>
         </div>
