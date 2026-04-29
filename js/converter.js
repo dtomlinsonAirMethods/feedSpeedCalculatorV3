@@ -1676,105 +1676,138 @@ renderAllTables();
 (function checkUrlParams() {
   const params = new URLSearchParams(window.location.search);
   if (!params.get('fromBat')) return;
-
-  const fileName   = params.get('file')     || 'Unknown file';
-  const mappedRaw  = params.get('mapped')   || '';
-  const unmappedRaw= params.get('unmapped') || '';
-  const linesChanged = parseInt(params.get('lines') || '0');
-  const wcsChanged   = parseInt(params.get('wcs')   || '0');
-  const hasUnmapped  = params.get('hasUnmapped') === '1';
-
-  // Parse mapped tools: "1:10,2:26" → [{haas:1, okuma:10}, ...]
-  const mappedTools = mappedRaw ? mappedRaw.split(',').filter(Boolean).map(p => {
-    const [h, o] = p.split(':');
-    return { haas: h, okuma: o };
-  }) : [];
-
-  // Parse unmapped: "1=HELICAL%20...,2=OTHER%20..." → [{tNum, desc}, ...]
-  const unmappedTools = unmappedRaw ? unmappedRaw.split(',').filter(Boolean).map(p => {
-    const eq = p.indexOf('=');
-    return { tNum: p.slice(0, eq), desc: decodeURIComponent(p.slice(eq+1)) };
-  }) : [];
-
+  const port = params.get('port');
+  const type = params.get('type') || 'gcode';
   window.history.replaceState({}, '', window.location.pathname);
 
-  setTimeout(() => {
-    // Switch to G-code tab
-    switchConvTab('gcode');
+  if (!port) return;
 
-    // Clear and populate the log
-    const logBox = document.getElementById('logBox');
-    if (logBox) {
-      logBox.innerHTML = '';
-      const addL = (type, msg) => {
-        const span = document.createElement('span');
-        span.className = 'log-' + type;
-        span.textContent = msg;
-        logBox.appendChild(span);
-        logBox.appendChild(document.createElement('br'));
-      };
-
-      addL('info', '══════════════════════════════════════════');
-      addL('info', ' BAT CONVERSION — ' + fileName);
-      addL('info', '══════════════════════════════════════════');
-      addL('info', 'Scanning header...');
-
-      mappedTools.forEach(t => {
-        addL('map', '  T' + t.haas + ' → T' + t.okuma);
-      });
-
-      addL('info', 'Converting... (WCS +1)');
-      addL('ok',   'DONE — ' + linesChanged + ' lines changed');
-      addL('info', '   WCS changed   : ' + wcsChanged);
-      addL('info', '   Tools changed : ' + mappedTools.length);
-      addL('info', '   Lines changed : ' + linesChanged);
-
-      if (unmappedTools.length > 0) {
-        addL('warn', '');
-        addL('warn', '⚠ ' + unmappedTools.length + ' TOOL' + (unmappedTools.length>1?'S':'') + ' NOT IN LIBRARY:');
-        unmappedTools.forEach(t => {
-          addL('warn', '  T' + t.tNum + ': ' + t.desc);
-          addL('warn', '  → Add this tool using the modal below');
-        });
-      }
-
-      addL('info', '══════════════════════════════════════════');
-    }
-
-    // Hide empty state, show log
-    const emptyState = document.getElementById('emptyState');
-    if (emptyState) emptyState.style.display = 'none';
-
-    // If unmapped tools, open add modal with banner
-    if (hasUnmapped && unmappedTools.length > 0) {
-      setTimeout(() => {
-        openAddToolModal('gcode');
-        setTimeout(() => {
-          const modalBox = document.querySelector('#addToolModal > div');
-          if (modalBox) {
-            const banner = document.createElement('div');
-            banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;';
-            let html = '<strong style="font-size:13px;">⚠ ' + unmappedTools.length + ' TOOL' + (unmappedTools.length>1?'S':'') + ' NOT IN LIBRARY</strong><br>';
-            html += 'The following tool' + (unmappedTools.length>1?' descriptions were':' description was') + ' not matched during conversion.<br>';
-            html += 'Add ' + (unmappedTools.length>1?'each one':'it') + ' to the library so future programs convert correctly.<br><br>';
-            unmappedTools.forEach((t, i) => {
-              html += '<span style="color:var(--text);">' + (i+1) + '. ' + t.desc + '</span><br>';
-            });
-            banner.innerHTML = html;
-            const titleEl = modalBox.querySelector('div');
-            if (titleEl) modalBox.insertBefore(banner, titleEl.nextSibling);
-            else modalBox.prepend(banner);
-          }
-          // Pre-fill first unmapped tool
-          const first = unmappedTools[0];
-          if (first) {
-            const isSerial = /^\d+$/.test(first.desc.trim());
-            addModalSetType(isSerial ? 'serial' : 'keyword');
-            const matchInput = document.getElementById('addModalMatchVal');
-            if (matchInput) matchInput.value = first.desc;
-          }
-        }, 150);
-      }, 300);
-    }
-  }, 600);
+  // Fetch full results from local Node server
+  fetch('http://127.0.0.1:' + port)
+    .then(r => r.json())
+    .then(data => displayBatResults(data))
+    .catch(err => console.warn('Could not fetch bat results:', err));
 })();
+
+function displayBatResults(data) {
+  const { type, file, toolMap, sameTools, unmapped, changedLines,
+          wcsCount, diffLines, totalLines } = data;
+
+  // Switch to G-code tab
+  switchConvTab('gcode');
+
+  const unmappedEntries = Object.entries(unmapped || {});
+  const toolMapEntries  = Object.entries(toolMap  || {});
+  const sameSet         = new Set(sameTools || []);
+
+  // ── Populate log ──
+  const logBox = document.getElementById('logBox');
+  if (logBox) {
+    logBox.innerHTML = '';
+    const addL = (cls, msg) => {
+      const span = document.createElement('span');
+      span.className = 'log-' + cls;
+      span.textContent = msg;
+      logBox.appendChild(span);
+      logBox.appendChild(document.createElement('br'));
+    };
+    addL('info', '══════════════════════════════════════════');
+    addL('info', ' BAT CONVERSION — ' + file);
+    addL('info', '══════════════════════════════════════════');
+    addL('info', 'Scanning header...');
+    toolMapEntries.forEach(([h, o]) => {
+      if (sameSet.has(h)) addL('same', '  T'+h+' → T'+o+'  ✓ already correct');
+      else                addL('map',  '  T'+h+' → T'+o);
+    });
+    addL('info', 'Converting... (WCS +1)');
+    addL('ok',  '══════════════════════════════════════════');
+    addL('ok',  ' DONE — ' + totalLines + ' lines processed');
+    addL('ok',  '══════════════════════════════════════════');
+    addL('info', '   WCS changed   : ' + wcsCount);
+    addL('info', '   Tools changed : ' + toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
+    addL('info', '   Lines changed : ' + changedLines);
+    if (unmappedEntries.length > 0) {
+      addL('warn', '');
+      addL('warn', '⚠ ' + unmappedEntries.length + ' TOOL(S) NOT IN LIBRARY:');
+      unmappedEntries.forEach(([t, desc]) => {
+        addL('warn', '  T'+t+': '+desc);
+        addL('warn', '  → FIX: Add this tool using + ADD TOOL');
+      });
+    }
+  }
+
+  // ── Stats boxes ──
+  const statsRow = document.getElementById('statsRow') || document.querySelector('.stats-row');
+  if (statsRow) {
+    statsRow.style.display = 'flex';
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setVal('statFiles',   '1');
+    setVal('statTools',   toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
+    setVal('statLines',   changedLines);
+    setVal('statWcs',     wcsCount);
+    setVal('statUnmapped', unmappedEntries.length);
+  }
+
+  // ── Side-by-side diff ──
+  const cardDeck = document.getElementById('cardDeck');
+  const emptyState = document.getElementById('emptyState');
+  if (emptyState) emptyState.style.display = 'none';
+
+  if (cardDeck && diffLines) {
+    cardDeck.style.display = 'flex';
+    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    const buildHtml = (lines, side) => lines.map(l => {
+      const text = side === 'orig' ? l.orig : l.conv;
+      const cls  = l.changed ? 'line-changed' : 'line-normal';
+      return '<span class="'+cls+'">'+esc(text)+'</span>';
+    }).join('\n');
+
+    cardDeck.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">${esc(file)}</div>
+        </div>
+        <div class="code-compare">
+          <div class="code-pane">
+            <div class="code-pane-label">ORIGINAL (HAAS)</div>
+            <div class="code-scroll"><pre>${buildHtml(diffLines, 'orig')}</pre></div>
+          </div>
+          <div class="code-pane">
+            <div class="code-pane-label">CONVERTED (OKUMA)</div>
+            <div class="code-scroll"><pre>${buildHtml(diffLines, 'conv')}</pre></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Unmapped modal ──
+  if (unmappedEntries.length > 0) {
+    setTimeout(() => {
+      openAddToolModal('gcode');
+      setTimeout(() => {
+        const modalBox = document.querySelector('#addToolModal > div');
+        if (modalBox) {
+          const banner = document.createElement('div');
+          banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;';
+          let html = '<strong style="font-size:13px;">⚠ '+unmappedEntries.length+' TOOL(S) NOT IN LIBRARY</strong><br>';
+          html += 'Add each one to the library so future programs convert correctly.<br><br>';
+          unmappedEntries.forEach(([t, desc], i) => {
+            html += '<span style="color:var(--text);">'+(i+1)+'. '+esc(desc)+'</span><br>';
+          });
+          banner.innerHTML = html;
+          const titleEl = modalBox.querySelector('div');
+          if (titleEl) modalBox.insertBefore(banner, titleEl.nextSibling);
+          else modalBox.prepend(banner);
+        }
+        const first = unmappedEntries[0];
+        if (first) {
+          const isSerial = /^\d+$/.test(first[1].trim());
+          addModalSetType(isSerial ? 'serial' : 'keyword');
+          const matchInput = document.getElementById('addModalMatchVal');
+          if (matchInput) matchInput.value = first[1];
+        }
+      }, 150);
+    }, 400);
+  }
+}

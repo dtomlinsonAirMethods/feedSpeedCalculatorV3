@@ -9,15 +9,81 @@
 const fs      = require('fs');
 const path    = require('path');
 const https   = require('https');
+const http    = require('http');
 const { execFile, spawn } = require('child_process');
 
 // ── Config ────────────────────────────────────────────────────
-const CIMCO_PATH   = 'C:\\Program Files\\Mastercam 2025\\common\\Editors\\CIMCOEdit\\CIMCOEdit.exe';
 const FIREBASE_URL = 'https://okuma-tool-library-default-rtdb.firebaseio.com/data/toolLibrary.json';
 const WCS_INC      = 1;
+const SCRIPT_DIR   = require('path').dirname(process.argv[1] || __filename);
+const CONFIG_FILE  = require('path').join(SCRIPT_DIR, 'OkumaConverter.config.json');
+
+// Auto-detect CimcoEdit
+function findCimco() {
+  // 1. Check saved config
+  try {
+    const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    if (cfg.cimcoPath && fs.existsSync(cfg.cimcoPath)) return cfg.cimcoPath;
+  } catch(e) {}
+
+  // 2. Check common install locations
+  const candidates = [
+    'C:\\Program Files\\Mastercam 2025\\common\\Editors\\CIMCOEdit\\CIMCOEdit.exe',
+    'C:\\Program Files\\Mastercam 2024\\common\\Editors\\CIMCOEdit\\CIMCOEdit.exe',
+    'C:\\Program Files\\Mastercam 2023\\common\\Editors\\CIMCOEdit\\CIMCOEdit.exe',
+    'C:\\Program Files (x86)\\CIMCOEdit\\CIMCOEdit.exe',
+    process.env.USERPROFILE + '\\Desktop\\CIMCOEdit.exe',
+    process.env.USERPROFILE + '\\Desktop\\CIMCO\\CIMCOEdit.exe',
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      // Save for next time
+      try { fs.writeFileSync(CONFIG_FILE, JSON.stringify({ cimcoPath: c }, null, 2)); } catch(e) {}
+      return c;
+    }
+  }
+
+  // 3. Ask user to locate it
+  const { execFileSync } = require('child_process');
+  const tmpScript = require('os').tmpdir() + '\\cimco_picker.ps1';
+  fs.writeFileSync(tmpScript, [
+    'Add-Type -AssemblyName System.Windows.Forms',
+    '$dlg = New-Object System.Windows.Forms.OpenFileDialog',
+    '$dlg.Title = "Locate CIMCOEdit.exe"',
+    '$dlg.Filter = "CIMCOEdit (CIMCOEdit.exe)|CIMCOEdit.exe|All Files (*.*)|*.*"',
+    '$dlg.InitialDirectory = $env:USERPROFILE + "\\Desktop"',
+    'if ($dlg.ShowDialog() -eq "OK") { Write-Output $dlg.FileName }',
+  ].join('\n'));
+  try {
+    const result = execFileSync('powershell', ['-ExecutionPolicy','Bypass','-File',tmpScript], { encoding:'utf8' }).trim();
+    try { fs.unlinkSync(tmpScript); } catch(e) {}
+    if (result && fs.existsSync(result)) {
+      try { fs.writeFileSync(CONFIG_FILE, JSON.stringify({ cimcoPath: result }, null, 2)); } catch(e) {}
+      return result;
+    }
+  } catch(e) {
+    try { fs.unlinkSync(tmpScript); } catch(e2) {}
+  }
+  return null;
+}
+
+const CIMCO_PATH = findCimco();
 // ─────────────────────────────────────────────────────────────
 
 let filePath = process.argv[2];
+// Strip surrounding quotes if Mastercam passed the path quoted
+if (filePath) filePath = filePath.replace(/^["']|["']$/g, '').trim();
+
+// Debug log — remove after testing
+try {
+  const debugPath = require('os').homedir() + '\\Desktop\\okuma_debug.txt';
+  fs.writeFileSync(debugPath,
+    'argv: ' + JSON.stringify(process.argv) + '\n' +
+    'filePath: ' + filePath + '\n' +
+    'exists: ' + (filePath ? fs.existsSync(filePath) : 'no path') + '\n' +
+    'ext: ' + (filePath ? require('path').extname(filePath) : 'none') + '\n'
+  );
+} catch(e) {}
 
 // If no file passed (Mastercam didn't send it), open a file picker
 if (!filePath || !fs.existsSync(filePath)) {
@@ -101,51 +167,72 @@ async function main() {
   // Launch CimcoEdit first
   launchCimco(filePath);
 
-  // Build full conversion results to pass to PWA
+  // Build full results payload for PWA
   const unmappedKeys = Object.keys(unmapped);
-  const results = {
-    file:      fileName,
-    mapped:    Object.entries(toolMap).map(([h, o]) => h + ':' + o).join(','),
-    unmapped:  unmappedKeys.map(t => t + '=' + encodeURIComponent(unmapped[t] || '')).join(','),
-    lines:     changedLines,
-    wcs:       output.split('\n').filter(l => /G15\s+H/.test(l)).length,
-    hasUnmapped: unmappedKeys.length > 0 ? '1' : '0'
-  };
+  const wcsCount     = output.split('\n').filter(l => /G15\s+H/.test(l)).length;
 
-  const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
-  const params  = new URLSearchParams({
-    fromBat:   '1',
-    file:      results.file,
-    mapped:    results.mapped,
-    unmapped:  results.unmapped,
-    lines:     results.lines,
-    wcs:       results.wcs,
-    hasUnmapped: results.hasUnmapped
+  // Build original vs converted line arrays for side-by-side
+  const origLines = content.split(/\r?\n/);
+  const convLines = output.split(/\r?\n/);
+  const diffLines = origLines.map((orig, i) => ({
+    orig: orig,
+    conv: convLines[i] || '',
+    changed: orig !== (convLines[i] || '')
+  }));
+
+  const payload = JSON.stringify({
+    type:        'gcode',
+    file:        fileName,
+    toolMap:     toolMap,
+    sameTools:   [...sameTools],
+    unmapped:    unmapped,
+    changedLines,
+    wcsCount,
+    diffLines:   diffLines.slice(0, 500), // cap at 500 lines for perf
+    totalLines:  origLines.length
   });
-  const url = baseUrl + '?' + params.toString();
 
-  // Launch as installed PWA using Chrome app ID
-  const chromePaths = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-  ];
-  const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
+  // Spin up local HTTP server to serve results to PWA
+  const PORT = 19234;
+  let fetched = false;
+  const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(payload);
+    fetched = true;
+    // Shut down after first successful fetch
+    setTimeout(() => server.close(), 500);
+  });
 
-  let launched = false;
-  for (const chromePath of chromePaths) {
-    if (fs.existsSync(chromePath)) {
-      spawn(chromePath, [
-        '--profile-directory=Default',
-        '--app-id=' + PWA_APP_ID,
-        '--app-launch-url-for-shortcuts-menu-item=' + url
-      ], { detached: true, stdio: 'ignore' }).unref();
-      launched = true;
-      break;
+  server.listen(PORT, '127.0.0.1', () => {
+    const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
+    const url     = baseUrl + '?fromBat=1&type=gcode&port=' + PORT;
+
+    const chromePaths = [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    ];
+    const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
+
+    let launched = false;
+    for (const chromePath of chromePaths) {
+      if (fs.existsSync(chromePath)) {
+        spawn(chromePath, [
+          '--profile-directory=Default',
+          '--app-id=' + PWA_APP_ID,
+          '--app-launch-url-for-shortcuts-menu-item=' + url
+        ], { detached: true, stdio: 'ignore' }).unref();
+        launched = true;
+        break;
+      }
     }
-  }
-  if (!launched) {
-    spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
-  }
+    if (!launched) {
+      spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+    }
+  });
+
+  // Auto-close server after 30s if PWA never fetched
+  setTimeout(() => { if (!fetched) server.close(); }, 30000);
 }
 
 // ── Conversion logic ──────────────────────────────────────────
@@ -269,6 +356,10 @@ function fetchLibrary() {
 
 // ── Launch CimcoEdit ──────────────────────────────────────────
 function launchCimco(filePath) {
+  if (!CIMCO_PATH) {
+    showDialog('warn', 'CimcoEdit not found.\nFile converted successfully but could not open in CimcoEdit.\n\nDelete OkumaConverter.config.json and rerun to reconfigure.');
+    return;
+  }
   try {
     spawn(CIMCO_PATH, [filePath], { detached: true, stdio: 'ignore' }).unref();
   } catch (e) {
