@@ -1657,10 +1657,7 @@ function openMastercamSetup() {
 loadLibrary();
 renderAllTables();
 
-// First-run setup prompt
-if (!localStorage.getItem('mcSetupDone')) {
-  setTimeout(openMastercamSetup, 1500);
-}
+// Mastercam setup available via button in header
 
 // ── Handle URL params from Node converter (bat integration) ──
 (function checkUrlParams() {

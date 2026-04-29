@@ -18,7 +18,15 @@
       <div class="brand-name">FEED <span>&amp;</span> SPEED</div>
       <div class="brand-sub">MACHINING CALCULATOR // OKUMA GENOS M660</div>
     </div>
-    <div class="status-pill" id="statusPill">● LOADING</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button onclick="openMastercamSetup()" style="
+        padding:6px 12px;border-radius:4px;border:1px solid #ff3b3b;cursor:pointer;
+        font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:1px;
+        text-transform:uppercase;background:transparent;color:#ff3b3b;">
+        ⚙ MASTERCAM
+      </button>
+      <div class="status-pill" id="statusPill">● LOADING</div>
+    </div>
   </header>
 
   <!-- TAB BAR -->
@@ -517,13 +525,6 @@
     onmouseover="this.style.color='#00c8ff'" onmouseout="this.style.color='var(--dim)'">
     &#9881; CONVERTER
   </button>
-  <button onclick="openMastercamSetup()" style="
-    padding:9px 18px; border-radius:40px; border:1px solid var(--red,#ff3b3b); cursor:pointer;
-    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:2px;
-    text-transform:uppercase; background:transparent; color:#ff3b3b;
-    transition:color .2s;">
-    &#9881; MASTERCAM
-  </button>
 </div>
 
 <script src="app-transition.js"></script>
@@ -605,7 +606,6 @@
   });
 </script>
 
-
 <script>
 // ── Mastercam Integration Setup ──────────────────────────────
 const _RAW_BASE = 'https://raw.githubusercontent.com/dtomlinsonairmethods/feedSpeedCalculatorV3/main/';
@@ -642,7 +642,7 @@ function openMastercamSetup() {
         </div>
         <div style="border:1px solid #333;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#00e676;">REQUIREMENTS</div>
-          <div style="font-size:11px;color:#888;line-height:1.7;">✓ Node.js must be installed — check by running: <span style="color:#fff;">node --version</span> in Command Prompt<br>✓ Download Node.js at <span style="color:#00c8ff;">nodejs.org</span> if not installed</div>
+          <div style="font-size:11px;color:#888;line-height:1.7;">✓ Node.js must be installed — check: <span style="color:#fff;">node --version</span> in Command Prompt<br>✓ Download at <span style="color:#00c8ff;">nodejs.org</span> if not installed</div>
         </div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
@@ -657,8 +657,7 @@ function openMastercamSetup() {
   document.body.appendChild(modal);
 }
 
-// First-run prompt
-if (!localStorage.getItem('mcSetupDone')) setTimeout(openMastercamSetup, 1500);
+// Mastercam setup available via button in header
 </script>
 
 </body>

@@ -14,14 +14,22 @@
       <div class="brand-name">OKUMA <span>GENOS</span> CONVERTER</div>
       <div class="brand-sub">HAAS &rarr; OKUMA // POST PROCESSOR</div>
     </div>
-    <div class="status-pill">● CONNECTING...</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button onclick="openMastercamSetup()" style="
+        padding:6px 12px;border-radius:4px;border:1px solid #ff3b3b;cursor:pointer;
+        font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:1px;
+        text-transform:uppercase;background:transparent;color:#ff3b3b;">
+        ⚙ MASTERCAM
+      </button>
+      <div class="status-pill">● CONNECTING...</div>
+    </div>
   </header>
 
   <!-- CONVERTER SUB-TABS -->
-  <div class="conv-tab-bar" style="display:flex;align-items:center;">
+  <div class="conv-tab-bar">
     <button class="conv-tab-btn active" id="ctab-gcode" onclick="switchConvTab('gcode')">&#9881; G-CODE</button>
     <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">&#128196; PDF SETUP SHEET</button>
-    <button class="conv-tab-btn" onclick="openMastercamSetup()" style="margin-left:auto;color:var(--red);border-color:var(--red);font-size:11px;">&#9881; MASTERCAM INTEGRATION</button>
+
   </div>
 
   <!-- ══════════════════════════════════════════
