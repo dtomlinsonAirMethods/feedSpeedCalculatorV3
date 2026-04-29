@@ -233,6 +233,15 @@ async function main() {
   const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
   const url     = baseUrl + '?fromBat=1&type=gcode&port=' + PORT;
 
+  // DEBUG
+  const dbg = require('os').homedir() + '\\Desktop\\okuma_debug.txt';
+  require('fs').writeFileSync(dbg,
+    'PORT: ' + PORT + '\n' +
+    'URL: ' + url + '\n' +
+    'allResults count: ' + allResults.length + '\n' +
+    'chromePaths checked:\n'
+  );
+
   const chromePaths = [
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -241,21 +250,27 @@ async function main() {
 
   let launched = false;
   for (const chromePath of chromePaths) {
+    require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  checking: ' + chromePath + ' exists=' + fs.existsSync(chromePath) + '\n');
     if (fs.existsSync(chromePath)) {
       spawn(chromePath, [
         '--profile-directory=Default',
         '--app-id=' + PWA_APP_ID,
         '--app-launch-url-for-shortcuts-menu-item=' + url
       ], { detached: true, stdio: 'ignore' }).unref();
+      require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  LAUNCHED via: ' + chromePath + '\n');
       launched = true;
       break;
     }
   }
-  if (!launched) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+  if (!launched) {
+    require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  FALLBACK: cmd start\n');
+    spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+  }
 
   // Keep process alive — close after 60s
   server.on('close', () => { signalServer.close(); process.exit(0); });
-  setTimeout(() => { server.close(); }, 60000).unref();
+  // Keep process alive until server closes (PWA fetches results)
+  setTimeout(() => { server.close(); }, 60000); // no .unref() — must stay alive
 }
 
 // ── Conversion logic ──────────────────────────────────────────
@@ -403,78 +418,20 @@ function showDialog(type, message) {
 }
 
 function askYesNo(message) {
-  const { execFileSync } = require('child_process');
-  const os = require('os');
-  const tmp = os.tmpdir() + '\\okuma_ask.ps1';
-  const safe = message.replace(/"/g, "'");
-  const ps = [
-    'Add-Type -AssemblyName System.Windows.Forms',
-    'Add-Type -AssemblyName System.Drawing',
-    // Detect dark mode
-    '$dark = $false',
-    'try {',
-    '  $reg = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name AppsUseLightTheme -ErrorAction Stop',
-    '  $dark = ($reg.AppsUseLightTheme -eq 0)',
-    '} catch {}',
-    '$bg  = if ($dark) { [System.Drawing.Color]::FromArgb(32,32,32) }  else { [System.Drawing.Color]::White }',
-    '$fg  = if ($dark) { [System.Drawing.Color]::White }               else { [System.Drawing.Color]::Black }',
-    '$btn1bg = [System.Drawing.Color]::FromArgb(0,200,118)',
-    '$form = New-Object System.Windows.Forms.Form',
-    '$form.Text = "Okuma Genos Converter"',
-    '$form.Width = 420',
-    '$form.Height = 150',
-    '$form.StartPosition = "CenterScreen"',
-    '$form.FormBorderStyle = "FixedDialog"',
-    '$form.MaximizeBox = $false',
-    '$form.MinimizeBox = $false',
-    '$form.TopMost = $true',
-    '$form.BackColor = $bg',
-    '$lbl = New-Object System.Windows.Forms.Label',
-    '$lbl.Text = "' + safe + '"',
-    '$lbl.Location = New-Object System.Drawing.Point(20,18)',
-    '$lbl.Width = 370',
-    '$lbl.Height = 40',
-    '$lbl.Font = New-Object System.Drawing.Font("Segoe UI",10)',
-    '$lbl.ForeColor = $fg',
-    '$form.Controls.Add($lbl)',
-    '$btnY = New-Object System.Windows.Forms.Button',
-    '$btnY.Text = "YES — CONVERT"',
-    '$btnY.Location = New-Object System.Drawing.Point(20,70)',
-    '$btnY.Width = 140',
-    '$btnY.Height = 34',
-    '$btnY.BackColor = $btn1bg',
-    '$btnY.ForeColor = [System.Drawing.Color]::Black',
-    '$btnY.Font = New-Object System.Drawing.Font("Segoe UI",9,[System.Drawing.FontStyle]::Bold)',
-    '$btnY.DialogResult = [System.Windows.Forms.DialogResult]::Yes',
-    '$form.AcceptButton = $btnY',
-    '$form.Controls.Add($btnY)',
-    '$btnN = New-Object System.Windows.Forms.Button',
-    '$btnN.Text = "NO"',
-    '$btnN.Location = New-Object System.Drawing.Point(175,70)',
-    '$btnN.Width = 80',
-    '$btnN.Height = 34',
-    '$btnN.BackColor = if ($dark) { [System.Drawing.Color]::FromArgb(60,60,60) } else { [System.Drawing.Color]::LightGray }',
-    '$btnN.ForeColor = $fg',
-    '$btnN.Font = New-Object System.Drawing.Font("Segoe UI",9)',
-    '$btnN.DialogResult = [System.Windows.Forms.DialogResult]::No',
-    '$form.CancelButton = $btnN',
-    '$form.Controls.Add($btnN)',
-    '$result = $form.ShowDialog()',
-    'if ($result -eq [System.Windows.Forms.DialogResult]::Yes) { Write-Output "Yes" } else { Write-Output "No" }',
-  ].join('\n');
+  const title = 'Okuma Genos Converter';
+  const safe  = message.replace(/'/g, "''").replace(/`/g, '``');
+  const cmd   = `Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('${safe}','${title}','YesNo',32)`;
   try {
-    require('fs').writeFileSync(tmp, ps);
-    const result = execFileSync('powershell', ['-ExecutionPolicy','Bypass','-File',tmp],
-      { encoding:'utf8', stdio:['ignore','pipe','ignore'] }).trim();
-    try { require('fs').unlinkSync(tmp); } catch(e) {}
+    const result = require('child_process').execFileSync(
+      'powershell', ['-Command', cmd], { encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }
+    ).trim();
     return result === 'Yes';
-  } catch(e) {
-    try { require('fs').unlinkSync(tmp); } catch(e2) {}
+  } catch (e) {
     return false;
   }
 }
 
-// ── Minimal fallback library ───────────────────────────────────
+
 function getFallbackLibrary() {
   return [
     { matchType:'serial',  matchVal:'82045',  okuma:1,   desc:'HELICAL 82045 3/4 ROUGHER' },
