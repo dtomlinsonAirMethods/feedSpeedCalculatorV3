@@ -1565,7 +1565,7 @@ function esc(str) {
 }
 
 // ── Mastercam Integration Setup ──────────────────────────────
-const RAW_BASE = 'https://raw.githubusercontent.com/dtomlinsonairmethods/feedSpeedCalculatorV3/main/';
+const RAW_BASE = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/';
 
 function downloadFile(url, filename) {
   fetch(url)
@@ -1607,14 +1607,14 @@ function openMastercamSetup() {
           <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download both files and place them in the same folder on your computer.</div>
           <div style="display:flex;gap:8px;margin-top:4px;">
-            <a href="${RAW_BASE}OkumaConverter.bat" download="OkumaConverter.bat"
-              style="flex:1;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">
+            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.bat','OkumaConverter.bat')"
+              style="flex:1;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
               &#11015; OkumaConverter.bat
-            </a>
-            <a href="${RAW_BASE}OkumaConverter.js" download="OkumaConverter.js"
-              style="flex:1;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">
+            </button>
+            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.js','OkumaConverter.js')"
+              style="flex:1;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
               &#11015; OkumaConverter.js
-            </a>
+            </button>
           </div>
         </div>
 
