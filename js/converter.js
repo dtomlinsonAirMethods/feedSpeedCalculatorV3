@@ -1567,3 +1567,31 @@ function esc(str) {
 // ── Init ──
 loadLibrary();
 renderAllTables();
+
+// ── Handle URL params from Node converter (unmapped tools) ──
+(function checkUrlParams() {
+  const params  = new URLSearchParams(window.location.search);
+  if (!params.get('addTool')) return;
+  const hints   = params.get('hints') || '';
+  setTimeout(() => {
+    const hintList  = hints ? hints.split(',').map(h => decodeURIComponent(h)) : [];
+    const firstHint = hintList[0] || '';
+    openAddToolModal('gcode');
+    setTimeout(() => {
+      if (firstHint) {
+        const isSerial = /^\d+$/.test(firstHint.trim());
+        addModalSetType(isSerial ? 'serial' : 'keyword');
+        const matchInput = document.getElementById('addModalMatchVal');
+        if (matchInput) matchInput.value = firstHint;
+        if (hintList.length > 1) {
+          const hint = document.getElementById('addModalHint');
+          if (hint) {
+            hint.textContent = '⚠ ' + hintList.length + ' unmapped: ' + hintList.join(' | ');
+            hint.style.color = 'var(--yellow)';
+          }
+        }
+      }
+      window.history.replaceState({}, '', window.location.pathname);
+    }, 100);
+  }, 800);
+})();
