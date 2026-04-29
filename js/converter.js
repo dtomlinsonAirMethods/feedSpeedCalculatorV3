@@ -1567,6 +1567,19 @@ function esc(str) {
 // ── Mastercam Integration Setup ──────────────────────────────
 const RAW_BASE = 'https://raw.githubusercontent.com/dtomlinsonairmethods/feedSpeedCalculatorV3/main/';
 
+function downloadFile(url, filename) {
+  fetch(url)
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    })
+    .catch(() => { window.open(url, '_blank'); });
+}
+
 function openMastercamSetup() {
   const existing = document.getElementById('mcSetupModal');
   if (existing) existing.remove();

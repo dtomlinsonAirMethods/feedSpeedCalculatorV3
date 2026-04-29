@@ -18,15 +18,7 @@
       <div class="brand-name">FEED <span>&amp;</span> SPEED</div>
       <div class="brand-sub">MACHINING CALCULATOR // OKUMA GENOS M660</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button onclick="openMastercamSetup()" style="
-        padding:6px 12px;border-radius:4px;border:1px solid #ff3b3b;cursor:pointer;
-        font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:1px;
-        text-transform:uppercase;background:transparent;color:#ff3b3b;">
-        ⚙ MASTERCAM
-      </button>
-      <div class="status-pill" id="statusPill">● LOADING</div>
-    </div>
+    <div class="status-pill" id="statusPill">● LOADING</div>
   </header>
 
   <!-- TAB BAR -->
@@ -527,7 +519,49 @@
   </button>
 </div>
 
-<script src="app-transition.js"></script>
+<script>
+(function () {
+  const overlay = document.createElement('div');
+  overlay.id = 'wipe-overlay';
+  Object.assign(overlay.style, {
+    position: 'fixed', inset: '0', zIndex: '99999',
+    pointerEvents: 'none', transform: 'translateX(-100%)', transition: 'none'
+  });
+  document.documentElement.appendChild(overlay);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const color = sessionStorage.getItem('wipe-color');
+    if (!color) return;
+    sessionStorage.removeItem('wipe-color');
+    overlay.style.backgroundColor = color;
+    overlay.style.transition = 'none';
+    overlay.style.transform  = 'translateX(0%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      overlay.style.transition = 'transform 0.55s cubic-bezier(0.76,0,0.24,1)';
+      overlay.style.transform  = 'translateX(100%)';
+      overlay.addEventListener('transitionend', () => {
+        overlay.style.pointerEvents = 'none';
+      }, { once: true });
+    }));
+  });
+
+  window.navigateTo = function (url, color) {
+    overlay.style.backgroundColor = color;
+    overlay.style.transition = 'none';
+    overlay.style.transform  = 'translateX(-100%)';
+    overlay.style.pointerEvents = 'all';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      overlay.style.transition = 'transform 0.5s cubic-bezier(0.76,0,0.24,1)';
+      overlay.style.transform  = 'translateX(0%)';
+      overlay.addEventListener('transitionend', () => {
+        sessionStorage.setItem('wipe-color', color);
+        window.location.href = url;
+      }, { once: true });
+    }));
+  };
+})();
+</script>
 
 <!-- INSTALL BANNER -->
 <div id="installBanner" class="install-banner hidden">
@@ -606,9 +640,22 @@
   });
 </script>
 
+
 <script>
-// ── Mastercam Integration Setup ──────────────────────────────
 const _RAW_BASE = 'https://raw.githubusercontent.com/dtomlinsonairmethods/feedSpeedCalculatorV3/main/';
+
+function downloadFile(url, filename) {
+  fetch(url)
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    })
+    .catch(() => { window.open(url, '_blank'); });
+}
 
 function openMastercamSetup() {
   const existing = document.getElementById('mcSetupModal');
@@ -622,14 +669,14 @@ function openMastercamSetup() {
         <div style="font-size:18px;font-weight:700;letter-spacing:2px;color:#00e676;">⚙ MASTERCAM INTEGRATION</div>
         <button onclick="document.getElementById('mcSetupModal').remove()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;">✕</button>
       </div>
-      <div style="font-size:12px;color:#888;line-height:1.6;">Set up the Mastercam bat tool to automatically convert G-code after posting. CimcoEdit will open with the converted file, and the Converter app will show the full conversion log.</div>
+      <div style="font-size:12px;color:#888;line-height:1.6;">Set up the Mastercam bat tool to automatically convert G-code after posting. CimcoEdit will open with the converted file and the Converter app will show the full log.</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div style="border:1px solid #333;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#00e676;">STEP 1 — DOWNLOAD FILES</div>
           <div style="font-size:11px;color:#888;">Download both files and place them in the same folder on your computer.</div>
           <div style="display:flex;gap:8px;margin-top:4px;">
-            <a href="${_RAW_BASE}OkumaConverter.bat" download="OkumaConverter.bat" style="flex:1;padding:8px;background:#00e676;color:#000;font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">⬇ OkumaConverter.bat</a>
-            <a href="${_RAW_BASE}OkumaConverter.js" download="OkumaConverter.js" style="flex:1;padding:8px;background:#00c8ff;color:#000;font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;text-decoration:none;">⬇ OkumaConverter.js</a>
+            <button onclick="downloadFile(_RAW_BASE+'OkumaConverter.bat','OkumaConverter.bat')" style="flex:1;padding:8px;background:#00e676;color:#000;font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;border:none;cursor:pointer;">⬇ OkumaConverter.bat</button>
+            <button onclick="downloadFile(_RAW_BASE+'OkumaConverter.js','OkumaConverter.js')" style="flex:1;padding:8px;background:#00c8ff;color:#000;font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;border:none;cursor:pointer;">⬇ OkumaConverter.js</button>
           </div>
         </div>
         <div style="border:1px solid #333;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
@@ -638,7 +685,7 @@ function openMastercamSetup() {
         </div>
         <div style="border:1px solid #333;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#00e676;">STEP 3 — FIRST RUN</div>
-          <div style="font-size:11px;color:#888;line-height:1.7;">Post any Okuma program from Mastercam.<br>If CimcoEdit is not found automatically, a file picker will appear once asking you to locate <span style="color:#fff;">CIMCOEdit.exe</span>.<br>That path is saved — you will not be asked again.</div>
+          <div style="font-size:11px;color:#888;line-height:1.7;">Post any Okuma program from Mastercam.<br>If CimcoEdit is not found automatically, a file picker will appear once to locate <span style="color:#fff;">CIMCOEdit.exe</span>. That path is saved permanently.</div>
         </div>
         <div style="border:1px solid #333;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#00e676;">REQUIREMENTS</div>
@@ -656,9 +703,6 @@ function openMastercamSetup() {
   if (localStorage.getItem('mcSetupDone')) modal.querySelector('#mcSetupDone').checked = true;
   document.body.appendChild(modal);
 }
-
-// Mastercam setup available via button in header
 </script>
-
 </body>
 </html>
