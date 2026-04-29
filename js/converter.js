@@ -1608,7 +1608,7 @@ function openMastercamSetup() {
             <span style="color:var(--text);font-weight:700;">1.</span> Download and double-click <span style="color:var(--text);">Setup.bat</span> — installs everything automatically<br>
             <span style="color:var(--text);font-weight:700;">2.</span> In Mastercam: <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
             &nbsp;&nbsp;&nbsp;&nbsp;Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder Setup.bat created<br>
-            <span style="color:var(--text);font-weight:700;">3.</span> Right-click any Mastercam PDF → <span style="color:var(--text);">Convert to Okuma Format</span>
+            <span style="color:var(--text);font-weight:700;">3.</span> Right-click any Mastercam PDF → <span style="color:var(--text);">Show more options → Convert to Okuma Format</span>
           </div>
           <button onclick="downloadFile(RAW_BASE+'Setup.bat','Setup.bat')"
             style="padding:12px;background:var(--green);color:#000;font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;width:100%;">
@@ -1627,14 +1627,7 @@ function openMastercamSetup() {
           </div>
         </div>
 
-        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">FINAL STEP — POINT MASTERCAM TO THE CONVERTER</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
-            In Mastercam:<br>
-            <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
-            Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder Setup.bat created.
-          </div>
-        </div>
+
 
       </div>
 

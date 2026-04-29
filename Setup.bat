@@ -34,9 +34,6 @@ curl -L --ssl-no-revoke -o "OkumaConverter_PDF.js"  "%BASE%/OkumaConverter_PDF.j
 curl -L --ssl-no-revoke -o "OkumaConverter_PDF.vbs" "%BASE%/OkumaConverter_PDF.vbs" && echo   OK: OkumaConverter_PDF.vbs || echo   FAILED: OkumaConverter_PDF.vbs
 
 echo.
-echo  Press any key to continue...
-pause >nul
-
 :: Step 3: Install PDF libraries
 echo  [3/4] Installing PDF libraries...
 cd /d "%SCRIPT_DIR%"
@@ -81,4 +78,3 @@ echo  File ^> Configuration ^> Start/Exit ^> Editor
 echo  Browse to: %SCRIPT_DIR%OkumaConverter.vbs
 echo.
 start "" "https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/"
-pause
