@@ -1693,14 +1693,13 @@ function displayBatResults(data) {
   const { type, file, toolMap, sameTools, unmapped, changedLines,
           wcsCount, diffLines, totalLines } = data;
 
-  // Switch to G-code tab
   switchConvTab('gcode');
 
   const unmappedEntries = Object.entries(unmapped || {});
   const toolMapEntries  = Object.entries(toolMap  || {});
   const sameSet         = new Set(sameTools || []);
 
-  // ── Populate log ──
+  // ── Populate log exactly like manual conversion ──
   const logBox = document.getElementById('logBox');
   if (logBox) {
     logBox.innerHTML = '';
@@ -1712,17 +1711,15 @@ function displayBatResults(data) {
       logBox.appendChild(document.createElement('br'));
     };
     addL('info', '══════════════════════════════════════════');
-    addL('info', ' BAT CONVERSION — ' + file);
+    addL('info', ' ' + file);
     addL('info', '══════════════════════════════════════════');
     addL('info', 'Scanning header...');
     toolMapEntries.forEach(([h, o]) => {
-      if (sameSet.has(h)) addL('same', '  T'+h+' → T'+o+'  ✓ already correct');
+      if (sameSet.has(h)) addL('same', '  T'+h+' → T'+o+'  [already correct]');
       else                addL('map',  '  T'+h+' → T'+o);
     });
     addL('info', 'Converting... (WCS +1)');
-    addL('ok',  '══════════════════════════════════════════');
-    addL('ok',  ' DONE — ' + totalLines + ' lines processed');
-    addL('ok',  '══════════════════════════════════════════');
+    addL('ok',  'DONE — ' + totalLines + ' lines processed');
     addL('info', '   WCS changed   : ' + wcsCount);
     addL('info', '   Tools changed : ' + toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
     addL('info', '   Lines changed : ' + changedLines);
@@ -1731,55 +1728,62 @@ function displayBatResults(data) {
       addL('warn', '⚠ ' + unmappedEntries.length + ' TOOL(S) NOT IN LIBRARY:');
       unmappedEntries.forEach(([t, desc]) => {
         addL('warn', '  T'+t+': '+desc);
-        addL('warn', '  → FIX: Add this tool using + ADD TOOL');
+        addL('warn', '  → FIX: Click + ADD TOOL');
       });
     }
   }
 
-  // ── Stats boxes ──
-  const statsRow = document.getElementById('statsRow') || document.querySelector('.stats-row');
-  if (statsRow) {
-    statsRow.style.display = 'flex';
-    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    setVal('statFiles',   '1');
-    setVal('statTools',   toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
-    setVal('statLines',   changedLines);
-    setVal('statWcs',     wcsCount);
-    setVal('statUnmapped', unmappedEntries.length);
+  // ── Feed into resultCards so renderCard() handles everything ──
+  // Convert diffLines from Node format to app format
+  const origLines = (diffLines || []).map(l => ({ text: l.orig, changed: l.changed, same: false }));
+  const convLines = (diffLines || []).map(l => ({ text: l.conv, changed: l.changed, same: false }));
+
+  // Build a blob URL for the converted file so download button works
+  const convText = convLines.map(l => l.text).join('\n');
+  const blob     = new Blob([convText], { type: 'text/plain' });
+  const url      = URL.createObjectURL(blob);
+  const outName  = file.replace(/\.[^.]+$/, '') + '_OKUMA.MIN';
+
+  // Build log lines for the card log panel
+  const logLines = [];
+  const addLL = (type, msg) => logLines.push({ type, msg });
+  addLL('info', 'Scanning header...');
+  toolMapEntries.forEach(([h, o]) => {
+    if (sameSet.has(h)) addLL('same', '  T'+h+' → T'+o+'  [already correct]');
+    else                addLL('map',  '  T'+h+' → T'+o);
+  });
+  addLL('info', 'Converting... (WCS +1)');
+  addLL('ok',   'DONE — ' + totalLines + ' lines processed');
+  addLL('info', '   WCS changed   : ' + wcsCount);
+  addLL('info', '   Tools changed : ' + toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
+  addLL('info', '   Lines changed : ' + changedLines);
+  if (unmappedEntries.length > 0) {
+    addLL('warn', '⚠ ' + unmappedEntries.length + ' TOOL(S) NOT IN LIBRARY:');
+    unmappedEntries.forEach(([t, desc]) => {
+      addLL('warn', '  T'+t+': '+desc);
+      addLL('warn', '  → FIX: Click + ADD TOOL');
+    });
   }
 
-  // ── Side-by-side diff ──
-  const cardDeck = document.getElementById('cardDeck');
+  resultCards = [{
+    fname:        file,
+    outName,
+    url,
+    origLines,
+    convLines,
+    logLines,
+    lines:        totalLines,
+    wcsCount,
+    toolCount:    toolMapEntries.filter(([h])=>!sameSet.has(h)).length,
+    changedCount: changedLines,
+    unmappedCount: unmappedEntries.length,
+  }];
+  currentCard = 0;
+
   const emptyState = document.getElementById('emptyState');
   if (emptyState) emptyState.style.display = 'none';
 
-  if (cardDeck && diffLines) {
-    cardDeck.style.display = 'flex';
-    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-    const buildHtml = (lines, side) => lines.map(l => {
-      const text = side === 'orig' ? l.orig : l.conv;
-      const cls  = l.changed ? 'line-changed' : 'line-normal';
-      return '<span class="'+cls+'">'+esc(text)+'</span>';
-    }).join('\n');
-
-    cardDeck.innerHTML = `
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title">${esc(file)}</div>
-        </div>
-        <div class="code-compare">
-          <div class="code-pane">
-            <div class="code-pane-label">ORIGINAL (HAAS)</div>
-            <div class="code-scroll"><pre>${buildHtml(diffLines, 'orig')}</pre></div>
-          </div>
-          <div class="code-pane">
-            <div class="code-pane-label">CONVERTED (OKUMA)</div>
-            <div class="code-scroll"><pre>${buildHtml(diffLines, 'conv')}</pre></div>
-          </div>
-        </div>
-      </div>`;
-  }
+  renderCardDeck();
 
   // ── Unmapped modal ──
   if (unmappedEntries.length > 0) {
