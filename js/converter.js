@@ -1603,7 +1603,22 @@ function openMastercamSetup() {
 
       <div style="display:flex;flex-direction:column;gap:12px;">
 
+        <div style="border:1px solid var(--green);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;background:rgba(0,200,118,0.05);">
+          <div style="font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:2px;color:var(--green);">⚡ QUICK SETUP — DOWNLOAD & RUN ONE FILE</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
+            Download all files at once, place them in a folder, then double-click <span style="color:var(--text);">Setup.bat</span>.<br>
+            It will install Node.js if needed, install PDF libraries, and set up the right-click menu automatically.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <button onclick="downloadFile(RAW_BASE+'Setup.bat','Setup.bat')"
+              style="flex:1;min-width:160px;padding:10px;background:var(--green);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              &#11015; Download Setup.bat
+            </button>
+          </div>
+        </div>
+
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--dim);">MANUAL SETUP — DOWNLOAD FILES INDIVIDUALLY</div>
           <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download all files and place them in the same folder on your computer.</div>
           <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:2px;">G-CODE CONVERTER</div>
@@ -1636,6 +1651,8 @@ function openMastercamSetup() {
               &#11015; Install_PDF_RightClick.bat
             </button>
           </div>
+        </div>
+
         </div>
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
