@@ -1597,96 +1597,42 @@ function openMastercamSetup() {
       </div>
 
       <div style="font-family:var(--mono);font-size:12px;color:var(--dim);line-height:1.6;">
-        Set up the Mastercam bat tool to automatically convert G-code after posting.
-        CimcoEdit will open with the converted file, and this app will show the conversion log.
+        Automates G-code conversion after posting and adds a right-click PDF converter.
       </div>
 
       <div style="display:flex;flex-direction:column;gap:12px;">
 
-        <div style="border:1px solid var(--green);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;background:rgba(0,200,118,0.05);">
-          <div style="font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:2px;color:var(--green);">⚡ QUICK SETUP — DOWNLOAD & RUN ONE FILE</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
-            Download all files at once, place them in a folder, then double-click <span style="color:var(--text);">Setup.bat</span>.<br>
-            It will install Node.js if needed, install PDF libraries, and set up the right-click menu automatically.
+        <div style="border:1px solid var(--green);border-radius:4px;padding:16px;display:flex;flex-direction:column;gap:12px;background:rgba(0,200,118,0.05);">
+          <div style="font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:2px;color:var(--green);">⚡ SETUP — 3 STEPS</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2;">
+            <span style="color:var(--text);font-weight:700;">1.</span> Download and double-click <span style="color:var(--text);">Setup.bat</span> — installs everything automatically<br>
+            <span style="color:var(--text);font-weight:700;">2.</span> In Mastercam: <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder Setup.bat created<br>
+            <span style="color:var(--text);font-weight:700;">3.</span> Right-click any Mastercam PDF → <span style="color:var(--text);">Convert to Okuma Format</span>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-            <button onclick="downloadFile(RAW_BASE+'Setup.bat','Setup.bat')"
-              style="flex:1;min-width:160px;padding:10px;background:var(--green);color:#000;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; Download Setup.bat
-            </button>
+          <button onclick="downloadFile(RAW_BASE+'Setup.bat','Setup.bat')"
+            style="padding:12px;background:var(--green);color:#000;font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;width:100%;">
+            &#11015; Download Setup.bat
+          </button>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--dim);">WHAT SETUP.BAT DOES</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.9;">
+            ✓ Checks for Node.js — opens download page if needed<br>
+            ✓ Downloads all converter files<br>
+            ✓ Installs PDF libraries<br>
+            ✓ Adds "Convert to Okuma Format" to PDF right-click menu<br>
+            ✓ Opens this app for PWA install
           </div>
         </div>
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--dim);">MANUAL SETUP — DOWNLOAD FILES INDIVIDUALLY</div>
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download all files and place them in the same folder on your computer.</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:2px;">G-CODE CONVERTER</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.vbs','OkumaConverter.vbs')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; OkumaConverter.vbs
-            </button>
-            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.bat','OkumaConverter.bat')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--accent);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; OkumaConverter.bat
-            </button>
-            <button onclick="downloadFile(RAW_BASE+'OkumaConverter.js','OkumaConverter.js')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--orange);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; OkumaConverter.js
-            </button>
-          </div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:4px;">PDF CONVERTER</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="downloadFile(RAW_BASE+'OkumaConverter_PDF.vbs','OkumaConverter_PDF.vbs')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; OkumaConverter_PDF.vbs
-            </button>
-            <button onclick="downloadFile(RAW_BASE+'OkumaConverter_PDF.js','OkumaConverter_PDF.js')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--orange);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; OkumaConverter_PDF.js
-            </button>
-            <button onclick="downloadFile(RAW_BASE+'Install_PDF_RightClick.bat','Install_PDF_RightClick.bat')"
-              style="flex:1;min-width:120px;padding:8px;background:var(--red,#ff3b3b);color:#fff;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
-              &#11015; Install_PDF_RightClick.bat
-            </button>
-          </div>
-        </div>
-
-        </div>
-
-        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 2 — INSTALL PDF RIGHT-CLICK MENU</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
-            Run <span style="color:var(--text);">Install_PDF_RightClick.bat</span> once (double-click it).<br>
-            After that, right-click any Mastercam PDF setup sheet and choose <span style="color:var(--text);">"Convert to Okuma Format"</span>.
-          </div>
-        </div>
-
-        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 3 — POINT MASTERCAM TO THE BAT FILE</div>
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">FINAL STEP — POINT MASTERCAM TO THE CONVERTER</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
             In Mastercam:<br>
             <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
-            Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder you chose above.
-          </div>
-        </div>
-
-        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 4 — FIRST RUN</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
-            Post any program from Mastercam.<br>
-            If CimcoEdit is not found automatically, a file picker will appear once asking you to locate <span style="color:var(--text);">CIMCOEdit.exe</span>.<br>
-            That path is saved — you will not be asked again.
-          </div>
-        </div>
-
-        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--green);">REQUIREMENTS</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
-            ✓ Node.js must be installed on your machine<br>
-            ✓ Check by opening Command Prompt and typing: <span style="color:var(--text);">node --version</span><br>
-            ✓ Download Node.js at <span style="color:var(--accent);">nodejs.org</span> if not installed
+            Browse to <span style="color:var(--text);">OkumaConverter.vbs</span> in the folder Setup.bat created.
           </div>
         </div>
 
