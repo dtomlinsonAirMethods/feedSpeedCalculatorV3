@@ -1605,8 +1605,9 @@ function openMastercamSetup() {
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
           <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 1 — DOWNLOAD FILES</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download all 3 files and place them in the same folder on your computer.</div>
-          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);">Download all files and place them in the same folder on your computer.</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:2px;">G-CODE CONVERTER</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button onclick="downloadFile(RAW_BASE+'OkumaConverter.vbs','OkumaConverter.vbs')"
               style="flex:1;min-width:120px;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
               &#11015; OkumaConverter.vbs
@@ -1620,10 +1621,33 @@ function openMastercamSetup() {
               &#11015; OkumaConverter.js
             </button>
           </div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:4px;">PDF CONVERTER</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="downloadFile(RAW_BASE+'OkumaConverter_PDF.vbs','OkumaConverter_PDF.vbs')"
+              style="flex:1;min-width:120px;padding:8px;background:var(--green);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              &#11015; OkumaConverter_PDF.vbs
+            </button>
+            <button onclick="downloadFile(RAW_BASE+'OkumaConverter_PDF.js','OkumaConverter_PDF.js')"
+              style="flex:1;min-width:120px;padding:8px;background:var(--orange);color:#000;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              &#11015; OkumaConverter_PDF.js
+            </button>
+            <button onclick="downloadFile(RAW_BASE+'Install_PDF_RightClick.bat','Install_PDF_RightClick.bat')"
+              style="flex:1;min-width:120px;padding:8px;background:var(--red,#ff3b3b);color:#fff;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:1px;border-radius:3px;text-align:center;border:none;cursor:pointer;">
+              &#11015; Install_PDF_RightClick.bat
+            </button>
+          </div>
         </div>
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 2 — POINT MASTERCAM TO THE BAT FILE</div>
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 2 — INSTALL PDF RIGHT-CLICK MENU</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
+            Run <span style="color:var(--text);">Install_PDF_RightClick.bat</span> once (double-click it).<br>
+            After that, right-click any Mastercam PDF setup sheet and choose <span style="color:var(--text);">"Convert to Okuma Format"</span>.
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 3 — POINT MASTERCAM TO THE BAT FILE</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
             In Mastercam:<br>
             <span style="color:var(--text);">File → Configuration → Start/Exit → Editor</span><br>
@@ -1632,7 +1656,7 @@ function openMastercamSetup() {
         </div>
 
         <div style="border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 3 — FIRST RUN</div>
+          <div style="font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">STEP 4 — FIRST RUN</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;">
             Post any program from Mastercam.<br>
             If CimcoEdit is not found automatically, a file picker will appear once asking you to locate <span style="color:var(--text);">CIMCOEdit.exe</span>.<br>
