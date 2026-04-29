@@ -1682,14 +1682,32 @@ renderAllTables();
 
   if (!port) return;
 
-  // Fetch full results from local Node server
-  fetch('http://127.0.0.1:' + port)
-    .then(r => r.json())
-    .then(data => displayBatResults(data))
-    .catch(err => console.warn('Could not fetch bat results:', err));
+  // Fetch results from local Node server — poll for new files every 2s
+  let lastCount = 0;
+
+  function fetchResults() {
+    fetch('http://127.0.0.1:' + port)
+      .then(r => r.json())
+      .then(allResults => {
+        if (!Array.isArray(allResults)) allResults = [allResults];
+        if (allResults.length !== lastCount) {
+          lastCount = allResults.length;
+          displayBatResults(allResults);
+        }
+      })
+      .catch(err => console.warn('Could not fetch bat results:', err));
+  }
+
+  fetchResults();
+  // Poll every 2s for additional files posted by other Node instances
+  const pollInterval = setInterval(fetchResults, 2000);
+  // Stop polling after 60s
+  setTimeout(() => clearInterval(pollInterval), 60000);
 })();
 
-function displayBatResults(data) {
+function displayBatResults(allData) {
+  if (!Array.isArray(allData)) allData = [allData];
+  const data = allData[0]; // use first for log/stats
   const { type, file, toolMap, sameTools, unmapped, changedLines,
           wcsCount, diffLines, totalLines } = data;
 
@@ -1710,27 +1728,14 @@ function displayBatResults(data) {
       logBox.appendChild(span);
       logBox.appendChild(document.createElement('br'));
     };
-    addL('info', '══════════════════════════════════════════');
-    addL('info', ' ' + file);
-    addL('info', '══════════════════════════════════════════');
-    addL('info', 'Scanning header...');
-    toolMapEntries.forEach(([h, o]) => {
-      if (sameSet.has(h)) addL('same', '  T'+h+' → T'+o+'  [already correct]');
-      else                addL('map',  '  T'+h+' → T'+o);
+    addL('info', 'Converted ' + allData.length + ' file(s)');
+    allData.forEach(d => {
+      addL('ok', d.file + ' → ' + d.changedLines + ' lines changed');
+      const dUnmapped = Object.entries(d.unmapped || {});
+      if (dUnmapped.length > 0) {
+        addL('warn', '  ⚠ ' + dUnmapped.length + ' tool(s) not in library');
+      }
     });
-    addL('info', 'Converting... (WCS +1)');
-    addL('ok',  'DONE — ' + totalLines + ' lines processed');
-    addL('info', '   WCS changed   : ' + wcsCount);
-    addL('info', '   Tools changed : ' + toolMapEntries.filter(([h])=>!sameSet.has(h)).length);
-    addL('info', '   Lines changed : ' + changedLines);
-    if (unmappedEntries.length > 0) {
-      addL('warn', '');
-      addL('warn', '⚠ ' + unmappedEntries.length + ' TOOL(S) NOT IN LIBRARY:');
-      unmappedEntries.forEach(([t, desc]) => {
-        addL('warn', '  T'+t+': '+desc);
-        addL('warn', '  → FIX: Click + ADD TOOL');
-      });
-    }
   }
 
   // ── Feed into resultCards so renderCard() handles everything ──
@@ -1765,19 +1770,39 @@ function displayBatResults(data) {
     });
   }
 
-  resultCards = [{
-    fname:        file,
-    outName,
-    url,
-    origLines,
-    convLines,
-    logLines,
-    lines:        totalLines,
-    wcsCount,
-    toolCount:    toolMapEntries.filter(([h])=>!sameSet.has(h)).length,
-    changedCount: changedLines,
-    unmappedCount: unmappedEntries.length,
-  }];
+  // Build a card for each file
+  resultCards = allData.map((d, idx) => {
+    const dSameSet    = new Set(d.sameTools || []);
+    const dToolMap    = Object.entries(d.toolMap || {});
+    const dUnmapped   = Object.entries(d.unmapped || {});
+    const dOrig       = (d.diffLines||[]).map(l => ({ text: l.orig, changed: l.changed, same: false }));
+    const dConv       = (d.diffLines||[]).map(l => ({ text: l.conv, changed: l.changed, same: false }));
+    const dConvText   = dConv.map(l => l.text).join('\n');
+    const dBlob       = new Blob([dConvText], { type: 'text/plain' });
+    const dUrl        = URL.createObjectURL(dBlob);
+    const dOutName    = d.file.replace(/\.[^.]+$/, '') + '_OKUMA.MIN';
+    const dLogLines   = [];
+    const addDL = (type, msg) => dLogLines.push({ type, msg });
+    addDL('info', 'Converted via Mastercam bat');
+    addDL('ok',   d.file + ' → ' + d.changedLines + ' lines changed');
+    if (dUnmapped.length > 0) {
+      addDL('warn', '⚠ ' + dUnmapped.length + ' TOOL(S) NOT IN LIBRARY');
+      dUnmapped.forEach(([t, desc]) => addDL('warn', '  T'+t+': '+desc));
+    }
+    return {
+      fname:         d.file,
+      outName:       dOutName,
+      url:           dUrl,
+      origLines:     dOrig,
+      convLines:     dConv,
+      logLines:      dLogLines,
+      lines:         d.totalLines,
+      wcsCount:      d.wcsCount,
+      toolCount:     dToolMap.filter(([h])=>!dSameSet.has(h)).length,
+      changedCount:  d.changedLines,
+      unmappedCount: dUnmapped.length,
+    };
+  });
   currentCard = 0;
 
   const emptyState = document.getElementById('emptyState');

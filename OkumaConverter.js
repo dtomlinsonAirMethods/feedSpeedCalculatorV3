@@ -74,16 +74,7 @@ let filePath = process.argv[2];
 // Strip surrounding quotes if Mastercam passed the path quoted
 if (filePath) filePath = filePath.replace(/^["']|["']$/g, '').trim();
 
-// Debug log — remove after testing
-try {
-  const debugPath = require('os').homedir() + '\\Desktop\\okuma_debug.txt';
-  fs.writeFileSync(debugPath,
-    'argv: ' + JSON.stringify(process.argv) + '\n' +
-    'filePath: ' + filePath + '\n' +
-    'exists: ' + (filePath ? fs.existsSync(filePath) : 'no path') + '\n' +
-    'ext: ' + (filePath ? require('path').extname(filePath) : 'none') + '\n'
-  );
-} catch(e) {}
+// Debug log removed
 
 // If no file passed (Mastercam didn't send it), open a file picker
 if (!filePath || !fs.existsSync(filePath)) {
@@ -154,7 +145,7 @@ async function main() {
   const content = fileContent0;
 
   // Convert
-  const { output, toolMap, unmapped, changedLines } = convertFile(content, toolLibrary);
+  const { output, toolMap, sameTools, unmapped, changedLines } = convertFile(content, toolLibrary);
 
   // Overwrite original
   try {
@@ -167,72 +158,116 @@ async function main() {
   // Launch CimcoEdit first
   launchCimco(filePath);
 
-  // Build full results payload for PWA
+  // Build result for this file
   const unmappedKeys = Object.keys(unmapped);
   const wcsCount     = output.split('\n').filter(l => /G15\s+H/.test(l)).length;
-
-  // Build original vs converted line arrays for side-by-side
-  const origLines = content.split(/\r?\n/);
-  const convLines = output.split(/\r?\n/);
-  const diffLines = origLines.map((orig, i) => ({
-    orig: orig,
-    conv: convLines[i] || '',
-    changed: orig !== (convLines[i] || '')
+  const origLinesArr = content.split(/\r?\n/);
+  const convLinesArr = output.split(/\r?\n/);
+  const diffLines    = origLinesArr.map((orig, i) => ({
+    orig, conv: convLinesArr[i] || '', changed: orig !== (convLinesArr[i] || '')
   }));
 
-  const payload = JSON.stringify({
+  const result = {
     type:        'gcode',
     file:        fileName,
     toolMap:     toolMap,
-    sameTools:   [...sameTools],
+    sameTools:   Array.from(sameTools),
     unmapped:    unmapped,
     changedLines,
     wcsCount,
-    diffLines:   diffLines.slice(0, 500), // cap at 500 lines for perf
-    totalLines:  origLines.length
+    diffLines:   diffLines.slice(0, 500),
+    totalLines:  origLinesArr.length
+  };
+
+  const PORT        = 19234;
+  const SIGNAL_PORT = 19235; // secondary port to signal existing server
+
+  // Try to signal an existing server (another file already opened the PWA)
+  const signalled = await new Promise(resolve => {
+    const req = http.request({ hostname:'127.0.0.1', port:SIGNAL_PORT,
+      path:'/add', method:'POST',
+      headers:{'Content-Type':'application/json'}
+    }, res => { resolve(res.statusCode === 200); });
+    req.on('error', () => resolve(false));
+    req.setTimeout(500, () => { req.destroy(); resolve(false); });
+    req.write(JSON.stringify(result));
+    req.end();
   });
 
-  // Spin up local HTTP server to serve results to PWA
-  const PORT = 19234;
-  let fetched = false;
+  if (signalled) {
+    // Another instance is already serving — just exit, PWA will update automatically
+    process.exit(0);
+  }
+
+  // No existing server — start one
+  const allResults = [result];
+
+  // Main server — serves all results to PWA
   const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
-    res.end(payload);
-    fetched = true;
-    // Shut down after first successful fetch
-    setTimeout(() => server.close(), 500);
+    res.end(JSON.stringify(allResults));
+    // Don't close yet — more files may come
   });
 
-  server.listen(PORT, '127.0.0.1', () => {
-    const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
-    const url     = baseUrl + '?fromBat=1&type=gcode&port=' + PORT;
-
-    const chromePaths = [
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    ];
-    const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
-
-    let launched = false;
-    for (const chromePath of chromePaths) {
-      if (fs.existsSync(chromePath)) {
-        spawn(chromePath, [
-          '--profile-directory=Default',
-          '--app-id=' + PWA_APP_ID,
-          '--app-launch-url-for-shortcuts-menu-item=' + url
-        ], { detached: true, stdio: 'ignore' }).unref();
-        launched = true;
-        break;
-      }
-    }
-    if (!launched) {
-      spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+  // Signal server — receives additional results from other instances
+  const signalServer = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/add') {
+      let body = '';
+      req.on('data', d => body += d);
+      req.on('end', () => {
+        try {
+          allResults.push(JSON.parse(body));
+          res.writeHead(200); res.end('ok');
+        } catch(e) { res.writeHead(400); res.end('error'); }
+      });
+    } else {
+      res.writeHead(404); res.end();
     }
   });
 
-  // Auto-close server after 30s if PWA never fetched
-  setTimeout(() => { if (!fetched) server.close(); }, 30000);
+  // Start both servers then open PWA
+  await new Promise(resolve => server.listen(PORT, '127.0.0.1', resolve));
+  await new Promise(resolve => signalServer.listen(SIGNAL_PORT, '127.0.0.1', resolve));
+
+  const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
+  const url     = baseUrl + '?fromBat=1&type=gcode&port=' + PORT;
+
+  const chromePaths = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  ];
+  const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
+
+  let launched = false;
+  for (const chromePath of chromePaths) {
+    if (fs.existsSync(chromePath)) {
+      spawn(chromePath, [
+        '--profile-directory=Default',
+        '--app-id=' + PWA_APP_ID,
+        '--app-launch-url-for-shortcuts-menu-item=' + url
+      ], { detached: true, stdio: 'ignore' }).unref();
+      launched = true;
+      break;
+    }
+  }
+  if (!launched) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+
+  // Keep alive — poll for new results and auto-close after 60s of inactivity
+  let lastActivity = Date.now();
+  const prevCount  = allResults.length;
+
+  const keepAlive = setInterval(() => {
+    if (allResults.length > prevCount) lastActivity = Date.now();
+    if (Date.now() - lastActivity > 60000) {
+      clearInterval(keepAlive);
+      server.close();
+      signalServer.close();
+      process.exit(0);
+    }
+  }, 1000);
+
+  server.on('close', () => { signalServer.close(); });
 }
 
 // ── Conversion logic ──────────────────────────────────────────
@@ -277,24 +312,26 @@ function convertFile(content, toolLibrary) {
       return match;
     });
 
-    // Replace H# (tool length offset) — skip H0
-    conv = conv.replace(/\bH(\d+)\b/g, (match, hNum) => {
-      if (hNum === '0') return match;
-      if (toolMap[hNum] && !sameTools.has(hNum)) return 'H' + toolMap[hNum];
-      return match;
-    });
-
-    // Replace WCS G15 H# — increment by WCS_INC
+    // Replace WCS G15 H# — increment by WCS_INC (must run BEFORE tool H replacement)
     conv = conv.replace(/\bG15\s+H(\d+)\b/g, (match, hNum) => {
       const newH = parseInt(hNum) + WCS_INC;
       return `G15 H${newH}`;
     });
 
+    // Replace H# (tool length offset) — skip H0 and skip lines with G15
+    if (!/\bG15\b/.test(conv)) {
+      conv = conv.replace(/\bH(\d+)\b/g, (match, hNum) => {
+        if (hNum === '0') return match;
+        if (toolMap[hNum] && !sameTools.has(hNum)) return 'H' + toolMap[hNum];
+        return match;
+      });
+    }
+
     if (conv !== line) changedLines++;
     outLines.push(conv);
   }
 
-  return { output: outLines.join('\r\n'), toolMap, unmapped, changedLines };
+  return { output: outLines.join('\r\n'), toolMap, sameTools, unmapped, changedLines };
 }
 
 // ── Tool matching (mirrors browser converter logic) ───────────
