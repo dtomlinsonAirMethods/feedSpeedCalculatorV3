@@ -116,161 +116,133 @@ const fileContent0 = isOkumaPath ? (() => { try { return fs.readFileSync(filePat
 // ── Main flow ─────────────────────────────────────────────────
 async function main() {
   if (!isOkumaPath) {
-    // Not an Okuma program — just open in CimcoEdit silently
     launchCimco(filePath);
     return;
   }
 
-  // Ask user whether to convert
-  const doConvert = await askYesNo(
-    `Convert ${fileName} to Okuma format?`
-  );
+  const doConvert = await askYesNo(`Convert ${fileName} to Okuma format?`);
+  if (!doConvert) { launchCimco(filePath); return; }
 
-  if (!doConvert) {
-    launchCimco(filePath);
-    return;
-  }
-
-  // Fetch tool library from Firebase
+  // ── Convert ───────────────────────────────────────────────────
   let toolLibrary = [];
   try {
     toolLibrary = await fetchLibrary();
-    if (!toolLibrary || toolLibrary.length === 0) throw new Error('Empty library returned');
-  } catch (e) {
-    showDialog('warn', `Could not load Firebase library:\n${e.message}\n\nUsing fallback library.`);
+    if (!toolLibrary || toolLibrary.length === 0) throw new Error('Empty');
+  } catch(e) {
+    showDialog('warn', 'Could not load Firebase library.\nUsing fallback.');
     toolLibrary = getFallbackLibrary();
   }
 
-  // Reuse already-read content
   const content = fileContent0;
-
-  // Convert
   const { output, toolMap, sameTools, unmapped, changedLines } = convertFile(content, toolLibrary);
 
-  // Overwrite original
-  try {
-    fs.writeFileSync(filePath, output, 'utf8');
-  } catch (e) {
-    showDialog('error', `Could not save converted file:\n${e.message}`);
-    process.exit(1);
-  }
+  try { fs.writeFileSync(filePath, output, 'utf8'); }
+  catch(e) { showDialog('error', 'Could not save:\n' + e.message); process.exit(1); }
 
-  // Launch CimcoEdit first
   launchCimco(filePath);
 
-  // Build result for this file
-  const unmappedKeys = Object.keys(unmapped);
-  const wcsCount     = output.split('\n').filter(l => /G15\s+H/.test(l)).length;
-  const origLinesArr = content.split(/\r?\n/);
-  const convLinesArr = output.split(/\r?\n/);
-  const diffLines    = origLinesArr.map((orig, i) => ({
-    orig, conv: convLinesArr[i] || '', changed: orig !== (convLinesArr[i] || '')
-  }));
-
+  const wcsCount  = output.split('\n').filter(l => /G15\s+H/.test(l)).length;
+  const origArr   = content.split(/\r?\n/);
+  const convArr   = output.split(/\r?\n/);
   const result = {
-    type:        'gcode',
-    file:        fileName,
-    toolMap:     toolMap,
-    sameTools:   Array.from(sameTools),
-    unmapped:    unmapped,
-    changedLines,
-    wcsCount,
-    diffLines:   diffLines.slice(0, 500),
-    totalLines:  origLinesArr.length
+    type: 'gcode', file: fileName, toolMap,
+    sameTools: Array.from(sameTools), unmapped, changedLines, wcsCount,
+    diffLines: origArr.map((o,i) => ({ orig:o, conv:convArr[i]||'', changed:o!==(convArr[i]||'') })).slice(0,500),
+    totalLines: origArr.length
   };
 
-  const PORT        = 19234;
-  const SIGNAL_PORT = 19235; // secondary port to signal existing server
-
-  // Try to signal an existing server (another file already opened the PWA)
-  const signalled = await new Promise(resolve => {
-    const req = http.request({ hostname:'127.0.0.1', port:SIGNAL_PORT,
-      path:'/add', method:'POST',
-      headers:{'Content-Type':'application/json'}
-    }, res => { resolve(res.statusCode === 200); });
-    req.on('error', () => resolve(false));
-    req.setTimeout(500, () => { req.destroy(); resolve(false); });
-    req.write(JSON.stringify(result));
-    req.end();
-  });
-
-  if (signalled) {
-    // Another instance is already serving — just exit, PWA will update automatically
-    process.exit(0);
-  }
-
-  // No existing server — start one
+  // ── Lock file approach — bulletproof single-PWA coordination ──
+  const LOCK_FILE = require('os').tmpdir() + '\\okuma_server.json';
   const allResults = [result];
 
-  // Main server — serves all results to PWA
+  // Try to read existing lock file
+  let existingServer = null;
+  try {
+    const lock = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf8'));
+    // Verify the server is actually alive
+    const alive = await new Promise(resolve => {
+      const req = http.request({ hostname:'127.0.0.1', port:lock.port, path:'/', method:'GET' },
+        res => { resolve(res.statusCode === 200); });
+      req.on('error', () => resolve(false));
+      req.setTimeout(400, () => { req.destroy(); resolve(false); });
+      req.end();
+    });
+    if (alive) existingServer = lock;
+  } catch(e) {}
+
+  if (existingServer) {
+    // Server is alive — POST result to its add endpoint
+    const ok = await new Promise(resolve => {
+      const body = JSON.stringify(result);
+      const req = http.request({
+        hostname: '127.0.0.1', port: existingServer.addPort,
+        path: '/add', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+      }, res => { resolve(res.statusCode === 200); });
+      req.on('error', () => resolve(false));
+      req.setTimeout(400, () => { req.destroy(); resolve(false); });
+      req.write(body);
+      req.end();
+    });
+    if (ok) { process.exit(0); }
+  }
+
+  // No live server — start fresh
+  // Main server (random port) — serves results to PWA
   const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(allResults));
-    // Don't close yet — more files may come
   });
 
-  // Signal server — receives additional results from other instances
-  const signalServer = http.createServer((req, res) => {
+  // Add server (random port) — receives results from other instances
+  const addServer = http.createServer((req, res) => {
     if (req.method === 'POST' && req.url === '/add') {
       let body = '';
       req.on('data', d => body += d);
       req.on('end', () => {
-        try {
-          allResults.push(JSON.parse(body));
-          res.writeHead(200); res.end('ok');
-        } catch(e) { res.writeHead(400); res.end('error'); }
+        try { allResults.push(JSON.parse(body)); res.writeHead(200); res.end('ok'); }
+        catch(e) { res.writeHead(400); res.end('error'); }
       });
-    } else {
-      res.writeHead(404); res.end();
-    }
+    } else { res.writeHead(404); res.end(); }
   });
 
-  // Start both servers then open PWA
-  await new Promise(resolve => server.listen(PORT, '127.0.0.1', resolve));
-  await new Promise(resolve => signalServer.listen(SIGNAL_PORT, '127.0.0.1', resolve));
+  await new Promise((res, rej) => { server.on('error', rej); server.listen(0, '127.0.0.1', res); });
+  await new Promise((res, rej) => { addServer.on('error', rej); addServer.listen(0, '127.0.0.1', res); });
+
+  const PORT    = server.address().port;
+  const ADDPORT = addServer.address().port;
+
+  // Write lock file so other instances can find us
+  fs.writeFileSync(LOCK_FILE, JSON.stringify({ port: PORT, addPort: ADDPORT }));
 
   const baseUrl = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/converter.html';
   const url     = baseUrl + '?fromBat=1&type=gcode&port=' + PORT;
-
-  // DEBUG
-  const dbg = require('os').homedir() + '\\Desktop\\okuma_debug.txt';
-  require('fs').writeFileSync(dbg,
-    'PORT: ' + PORT + '\n' +
-    'URL: ' + url + '\n' +
-    'allResults count: ' + allResults.length + '\n' +
-    'chromePaths checked:\n'
-  );
 
   const chromePaths = [
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
   ];
   const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
-
   let launched = false;
   for (const chromePath of chromePaths) {
-    require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  checking: ' + chromePath + ' exists=' + fs.existsSync(chromePath) + '\n');
     if (fs.existsSync(chromePath)) {
-      spawn(chromePath, [
-        '--profile-directory=Default',
+      spawn(chromePath, ['--profile-directory=Default',
         '--app-id=' + PWA_APP_ID,
         '--app-launch-url-for-shortcuts-menu-item=' + url
       ], { detached: true, stdio: 'ignore' }).unref();
-      require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  LAUNCHED via: ' + chromePath + '\n');
-      launched = true;
-      break;
+      launched = true; break;
     }
   }
-  if (!launched) {
-    require('fs').appendFileSync(require('os').homedir() + '\\Desktop\\okuma_debug.txt', '  FALLBACK: cmd start\n');
-    spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
-  }
+  if (!launched) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
 
-  // Keep process alive — close after 60s
-  server.on('close', () => { signalServer.close(); process.exit(0); });
-  // Keep process alive until server closes (PWA fetches results)
-  setTimeout(() => { server.close(); }, 60000); // no .unref() — must stay alive
+  // Clean up lock file and exit after 60s
+  server.on('close', () => {
+    addServer.close();
+    try { fs.unlinkSync(LOCK_FILE); } catch(e) {}
+    process.exit(0);
+  });
+  setTimeout(() => { server.close(); }, 60000);
 }
 
 // ── Conversion logic ──────────────────────────────────────────
@@ -431,7 +403,7 @@ function askYesNo(message) {
   }
 }
 
-
+// ── Minimal fallback library ───────────────────────────────────
 function getFallbackLibrary() {
   return [
     { matchType:'serial',  matchVal:'82045',  okuma:1,   desc:'HELICAL 82045 3/4 ROUGHER' },

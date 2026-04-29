@@ -1,2 +1,3 @@
 @echo off
-node "%~dp0OkumaConverter.js" %1
+set SCRIPT_DIR=%~dp0
+node "%SCRIPT_DIR%OkumaConverter.js" %1
