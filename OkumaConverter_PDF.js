@@ -13,6 +13,31 @@ const https = require('https');
 const http  = require('http');
 const { execFileSync, spawn } = require('child_process');
 
+// ── Self-update ───────────────────────────────────────────────
+const VERSION    = '1.0.1';
+const UPDATE_URL = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/OkumaConverter_PDF.js';
+const SELF_PATH  = __filename;
+
+async function checkForUpdate() {
+  try {
+    const remoteContent = await new Promise((resolve, reject) => {
+      https.get(UPDATE_URL, { timeout: 4000 }, res => {
+        if (res.statusCode !== 200) { reject(new Error('HTTP ' + res.statusCode)); return; }
+        let data = '';
+        res.on('data', d => data += d);
+        res.on('end', () => resolve(data));
+      }).on('error', reject).on('timeout', () => reject(new Error('timeout')));
+    });
+    const match = remoteContent.match(/const VERSION\s*=\s*'([^']+)'/);
+    if (!match) return;
+    const remoteVersion = match[1];
+    if (remoteVersion === VERSION) return;
+    fs.writeFileSync(SELF_PATH, remoteContent, 'utf8');
+    spawn(process.execPath, process.argv.slice(1), { detached: true, stdio: 'inherit' });
+    process.exit(0);
+  } catch(e) {}
+}
+
 // ── Config ────────────────────────────────────────────────────
 const FIREBASE_URL = 'https://okuma-tool-library-default-rtdb.firebaseio.com/data/toolLibrary.json';
 const WO_INC       = 1;
@@ -41,6 +66,7 @@ main().catch(e => {
 
 async function main() {
   // Confirm with user
+  checkForUpdate().catch(() => {});
   const doConvert = await askYesNo(`Convert ${fileName} to Okuma format?`);
   try { fs.appendFileSync(_DBG, 'doConvert: ' + doConvert + '\n'); } catch(e) {}
   if (!doConvert) process.exit(0);
