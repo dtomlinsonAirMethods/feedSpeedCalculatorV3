@@ -159,8 +159,16 @@ async function main() {
       }
       if (mcamToOkuma[mcamNum]) break;
     }
-    if (!mcamToOkuma[mcamNum] && !(mcamNum in unmatchedTools))
-      unmatchedTools[mcamNum] = bestTxt;
+    if (!mcamToOkuma[mcamNum] && !(mcamNum in unmatchedTools)) {
+      // Strip dimension info — keep just the tool name
+      let cleanTxt = bestTxt
+        .replace(/\s*[øØ]\s*[\d.]+.*/i, '')
+        .replace(/\s+\d+\.\d+.*$/, '')
+        .replace(/\s+HOLDER.*/i, '')
+        .replace(/\s+ER\d+.*/i, '')
+        .trim();
+      unmatchedTools[mcamNum] = cleanTxt || bestTxt;
+    }
   }
 
   // Op list pass
