@@ -14,11 +14,14 @@ const http  = require('http');
 const { execFileSync, spawn } = require('child_process');
 
 // ── Self-update ───────────────────────────────────────────────
-const VERSION    = '1.0.1';
+// Skip update check if we just updated (prevents double popup)
+const JUST_UPDATED = process.argv.includes('--updated');
+const VERSION    = '1.0.2';
 const UPDATE_URL = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/OkumaConverter_PDF.js';
 const SELF_PATH  = __filename;
 
 async function checkForUpdate() {
+  if (JUST_UPDATED) return;
   try {
     const remoteContent = await new Promise((resolve, reject) => {
       https.get(UPDATE_URL, { timeout: 4000 }, res => {

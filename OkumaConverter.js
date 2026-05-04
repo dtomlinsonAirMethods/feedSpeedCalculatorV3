@@ -13,11 +13,14 @@ const http    = require('http');
 const { execFile, spawn } = require('child_process');
 
 // ── Self-update ───────────────────────────────────────────────
-const VERSION     = '1.0.1';
+// Skip update check if we just updated (prevents double popup)
+const JUST_UPDATED = process.argv.includes('--updated');
+const VERSION     = '1.0.2';
 const UPDATE_URL  = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/OkumaConverter.js';
 const SELF_PATH   = __filename;
 
 async function checkForUpdate() {
+  if (JUST_UPDATED) return;
   try {
     const remoteContent = await new Promise((resolve, reject) => {
       https.get(UPDATE_URL, { timeout: 4000 }, res => {
@@ -36,11 +39,15 @@ async function checkForUpdate() {
 
     // Write new version and restart
     fs.writeFileSync(SELF_PATH, remoteContent, 'utf8');
-    // Relaunch with same args
-    const { execFileSync } = require('child_process');
-    spawn(process.execPath, process.argv.slice(1), {
-      detached: true, stdio: 'inherit'
-    });
+    // Relaunch hidden via VBS so no window appears
+    const scriptDir  = path.dirname(SELF_PATH);
+    const vbsPath    = path.join(scriptDir, fname.includes('PDF') ? 'OkumaConverter_PDF.vbs' : 'OkumaConverter.vbs');
+    const origArg    = process.argv[2] || '';
+    if (fs.existsSync(vbsPath)) {
+      spawn('wscript.exe', [vbsPath, origArg], { detached: true, stdio: 'ignore' }).unref();
+    } else {
+      spawn(process.execPath, [SELF_PATH, origArg], { detached: true, stdio: 'ignore' }).unref();
+    }
     process.exit(0);
   } catch(e) {
     // Silent fail — just continue with current version
