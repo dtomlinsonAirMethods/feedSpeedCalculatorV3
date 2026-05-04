@@ -204,7 +204,7 @@ td {
 }
 tr:hover td { background: rgba(0,200,255,0.04); }
 td.serial    { color: var(--orange); }
-td.okuma-num { color: var(--accent); font-weight: bold; }
+td.okuma-num { color: var(--accent); font-weight: bold; position: relative; overflow: visible; }
 td.desc {
   color: var(--dim); font-size: 11px;
   white-space: nowrap; overflow: hidden;
@@ -388,17 +388,17 @@ td.desc {
   .switcher-btn { padding: 8px 12px; font-size: 11px; }
 }
 
-/* ── ROW HOVER ACTIONS — right side, fade in on hover ── */
+/* ── ROW HOVER ACTIONS — left side inside tool number cell ── */
 .lib-row { position: relative; }
 .lib-row-actions {
   position: absolute;
-  top: 0; right: 0; bottom: 0;
+  top: 0; left: 0; bottom: 0;
   display: flex; align-items: center; gap: 2px;
-  padding: 0 6px;
+  padding: 0 4px;
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s;
-  background: linear-gradient(to right, transparent, var(--panel) 30%);
+  background: linear-gradient(to right, var(--panel) 60%, transparent);
 }
 .lib-row:hover .lib-row-actions,
 .lib-row:focus-within .lib-row-actions {
@@ -407,7 +407,7 @@ td.desc {
 }
 .lib-action-btn {
   background: none; border: none; cursor: pointer;
-  font-size: 14px; padding: 4px 6px; border-radius: 3px;
+  font-size: 14px; padding: 4px 5px; border-radius: 3px;
   transition: background .12s, color .12s; line-height: 1;
 }
 .lib-edit   { color: var(--accent); }
