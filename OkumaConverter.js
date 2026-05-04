@@ -224,67 +224,16 @@ async function main() {
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
   ];
 
-  // Auto-detect installed PWA app ID by searching Chrome Web Applications folder
-  function findPwaAppId() {
-    // Check config first
-    try {
-      const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-      if (cfg.pwaAppId) return cfg.pwaAppId;
-    } catch(e) {}
 
-    // Search Chrome Web Applications manifest resources
-    const userProfile = process.env.USERPROFILE || '';
-    const webAppsDir  = path.join(userProfile, 'AppData', 'Local', 'Google', 'Chrome',
-                          'User Data', 'Default', 'Web Applications', 'Manifest Resources');
-    try {
-      const appDirs = fs.readdirSync(webAppsDir);
-      for (const appId of appDirs) {
-        // Check if this app's icons folder exists (all PWAs have it)
-        const iconDir = path.join(webAppsDir, appId, 'Trusted Icons', 'Icons');
-        if (fs.existsSync(iconDir)) {
-          // Check if the app URL matches our PWA
-          const appDir = path.join(userProfile, 'AppData', 'Local', 'Google', 'Chrome',
-                           'User Data', 'Default', 'Web Applications', '_crx_' + appId);
-          if (fs.existsSync(appDir)) {
-            // Try to find manifest to verify it's our app
-            try {
-              const manifestPath = path.join(webAppsDir, appId, 'manifest.json');
-              if (fs.existsSync(manifestPath)) {
-                const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-                if (manifest.start_url && manifest.start_url.includes('dtomlinsonairmethods')) {
-                  // Save to config
-                  try {
-                    const cfg = {};
-                    try { Object.assign(cfg, JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))); } catch(e) {}
-                    cfg.pwaAppId = appId;
-                    fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
-                  } catch(e) {}
-                  return appId;
-                }
-              }
-            } catch(e) {}
-          }
-        }
-      }
-    } catch(e) {}
-    return null;
-  }
-
-  const pwaAppId = findPwaAppId();
+  const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
   let launched = false;
   for (const chromePath of chromePaths) {
     if (fs.existsSync(chromePath)) {
-      if (pwaAppId) {
-        // Launch as installed PWA using detected app ID
-        spawn(chromePath, [
-          '--profile-directory=Default',
-          '--app-id=' + pwaAppId,
-          '--app-launch-url-for-shortcuts-menu-item=' + url
-        ], { detached: true, stdio: 'ignore' }).unref();
-      } else {
-        // Fallback — open in app mode window
-        spawn(chromePath, ['--app=' + url], { detached: true, stdio: 'ignore' }).unref();
-      }
+      spawn(chromePath, [
+        '--profile-directory=Default',
+        '--app-id=' + PWA_APP_ID,
+        '--app-launch-url-for-shortcuts-menu-item=' + url
+      ], { detached: true, stdio: 'ignore' }).unref();
       launched = true; break;
     }
   }

@@ -329,14 +329,7 @@ async function main() {
     openPWAWithUnmapped(unmatchedTools);
   }
 
-  // Show completion dialog
-  const msg = '✓ CONVERSION COMPLETE\n'
-    + '────────────────────────────\n'
-    + 'File:      ' + fileName + '\n'
-    + 'Pages:     ' + numPages + '\n'
-    + 'Replaced:  ' + repCount + ' numbers\n'
-    + (unmappedList.length > 0 ? '\n⚠ ' + unmappedList.length + ' tool(s) not in library\nCheck the Converter app to add them.' : '');
-  showDialog('info', msg);
+
 }
 
 // ── Open PWA with unmapped tools ─────────────────────────────

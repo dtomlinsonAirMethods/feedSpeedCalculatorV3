@@ -486,7 +486,7 @@ function editTool(uid) {
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Okuma Tool #</label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Okuma Tool #</label>
         <input id="editOkuma" type="number" value="${entry.okuma}" min="1"
           style="background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:18px;padding:6px 10px;border-radius:3px;outline:none;width:100%;text-align:center;">
       </div>
@@ -496,7 +496,7 @@ function editTool(uid) {
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
       <div id="editAltValsRow" style="display:none;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
         <input id="editAltVals" value="${esc((entry.altVals||[]).filter(v=>v).join(', '))}"
           placeholder="e.g. #16 DRILL, NO. 16 DRILL"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
@@ -605,22 +605,22 @@ function openAddToolModal(tab) {
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--orange);" id="addModalHint">SERIAL: exact number found in tool comment (e.g. 48410)</div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <label id="addModalMatchLabel" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Serial Number</label>
+        <label id="addModalMatchLabel" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Serial Number</label>
         <input id="addModalMatchVal" placeholder="e.g. 48410"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
       <div id="addModalAltValsRow" style="display:none;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Alt Match Values <span style="font-size:9px;opacity:0.6;">(COMMA SEPARATED)</span></label>
         <input id="addModalAltVals" placeholder="e.g. #16 DRILL, NO. 16 DRILL"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Okuma Tool #</label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Okuma Tool #</label>
         <input id="addModalOkuma" type="number" placeholder="39" min="1"
           style="background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:18px;padding:6px 10px;border-radius:3px;outline:none;width:100%;text-align:center;">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);">Description (optional)</label>
+        <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);opacity:0.7;">Description (optional)</label>
         <input id="addModalDesc" placeholder="1/2 Helical EM"
           style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;width:100%;">
       </div>
@@ -1659,6 +1659,41 @@ renderAllTables();
 // ── Handle URL params from Node converter (bat integration) ──
 (function checkUrlParams() {
   const params = new URLSearchParams(window.location.search);
+
+  // PDF converter — unmapped tools only, open add tool modal on PDF tab
+  if (params.get('addTool')) {
+    const hints    = params.get('hints') || '';
+    const hintList = hints ? hints.split(',').map(h => decodeURIComponent(h)).filter(Boolean) : [];
+    window.history.replaceState({}, '', window.location.pathname);
+    setTimeout(() => {
+      switchConvTab('pdf');
+      setTimeout(() => {
+        openAddToolModal('pdf');
+        setTimeout(() => {
+          const modalBox = document.querySelector('#addToolModal > div');
+          if (modalBox && hintList.length > 0) {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background:rgba(255,200,0,0.1);border:1px solid var(--yellow);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--yellow);line-height:1.7;';
+            let html = '<strong style="font-size:13px;">⚠ ' + hintList.length + ' TOOL' + (hintList.length>1?'S':'') + ' NOT IN LIBRARY</strong><br>';
+            html += 'Add ' + (hintList.length>1?'each tool':'this tool') + ' to the library, then right-click the PDF and convert again.<br><br>';
+            hintList.forEach((h, i) => { html += '<span style="color:var(--text);">' + (i+1) + '. ' + h + '</span><br>'; });
+            banner.innerHTML = html;
+            const titleEl = modalBox.querySelector('div');
+            if (titleEl) modalBox.insertBefore(banner, titleEl.nextSibling);
+            else modalBox.prepend(banner);
+          }
+          if (hintList[0]) {
+            const isSerial = /^\d+$/.test(hintList[0].trim());
+            addModalSetType(isSerial ? 'serial' : 'keyword');
+            const matchInput = document.getElementById('addModalMatchVal');
+            if (matchInput) matchInput.value = hintList[0];
+          }
+        }, 150);
+      }, 400);
+    }, 600);
+    return;
+  }
+
   if (!params.get('fromBat')) return;
   const port = params.get('port');
   const type = params.get('type') || 'gcode';
