@@ -5,7 +5,7 @@
   --accent: #2b2b2b;      /* separators / hover */
   --brand: #00c46a;       /* primary accent green */
   --border: #333;
-  --dim: #8896a8;         /* secondary/muted text */
+  --dim: #8896a8;         /* lightened secondary text */
 }
 
 /* ------------------------------
@@ -30,7 +30,7 @@ header h1 {
   font-weight: 500;
   color: #b0bac8;
   margin: 0;
-  opacity: 0.8;
+  opacity: 1;
 }
 
 /* Floating main panel */
@@ -94,7 +94,7 @@ label {
   display: block;
   margin-top: 0.4rem;
   font-weight: 500;
-  color: #c8d0da;
+  color: #dcdcdc;
 }
 
 input,
