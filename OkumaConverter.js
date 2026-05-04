@@ -223,14 +223,11 @@ async function main() {
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
   ];
-  const PWA_APP_ID = 'lnoadbjemimfchocihomjfgadfbhccnd';
   let launched = false;
   for (const chromePath of chromePaths) {
     if (fs.existsSync(chromePath)) {
-      spawn(chromePath, ['--profile-directory=Default',
-        '--app-id=' + PWA_APP_ID,
-        '--app-launch-url-for-shortcuts-menu-item=' + url
-      ], { detached: true, stdio: 'ignore' }).unref();
+      // --app opens in PWA window if installed, browser tab if not
+      spawn(chromePath, ['--app=' + url], { detached: true, stdio: 'ignore' }).unref();
       launched = true; break;
     }
   }
