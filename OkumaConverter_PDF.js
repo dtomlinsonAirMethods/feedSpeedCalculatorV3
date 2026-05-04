@@ -16,7 +16,7 @@ const { execFileSync, spawn } = require('child_process');
 // ── Self-update ───────────────────────────────────────────────
 // Skip update check if we just updated (prevents double popup)
 const JUST_UPDATED = process.argv.includes('--updated');
-const VERSION    = '1.0.2';
+const VERSION    = '1.0.3';
 const UPDATE_URL = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/OkumaConverter_PDF.js';
 const SELF_PATH  = __filename;
 
