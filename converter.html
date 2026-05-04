@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="img/icon-204.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Okuma Genos Converter</title>
 <link rel="stylesheet" href="styles/converter.css">
@@ -19,7 +20,7 @@
         padding:6px 12px;border-radius:4px;border:1px solid #ff3b3b;cursor:pointer;
         font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:1px;
         text-transform:uppercase;background:transparent;color:#ff3b3b;">
-        ⚙ MASTERCAM
+        MASTERCAM SETUP 🔧
       </button>
       <div class="status-pill">● CONNECTING...</div>
     </div>
@@ -27,8 +28,8 @@
 
   <!-- CONVERTER SUB-TABS -->
   <div class="conv-tab-bar">
-    <button class="conv-tab-btn active" id="ctab-gcode" onclick="switchConvTab('gcode')">&#9881; G-CODE</button>
-    <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">&#128196; PDF SETUP SHEET</button>
+    <button class="conv-tab-btn active" id="ctab-gcode" onclick="switchConvTab('gcode')">🔄 G-CODE</button>
+    <button class="conv-tab-btn" id="ctab-pdf" onclick="switchConvTab('pdf')">📋 PDF SETUP SHEET</button>
 
   </div>
 
@@ -45,7 +46,7 @@
         <div class="panel-body">
           <div class="drop-zone" id="dropZone">
             <input type="file" id="fileInput" accept=".min,.MIN,.nc,.NC,.txt" multiple>
-            <div class="drop-icon">&#128194;</div>
+            <div class="drop-icon">📂</div>
             <div class="drop-label">DROP .MIN FILE HERE</div>
             <div class="drop-sub">or click to browse</div>
           </div>
@@ -53,7 +54,7 @@
       </div>
 
       <button class="btn-convert" id="convertBtn" onclick="runConversion()" disabled>
-        &#9881; CONVERT FILE
+        🔄 CONVERT FILE
       </button>
 
       <div class="panel">
@@ -142,7 +143,7 @@
 
       <!-- Empty state -->
       <div class="empty-state" id="emptyState">
-        <div class="big">&#9881;</div>
+        <div class="big">🔄</div>
         <p>Upload .MIN files and click CONVERT FILE</p>
       </div>
 
@@ -163,7 +164,7 @@
         <div class="panel-body">
           <div class="drop-zone" id="pdfDropZone">
             <input type="file" id="pdfFileInput" accept=".pdf,.PDF">
-            <div class="drop-icon">&#128196;</div>
+            <div class="drop-icon">📂</div>
             <div class="drop-label">DROP PDF SETUP SHEET HERE</div>
             <div class="drop-sub">or click to browse</div>
           </div>
@@ -171,7 +172,7 @@
       </div>
 
       <button class="btn-convert" id="pdfConvertBtn" onclick="runPdfConversion()" disabled>
-        &#128196; CONVERT PDF
+        📋 CONVERT PDF
       </button>
 
       <div class="panel">
@@ -244,7 +245,7 @@
 
       <div class="download-bar" id="pdfDownloadBar">
         <div class="dl-info">PDF CONVERSION COMPLETE<span id="pdfDlMeta"></span></div>
-        <a class="btn-download" id="pdfDownloadBtn" href="#" download>&#11015; DOWNLOAD PDF</a>
+        <a class="btn-download" id="pdfDownloadBtn" href="#" download>⬇️ DOWNLOAD PDF</a>
       </div>
 
       <div class="stats-row" id="pdfStatsRow" style="display:none;">
@@ -281,8 +282,8 @@
 
 <!-- FLOATING APP SWITCHER -->
 <div class="app-switcher">
-  <button class="switcher-btn other" id="goFeedSpeed">&#9889; FEED &amp; SPEED</button>
-  <button class="switcher-btn current">&#9881; CONVERTER</button>
+  <button class="switcher-btn other" id="goFeedSpeed">⚡ FEED &amp; SPEED</button>
+  <button class="switcher-btn current">🔄 CONVERTER</button>
 </div>
 
 <!-- PDF libraries loaded at start so they're ready when Convert is clicked -->
