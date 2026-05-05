@@ -254,100 +254,6 @@ function openAppTab(name, btn) {
   if (name === 'library') renderFSLibrary();
 }
 
-// ══════════════════════════════════════════
-//  RESULT MIRRORING
-//  script.js writes to hidden legacy <p> tags.
-//  We use MutationObserver to mirror those
-//  values into the new styled result boxes.
-// ══════════════════════════════════════════
-function mirrorText(sourceId, destId, transform) {
-  const src  = document.getElementById(sourceId);
-  const dest = document.getElementById(destId);
-  if (!src || !dest) return;
-
-  function update() {
-    const raw = src.innerText || src.textContent || '';
-    dest.textContent = transform ? transform(raw) : raw;
-    // Show/hide dim state
-    if (dest.classList.contains('result-val')) {
-      dest.classList.toggle('dim', !raw || raw === '—');
-    }
-  }
-
-  const obs = new MutationObserver(update);
-  obs.observe(src, { childList: true, subtree: true, characterData: true });
-}
-
-// Extract numeric value after "Label: " prefix
-function extractNum(label) {
-  return raw => {
-    const val = raw.replace(label, '').trim().split(' ')[0].split('|')[0].trim();
-    return val || '—';
-  };
-}
-
-// Set up all mirrors once DOM is ready
-function setupMirrors() {
-  // Endmill
-  mirrorText('rpm',      'rpm-val',  extractNum('RPM:'));
-  mirrorText('feedRate', 'feed-val', extractNum('Feed Rate (IPM):'));
-  mirrorText('sfmOut',   'sfm-val',  extractNum('SFM:'));
-  mirrorText('iptOut',   'ipt-val',  extractNum('Feed per Tooth (IPT):'));
-
-  // Mirror warnings
-  const warnSrc  = document.getElementById('warnings');
-  const warnDest = document.getElementById('em-warn-box');
-  if (warnSrc && warnDest) {
-    new MutationObserver(() => {
-      const txt = warnSrc.innerText || '';
-      warnDest.textContent = txt;
-      warnDest.classList.toggle('show', txt.trim().length > 0);
-      warnDest.style.color = txt.includes('⚠️') ? 'var(--yellow)' : 'var(--accent)';
-    }).observe(warnSrc, { childList: true, subtree: true, characterData: true });
-  }
-
-  // Drill
-  mirrorText('rpmDrill',  'drill-rpm-val',  extractNum('RPM:'));
-  mirrorText('feedDrill', 'drill-feed-val', extractNum('Feed Rate (IPM):'));
-
-  const peckSrc  = document.getElementById('peckOut');
-  const peckDest = document.getElementById('drill-peck-val');
-  if (peckSrc && peckDest) {
-    new MutationObserver(() => {
-      const txt = peckSrc.innerText || '';
-      peckDest.textContent = txt;
-      peckDest.classList.toggle('show', txt.trim().length > 0);
-    }).observe(peckSrc, { childList: true, subtree: true, characterData: true });
-  }
-
-  const drWarnSrc  = document.getElementById('drillWarn');
-  const drWarnDest = document.getElementById('drill-warn-box');
-  if (drWarnSrc && drWarnDest) {
-    new MutationObserver(() => {
-      const txt = drWarnSrc.innerText || '';
-      drWarnDest.textContent = txt;
-      drWarnDest.classList.toggle('show', txt.trim().length > 0);
-    }).observe(drWarnSrc, { childList: true, subtree: true, characterData: true });
-  }
-
-  // Tapping
-  mirrorText('rpmThread',  'tap-rpm-val',  extractNum('RPM:'));
-  mirrorText('feedThread', 'tap-feed-val', raw => {
-    // "Feed Rate (IPM): 12.345 | Pitch: 0.04167 in/rev" → just the IPM number
-    const part = raw.replace('Feed Rate (IPM):', '').trim().split('|')[0].trim();
-    return part || '—';
-  });
-
-  const tapPeckSrc  = document.getElementById('threadPeck');
-  const tapPeckDest = document.getElementById('tap-peck-val');
-  if (tapPeckSrc && tapPeckDest) {
-    new MutationObserver(() => {
-      const txt = tapPeckSrc.innerText || '';
-      tapPeckDest.textContent = txt;
-      tapPeckDest.classList.toggle('show', txt.trim().length > 0);
-    }).observe(tapPeckSrc, { childList: true, subtree: true, characterData: true });
-  }
-}
 
 // ══════════════════════════════════════════
 //  TOOL LIBRARY (localStorage)
@@ -405,11 +311,11 @@ function addFSTool() {
   const type = document.querySelector('input[name="addType"]:checked')?.value || 'EM';
   const name = document.getElementById('add-name').value.trim();
   const tnum = document.getElementById('add-tnum').value.trim();
-  const dia  = parseFloat(document.getElementById('add-dia').value)     || 0;
-  const fl   = parseInt(document.getElementById('add-flutes').value)    || 0;
-  const so   = parseFloat(document.getElementById('add-stickout').value) || 0;
-  const loc  = parseFloat(document.getElementById('add-loc').value)     || 0;
-  const rad  = parseFloat(document.getElementById('add-rad').value)     || 0;
+  const dia  = parseSmartInput(document.getElementById('add-dia').value)      || 0;
+  const fl   = parseInt(document.getElementById('add-flutes').value)         || 0;
+  const so   = parseSmartInput(document.getElementById('add-stickout').value) || 0;
+  const loc  = parseSmartInput(document.getElementById('add-loc').value)      || 0;
+  const rad  = parseSmartInput(document.getElementById('add-rad').value)      || 0;
   const mat  = document.getElementById('add-mat').value;
 
   if (!name) { alert('Tool name is required.'); return; }
@@ -637,6 +543,17 @@ function clearSelectedTool(tab) {
     .forEach(c => c.classList.remove('selected'));
 }
 
+// ── Tool metadata string (shared by library and quick-pick renderers) ──
+function toolMeta(t, full = false) {
+  return [
+    t.dia ? 'ø' + t.dia.toFixed(3) : null,
+    t.fl  ? t.fl + 'FL'            : null,
+    t.so  ? t.so.toFixed(3) + ' SO' : null,
+    full && t.loc ? t.loc.toFixed(3) + ' LOC' : null,
+    full && t.rad > 0 ? t.rad.toFixed(3) + ' RAD' : null,
+  ].filter(Boolean).join(' · ');
+}
+
 // ── Sort ──
 function setFSSort(key, btn) {
   if (fsSortKey === key) fsSortDir *= -1;
@@ -686,13 +603,7 @@ function renderFSLibrary() {
   const badgeMap = { EM:'badge-em', DRILL:'badge-drill', TAP:'badge-tap', CSINK:'badge-csink' };
 
   container.innerHTML = rows.map(t => {
-    const meta = [
-      t.dia  ? 'ø' + t.dia.toFixed(3) : null,
-      t.fl   ? t.fl + 'FL' : null,
-      t.so   ? t.so.toFixed(3) + ' SO' : null,
-      t.loc  ? t.loc.toFixed(3) + ' LOC' : null,
-      t.rad  > 0 ? t.rad.toFixed(3) + ' RAD' : null,
-    ].filter(Boolean).join(' · ');
+    const meta = toolMeta(t, true);
 
     return `<div class="tool-card" data-fsid="${t.id}" onclick="selectFSTool(${t.id})">
       <div class="tc-num">T${escH(String(t.tnum||'—'))}</div>
@@ -747,11 +658,7 @@ function renderQuickList(containerId, filterFn, tabHint, emptyMsg, searchId) {
 
   container.innerHTML = sorted.map(t => {
     const score = usageScore(t.id);
-    const meta  = [
-      t.dia ? 'ø' + t.dia.toFixed(3) : null,
-      t.fl  ? t.fl + 'FL' : null,
-      t.so  ? t.so.toFixed(3) + ' SO' : null,
-    ].filter(Boolean).join(' · ');
+    const meta  = toolMeta(t);
 
     const recentBadge = score > 0
       ? `<div style="font-size:8px;color:var(--accent);font-family:var(--mono);">★</div>` : '';
@@ -858,4 +765,3 @@ loadFSLib();
 loadFSUsage();
 renderFSLibrary();
 renderQuickCards();
-setupMirrors();

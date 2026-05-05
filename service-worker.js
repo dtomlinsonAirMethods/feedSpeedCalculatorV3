@@ -1,4 +1,4 @@
-const CACHE_NAME = "feedSpeedCalculator-v4";
+const CACHE_NAME = "feedSpeedCalculator-v5";
 const BASE = "/feedSpeedCalculatorV3";
 
 const FILES_TO_CACHE = [
@@ -7,8 +7,7 @@ const FILES_TO_CACHE = [
   BASE + "/feedSpeed.html",
   BASE + "/converter.html",
   BASE + "/manifest.json",
-  BASE + "/styles/style.css",
-  BASE + "/styles/converter.css",
+  BASE + "/styles/shared.css",
   BASE + "/js/script.js",
   BASE + "/js/app.js",
   BASE + "/js/converter.js",
@@ -19,8 +18,10 @@ const FILES_TO_CACHE = [
   BASE + "/data/ipt.json",
   BASE + "/data/ipr.json",
   BASE + "/img/icon-192.png",
+  BASE + "/img/icon-204.png",
   BASE + "/img/icon-512.png",
-  BASE + "/img/favicon.ico"
+  BASE + "/img/favicon.ico",
+  BASE + "/img/mastercam.jpg"
 ];
 
 self.addEventListener("install", event => {

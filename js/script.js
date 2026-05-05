@@ -179,11 +179,6 @@ function calculateEndmill() {
     const sfmActual  = (rpm * dia) / 3.82;
     const iptActual  = rpm && effTeeth ? ipm / (rpm * effTeeth) : 0;
 
-    document.getElementById("rpm").innerText     = `RPM: ${rpm}`;
-    document.getElementById("feedRate").innerText = `Feed Rate (IPM): ${ipm.toFixed(1)}`;
-    document.getElementById("sfmOut").innerText  = `SFM: ${sfmActual.toFixed(1)}`;
-    document.getElementById("iptOut").innerText  = `Feed per Tooth (IPT): ${iptActual.toFixed(5)}`;
-
     document.getElementById("rpm-val").textContent  = rpm.toLocaleString();
     document.getElementById("feed-val").textContent = ipm.toFixed(1);
     document.getElementById("sfm-val").textContent  = sfmActual.toFixed(1);
@@ -249,13 +244,6 @@ function calculateDrill() {
         peckText = peckAmount > 0 ? `Suggested Peck: ${peckAmount.toFixed(3)} in` : "No pecking";
       }
     }
-
-    document.getElementById("rpmDrill").innerText  = `RPM: ${rpm}`;
-    document.getElementById("feedDrill").innerText = `Feed Rate (IPM): ${ipm.toFixed(2)}`;
-    document.getElementById("peckOut").innerText   = peckText;
-    const warn = document.getElementById("drillWarn");
-    warn.innerText  = warningText;
-    warn.style.color = warningText ? "orange" : "var(--accent)";
 
     document.getElementById("drill-rpm-val").textContent  = rpm.toLocaleString();
     document.getElementById("drill-feed-val").textContent = ipm.toFixed(2);
@@ -333,10 +321,6 @@ function calculateTapping() {
     const peckText  = holeType === "Blind"
       ? `Suggested Peck: ${Math.min(depth, (majorMin || 0) * 1.5).toFixed(3)} in`
       : "No pecking";
-
-    document.getElementById("rpmThread").innerText  = `RPM: ${rpm}`;
-    document.getElementById("feedThread").innerText = `Feed Rate (IPM): ${ipm.toFixed(3)} | Pitch: ${pitch.toFixed(5)} in/rev`;
-    document.getElementById("threadPeck").innerText = peckText;
 
     document.getElementById("tap-rpm-val").textContent  = rpm.toLocaleString();
     document.getElementById("tap-feed-val").textContent = ipm.toFixed(3);
