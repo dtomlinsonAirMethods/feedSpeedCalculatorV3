@@ -179,32 +179,33 @@ function calculateEndmill() {
     const sfmActual  = (rpm * dia) / 3.82;
     const iptActual  = rpm && effTeeth ? ipm / (rpm * effTeeth) : 0;
 
-    document.getElementById("rpm-val").textContent  = rpm.toLocaleString();
-    document.getElementById("feed-val").textContent = ipm.toFixed(1);
-    document.getElementById("sfm-val").textContent  = sfmActual.toFixed(1);
-    document.getElementById("ipt-val").textContent  = iptActual.toFixed(5);
-
-    const warnBox = document.getElementById("em-warn-box");
-    if (warnBox) { warnBox.textContent = warningText.trim(); warnBox.style.display = warningText.trim() ? "block" : "none"; }
+    document.getElementById("rpm").innerText     = `RPM: ${rpm}`;
+    document.getElementById("feedRate").innerText = `Feed Rate (IPM): ${ipm.toFixed(1)}`;
+    document.getElementById("sfmOut").innerText  = `SFM: ${sfmActual.toFixed(1)}`;
+    document.getElementById("iptOut").innerText  = `Feed per Tooth (IPT): ${iptActual.toFixed(5)}`;
+    const warn = document.getElementById("warnings");
+    warn.innerText  = warningText.trim();
+    warn.style.color = warningText.includes("⚠️") ? "orange" : "var(--accent)";
 
   } catch (err) { alert("Input Error: " + err); }
 }
 
-// ── Drill calculation ──
+// ── Drill / Spot / Reamer / Countersink calculation ──
 function calculateDrill() {
   try {
-    const drillType = document.getElementById("drillType").value.toLowerCase();
-    const dia       = parseSmartInput(document.getElementById("diaDrill").value);
-    const flutes    = parseInt(document.getElementById("flutesDrill").value) || 2;
-    const stickout  = parseSmartInput(document.getElementById("stickoutDrill").value);
-    const depth     = parseSmartInput(document.getElementById("depthDrill").value);
-    const pecking   = document.getElementById("pecking")?.checked;
-    const mat       = document.getElementById("drillMaterial").value;
+    const dia         = parseSmartInput(document.getElementById("diaDrill").value);
+    const flutes      = parseInt(document.getElementById("flutesDrill").value);
+    const mat         = document.getElementById("drillMaterial").value;
+    const drillTypeRaw = document.getElementById("drillType").value;
+    const drillType   = drillTypeRaw.toLowerCase();
+    const stickout    = parseSmartInput(document.getElementById("stickoutDrill").value);
+    const depth       = parseSmartInput(document.getElementById("depthDrill").value);
+    const pecking     = document.getElementById("pecking").checked;
 
-    if (!dia) { alert("Enter valid diameter."); return; }
+    if (!dia) { alert("Enter a valid diameter."); return; }
 
-    let sfm = materialsData[mat]?.SFM_drill || 200;
-    let ipr = getDynamicFeed("drill", mat, dia);
+    let sfm = materialsData[mat]?.SFM_drill || 250;
+    let ipr;
     let peckText = "";
 
     if (drillType === "reamer") {
@@ -240,17 +241,18 @@ function calculateDrill() {
         if (dia < 0.125)         peckAmount = Math.min(0.10, dia * 0.75);
         else if (depthToDia > 6) peckAmount = dia * 1.0;
         else if (depthToDia > 3) peckAmount = dia * 1.5;
+        else                     peckAmount = dia * 2.0; // standard peck for normal depth
         peckAmount = Math.min(peckAmount, depth);
         peckText = peckAmount > 0 ? `Suggested Peck: ${peckAmount.toFixed(3)} in` : "No pecking";
       }
     }
 
-    document.getElementById("drill-rpm-val").textContent  = rpm.toLocaleString();
-    document.getElementById("drill-feed-val").textContent = ipm.toFixed(2);
-    const peckDisp = document.getElementById("drill-peck-val");
-    if (peckDisp) peckDisp.textContent = peckText;
-    const warnBox = document.getElementById("drill-warn-box");
-    if (warnBox) { warnBox.textContent = warningText; warnBox.style.display = warningText ? "block" : "none"; }
+    document.getElementById("rpmDrill").innerText  = `RPM: ${rpm}`;
+    document.getElementById("feedDrill").innerText = `Feed Rate (IPM): ${ipm.toFixed(2)}`;
+    document.getElementById("peckOut").innerText   = peckText;
+    const warn = document.getElementById("drillWarn");
+    warn.innerText  = warningText;
+    warn.style.color = warningText ? "orange" : "var(--accent)";
 
   } catch (err) { alert("Input Error: " + err); }
 }
@@ -322,10 +324,9 @@ function calculateTapping() {
       ? `Suggested Peck: ${Math.min(depth, (majorMin || 0) * 1.5).toFixed(3)} in`
       : "No pecking";
 
-    document.getElementById("tap-rpm-val").textContent  = rpm.toLocaleString();
-    document.getElementById("tap-feed-val").textContent = ipm.toFixed(3);
-    const peckDisp = document.getElementById("tap-peck-val");
-    if (peckDisp) peckDisp.textContent = peckText;
+    document.getElementById("rpmThread").innerText  = `RPM: ${rpm}`;
+    document.getElementById("feedThread").innerText = `Feed Rate (IPM): ${ipm.toFixed(3)} | Pitch: ${pitch.toFixed(5)} in/rev`;
+    document.getElementById("threadPeck").innerText = peckText;
 
     const safe      = v => v == null ? "n/a" : typeof v === "number" ? v.toFixed(4) : v;
     const makeRange = (a, b) => `${safe(a)} – ${safe(b)}`;
@@ -378,7 +379,6 @@ document.querySelectorAll('input[name="toolType"]').forEach(radio => {
 document.addEventListener("blur", e => {
   const el = e.target;
   if (el.tagName !== "INPUT" || el.type === "radio" || el.type === "checkbox") return;
-  if (el.classList.contains("shop-search") || el.classList.contains("lib-search")) return;
   const val = el.value.trim();
   if (!val) return;
   const isPercent = el.dataset.percent === "true";
@@ -395,7 +395,4 @@ document.addEventListener("input", e => {
 window.addEventListener("DOMContentLoaded", () => {
   updateCornerRadiusState("init");
   updateThreadSizes();
-  // Show hint on load
-  renderShopPicker('endmill');
-  renderShopPicker('drill');
 });

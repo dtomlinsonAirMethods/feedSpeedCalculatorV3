@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Feed &amp; Speed Calculator</title>
-  <link rel="stylesheet" href="styles/shared.css" />
-  <link rel="icon" type="image/png" href="img/icon-192.png">
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='10' fill='%230a0c0f'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-size='36' font-family='Arial Black,sans-serif' font-weight='900' fill='%2300e676'>F</text><text x='50%25' y='82%25' dominant-baseline='middle' text-anchor='middle' font-size='13' font-family='Arial,sans-serif' font-weight='700' fill='%234a5568' letter-spacing='1'>SPEED</text></svg>">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -75,7 +75,7 @@
             </div>
             <div class="field-group">
               <label class="field-label" id="flutesLabel" for="flutes">Flutes</label>
-              <input class="field-input" id="flutes" type="text" value="4">
+              <input class="field-input" id="flutes" type="text" value="3">
             </div>
             <div class="field-group">
               <label class="field-label" for="stickout">Stickout (in)</label>
@@ -99,7 +99,7 @@
 
             <div class="field-group">
               <label class="field-label" for="stepover">Stepover (%)</label>
-              <input class="field-input" id="stepover" type="text" value="25" data-percent="true">
+              <input class="field-input" id="stepover" type="text" value="10" data-percent="true">
             </div>
             <div class="field-group">
               <label class="field-label" for="depth">Depth of Cut (in)</label>
@@ -166,6 +166,12 @@
               </div>
             </div>
             <div class="warn-box" id="em-warn-box"></div>
+            <!-- Legacy hidden outputs script.js writes to -->
+            <p id="rpm"      style="display:none;"></p>
+            <p id="feedRate" style="display:none;"></p>
+            <p id="sfmOut"   style="display:none;"></p>
+            <p id="iptOut"   style="display:none;"></p>
+            <p id="warnings" style="display:none;" class="warn"></p>
           </div>
         </div>
 
@@ -268,6 +274,10 @@
             </div>
             <div class="result-peck" id="drill-peck-val"></div>
             <div class="warn-box" id="drill-warn-box"></div>
+            <p id="rpmDrill"  style="display:none;"></p>
+            <p id="feedDrill" style="display:none;"></p>
+            <p id="peckOut"   style="display:none;"></p>
+            <p id="drillWarn" style="display:none;"></p>
           </div>
         </div>
 
@@ -363,6 +373,9 @@
               </div>
             </div>
             <div class="result-peck" id="tap-peck-val"></div>
+            <p id="rpmThread"  style="display:none;"></p>
+            <p id="feedThread" style="display:none;"></p>
+            <p id="threadPeck" style="display:none;"></p>
           </div>
         </div>
 
@@ -494,7 +507,7 @@
     padding:9px 18px; border-radius:40px; border:none; cursor:default;
     font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:2px;
     text-transform:uppercase; background:var(--accent); color:#000;">
-    ⚡ FEED &amp; SPEED
+    &#9889; FEED &amp; SPEED
   </button>
   <button onclick="navigateTo('converter.html','#00c8ff')" style="
     padding:9px 18px; border-radius:40px; border:none; cursor:pointer;
@@ -502,51 +515,11 @@
     text-transform:uppercase; background:transparent; color:var(--dim);
     transition:color .2s;"
     onmouseover="this.style.color='#00c8ff'" onmouseout="this.style.color='var(--dim)'">
-    🔄 CONVERTER
+    &#9881; CONVERTER
   </button>
 </div>
 
-<script>
-(function () {
-  const overlay = document.createElement('div');
-  overlay.id = 'wipe-overlay';
-  Object.assign(overlay.style, {
-    position: 'fixed', inset: '0', zIndex: '99999',
-    pointerEvents: 'none', transform: 'translateX(-100%)', transition: 'none'
-  });
-  document.documentElement.appendChild(overlay);
-  window.addEventListener('DOMContentLoaded', () => {
-    const color = sessionStorage.getItem('wipe-color');
-    if (!color) return;
-    sessionStorage.removeItem('wipe-color');
-    overlay.style.backgroundColor = color;
-    overlay.style.transition = 'none';
-    overlay.style.transform  = 'translateX(0%)';
-    overlay.style.pointerEvents = 'all';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      overlay.style.transition = 'transform 0.55s cubic-bezier(0.76,0,0.24,1)';
-      overlay.style.transform  = 'translateX(100%)';
-      overlay.addEventListener('transitionend', () => {
-        overlay.style.pointerEvents = 'none';
-      }, { once: true });
-    }));
-  });
-  window.navigateTo = function (url, color) {
-    overlay.style.backgroundColor = color;
-    overlay.style.transition = 'none';
-    overlay.style.transform  = 'translateX(-100%)';
-    overlay.style.pointerEvents = 'all';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      overlay.style.transition = 'transform 0.5s cubic-bezier(0.76,0,0.24,1)';
-      overlay.style.transform  = 'translateX(0%)';
-      overlay.addEventListener('transitionend', () => {
-        sessionStorage.setItem('wipe-color', color);
-        window.location.href = url;
-      }, { once: true });
-    }));
-  };
-})();
-</script>
+<script src="app-transition.js"></script>
 
 <!-- INSTALL BANNER -->
 <div id="installBanner" class="install-banner hidden">
