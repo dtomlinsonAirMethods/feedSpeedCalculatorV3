@@ -8,12 +8,12 @@
   });
   document.documentElement.appendChild(overlay);
 
-  // On page load: if arriving from a wipe, reveal the page
-  window.addEventListener('DOMContentLoaded', () => {
-    const color = sessionStorage.getItem('wipe-color');
-    if (!color) return;
+  // Arrive animation: script loads after DOM is ready so run immediately,
+  // not inside DOMContentLoaded (which has already fired by this point).
+  const arrivedColor = sessionStorage.getItem('wipe-color');
+  if (arrivedColor) {
     sessionStorage.removeItem('wipe-color');
-    overlay.style.backgroundColor = color;
+    overlay.style.backgroundColor = arrivedColor;
     overlay.style.transition = 'none';
     overlay.style.transform  = 'translateX(0%)';
     overlay.style.pointerEvents = 'all';
@@ -24,9 +24,12 @@
         overlay.style.pointerEvents = 'none';
       }, { once: true });
     }));
-  });
+  }
 
-  // navigateTo: wipe out, then navigate
+  // Navigate away with wipe transition.
+  // Timeout fallback ensures navigation always completes even if
+  // transitionend fails to fire (which would otherwise leave the overlay
+  // blocking the page and make the button appear broken).
   window.navigateTo = function (url, color) {
     overlay.style.backgroundColor = color;
     overlay.style.transition = 'none';
@@ -35,10 +38,15 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       overlay.style.transition = 'transform 0.5s cubic-bezier(0.76,0,0.24,1)';
       overlay.style.transform  = 'translateX(0%)';
-      overlay.addEventListener('transitionend', () => {
+      let done = false;
+      const doNav = () => {
+        if (done) return;
+        done = true;
         sessionStorage.setItem('wipe-color', color);
         window.location.href = url;
-      }, { once: true });
+      };
+      overlay.addEventListener('transitionend', doNav, { once: true });
+      setTimeout(doNav, 600);
     }));
   };
 })();
