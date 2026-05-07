@@ -1,5 +1,6 @@
-const CACHE_NAME = "feedSpeedCalculator-v6";
+const CACHE_NAME = "feedSpeedCalculator-v7";
 const BASE = "/feedSpeedCalculatorV3";
+const APP_SHELL = BASE + "/feedSpeed.html";
 
 const FILES_TO_CACHE = [
   BASE + "/",
@@ -43,8 +44,20 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if (!event.request.url.startsWith(self.location.origin)) return;
 
+  // Navigation requests: always serve app shell from cache first.
+  // This bypasses URL-matching issues and works regardless of exact path.
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      caches.match(APP_SHELL, { ignoreVary: true })
+        .then(cached => cached || fetch(event.request))
+        .catch(() => caches.match(APP_SHELL, { ignoreVary: true }))
+    );
+    return;
+  }
+
+  // All other requests: cache-first, update cache on network hit
   event.respondWith(
-    caches.match(event.request).then(cached => {
+    caches.match(event.request, { ignoreVary: true }).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
         if (event.request.method === "GET" && response.status === 200 && response.type === "basic") {
@@ -52,10 +65,6 @@ self.addEventListener("fetch", event => {
           caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         }
         return response;
-      }).catch(() => {
-        if (event.request.mode === "navigate") {
-          return caches.match(BASE + "/feedSpeed.html");
-        }
       });
     })
   );
