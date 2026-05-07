@@ -1,4 +1,4 @@
-const CACHE_NAME = "feedSpeedCalculator-v5";
+const CACHE_NAME = "feedSpeedCalculator-v6";
 const BASE = "/feedSpeedCalculatorV3";
 
 const FILES_TO_CACHE = [
