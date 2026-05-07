@@ -179,13 +179,13 @@ function calculateEndmill() {
     const sfmActual  = (rpm * dia) / 3.82;
     const iptActual  = rpm && effTeeth ? ipm / (rpm * effTeeth) : 0;
 
-    document.getElementById("rpm").innerText     = `RPM: ${rpm}`;
-    document.getElementById("feedRate").innerText = `Feed Rate (IPM): ${ipm.toFixed(1)}`;
-    document.getElementById("sfmOut").innerText  = `SFM: ${sfmActual.toFixed(1)}`;
-    document.getElementById("iptOut").innerText  = `Feed per Tooth (IPT): ${iptActual.toFixed(5)}`;
-    const warn = document.getElementById("warnings");
-    warn.innerText  = warningText.trim();
-    warn.style.color = warningText.includes("⚠️") ? "orange" : "var(--accent)";
+    document.getElementById("rpm-val").innerText  = rpm;
+    document.getElementById("feed-val").innerText = ipm.toFixed(1);
+    document.getElementById("sfm-val").innerText  = sfmActual.toFixed(1);
+    document.getElementById("ipt-val").innerText  = iptActual.toFixed(5);
+    const warn = document.getElementById("em-warn-box");
+    warn.innerText = warningText.trim();
+    warn.classList.toggle("show", !!warningText.trim());
 
   } catch (err) { alert("Input Error: " + err); }
 }
@@ -247,12 +247,14 @@ function calculateDrill() {
       }
     }
 
-    document.getElementById("rpmDrill").innerText  = `RPM: ${rpm}`;
-    document.getElementById("feedDrill").innerText = `Feed Rate (IPM): ${ipm.toFixed(2)}`;
-    document.getElementById("peckOut").innerText   = peckText;
-    const warn = document.getElementById("drillWarn");
-    warn.innerText  = warningText;
-    warn.style.color = warningText ? "orange" : "var(--accent)";
+    document.getElementById("drill-rpm-val").innerText  = rpm;
+    document.getElementById("drill-feed-val").innerText = ipm.toFixed(2);
+    const peckEl = document.getElementById("drill-peck-val");
+    peckEl.innerText = peckText;
+    peckEl.classList.toggle("show", !!peckText);
+    const warn = document.getElementById("drill-warn-box");
+    warn.innerText = warningText;
+    warn.classList.toggle("show", !!warningText);
 
   } catch (err) { alert("Input Error: " + err); }
 }
@@ -324,9 +326,11 @@ function calculateTapping() {
       ? `Suggested Peck: ${Math.min(depth, (majorMin || 0) * 1.5).toFixed(3)} in`
       : "No pecking";
 
-    document.getElementById("rpmThread").innerText  = `RPM: ${rpm}`;
-    document.getElementById("feedThread").innerText = `Feed Rate (IPM): ${ipm.toFixed(3)} | Pitch: ${pitch.toFixed(5)} in/rev`;
-    document.getElementById("threadPeck").innerText = peckText;
+    document.getElementById("tap-rpm-val").innerText  = rpm;
+    document.getElementById("tap-feed-val").innerText = ipm.toFixed(3);
+    const tapPeckEl = document.getElementById("tap-peck-val");
+    tapPeckEl.innerText = `${peckText}  |  Pitch: ${pitch.toFixed(5)} in/rev`;
+    tapPeckEl.classList.add("show");
 
     const safe      = v => v == null ? "n/a" : typeof v === "number" ? v.toFixed(4) : v;
     const makeRange = (a, b) => `${safe(a)} – ${safe(b)}`;
