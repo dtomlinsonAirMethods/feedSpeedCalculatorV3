@@ -282,27 +282,36 @@ function usageScore(id) {
 
 
 
+// Migrate flutes: EM tools (except shell mill T20) → 3FL, reamers → 5FL
+function migrateLibraryV4(tools) {
+  return tools.map(t => {
+    if (t.type === 'EM' && String(t.tnum) !== '20') return { ...t, fl: 3 };
+    if (t.type === 'DRILL' && (t.name || '').toUpperCase().includes('REAMER')) return { ...t, fl: 5 };
+    return t;
+  });
+}
+
 function loadFSLib() {
   try {
     const s   = localStorage.getItem('fsToolLibrary_v1');
     const ver = localStorage.getItem('fsLibVersion');
-    if (s && ver === '3') {
+    if (s) {
       const parsed = JSON.parse(s);
       if (Array.isArray(parsed) && parsed.length > 10) {
-        fsLib = parsed;
-        return;
+        if (ver === '4') { fsLib = parsed; return; }
+        if (ver === '3') { fsLib = migrateLibraryV4(parsed); saveFSLib(); return; }
       }
     }
   } catch(e) {}
-  // Seed from built-in library (also runs when version stamp is missing/old)
-  fsLib = DEFAULT_FS_LIBRARY.map(t => Object.assign({}, t));
+  // Seed from built-in library
+  fsLib = migrateLibraryV4(DEFAULT_FS_LIBRARY.map(t => Object.assign({}, t)));
   saveFSLib();
 }
 
 function saveFSLib() {
   try {
     localStorage.setItem('fsToolLibrary_v1', JSON.stringify(fsLib));
-    localStorage.setItem('fsLibVersion', '3');
+    localStorage.setItem('fsLibVersion', '4');
   } catch(e) {}
 }
 
@@ -613,7 +622,10 @@ function renderFSLibrary() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <div class="tc-badge ${badgeMap[t.type]||'badge-csink'}">${escH(t.type)}</div>
-        <button class="tc-delete" onclick="event.stopPropagation();removeFSTool(${t.id})">✕</button>
+        <div style="display:flex;gap:4px;">
+          <button class="tc-edit"   onclick="event.stopPropagation();editFSTool(${t.id})"><span style="display:inline-block;transform:rotate(135deg)">✏</span></button>
+          <button class="tc-delete" onclick="event.stopPropagation();removeFSTool(${t.id})">✕</button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -676,6 +688,134 @@ function renderQuickList(containerId, filterFn, tabHint, emptyMsg, searchId) {
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Edit tool ──
+function editFSTool(id) {
+  const t = fsLib.find(x => x.id === id);
+  if (!t) return;
+
+  document.getElementById('edit-tool-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'edit-tool-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.8);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);">EDIT TOOL</div>
+        <button onclick="closeEditModal()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;line-height:1;padding:0;">✕</button>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tool Type</div>
+        <div class="radio-pill-group">
+          <label class="radio-pill"><input type="radio" name="editType" value="EM">EM</label>
+          <label class="radio-pill"><input type="radio" name="editType" value="DRILL">DRILL</label>
+          <label class="radio-pill"><input type="radio" name="editType" value="TAP">TAP</label>
+          <label class="radio-pill"><input type="radio" name="editType" value="CSINK">CSINK</label>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="edit-name">Tool Name</label>
+        <input class="field-input" id="edit-name" type="text">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="edit-tnum">Tool # (Okuma)</label>
+        <input class="field-input" id="edit-tnum" type="text">
+      </div>
+      <div class="field-divider"></div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="edit-dia">Diameter (in)</label>
+          <input class="field-input" id="edit-dia" type="text">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="edit-flutes">Flutes</label>
+          <input class="field-input" id="edit-flutes" type="text">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="edit-stickout">Stickout (in)</label>
+          <input class="field-input" id="edit-stickout" type="text">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="edit-loc">LOC (in)</label>
+          <input class="field-input" id="edit-loc" type="text">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="edit-rad">Corner Radius</label>
+          <input class="field-input" id="edit-rad" type="text">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="edit-mat">Default Material</label>
+          <select class="field-select" id="edit-mat">
+            <option value="">— None —</option>
+            <option>7075 Aluminum</option>
+            <option>6061 Aluminum</option>
+            <option>Stainless Steel</option>
+            <option>HRS Steel</option>
+            <option>Nylatron</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:20px;">
+        <button class="btn-calc" onclick="saveEditedTool(${id})" style="flex:1;margin:0;">SAVE</button>
+        <button class="btn-sm btn-cancel" onclick="closeEditModal()" style="padding:12px 20px;">CANCEL</button>
+      </div>
+    </div>`;
+
+  modal.addEventListener('click', e => { if (e.target === modal) closeEditModal(); });
+  document.body.appendChild(modal);
+
+  // Set values via DOM to avoid HTML-encoding issues
+  const typeRadio = modal.querySelector(`input[name="editType"][value="${t.type}"]`);
+  if (typeRadio) typeRadio.checked = true;
+  document.getElementById('edit-name').value     = t.name || '';
+  document.getElementById('edit-tnum').value     = t.tnum || '';
+  document.getElementById('edit-dia').value      = t.dia  != null ? String(t.dia)  : '';
+  document.getElementById('edit-flutes').value   = t.fl   != null ? String(t.fl)   : '';
+  document.getElementById('edit-stickout').value = t.so   != null ? String(t.so)   : '';
+  document.getElementById('edit-loc').value      = t.loc  != null ? String(t.loc)  : '';
+  document.getElementById('edit-rad').value      = t.rad  != null ? String(t.rad)  : '0';
+  if (t.mat) document.getElementById('edit-mat').value = t.mat;
+}
+
+function closeEditModal() {
+  document.getElementById('edit-tool-modal')?.remove();
+}
+
+function saveEditedTool(id) {
+  const idx = fsLib.findIndex(x => x.id === id);
+  if (idx === -1) return;
+
+  const name = document.getElementById('edit-name')?.value.trim();
+  if (!name) { alert('Tool name is required.'); return; }
+
+  const dia = parseSmartInput(document.getElementById('edit-dia').value);
+  const fl  = parseInt(document.getElementById('edit-flutes').value);
+  const so  = parseSmartInput(document.getElementById('edit-stickout').value);
+
+  fsLib[idx] = {
+    ...fsLib[idx],
+    type: document.querySelector('input[name="editType"]:checked')?.value || fsLib[idx].type,
+    name,
+    tnum: document.getElementById('edit-tnum').value.trim(),
+    dia:  dia || fsLib[idx].dia,
+    fl:   fl  || fsLib[idx].fl,
+    so:   so  || fsLib[idx].so,
+    loc:  parseSmartInput(document.getElementById('edit-loc').value),
+    rad:  parseSmartInput(document.getElementById('edit-rad').value),
+    mat:  document.getElementById('edit-mat').value,
+  };
+
+  saveFSLib();
+  closeEditModal();
+  renderFSLibrary();
+  renderQuickCards();
 }
 
 // ── Export / Import ──

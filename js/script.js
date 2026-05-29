@@ -79,11 +79,16 @@ function getDocRecommendation(toolType, material, dia) {
   const sp = parseSmartInput(document.getElementById("stepover")?.value, true);
   const bucket = Math.abs(sp - 100) < 0.001 ? "slot" : sp <= 6 ? "finish" : "rough";
 
-  if (bucket === "finish") return "💡 Recommended DOC: Max LOC";
+  if (bucket === "finish") return "💡 Recommended ADOC: Up to Max LOC";
 
-  const pctMin = entry[bucket]?.DOC_pct?.min ?? (bucket === "slot" ? 75  : 125);
-  const pctMax = entry[bucket]?.DOC_pct?.max ?? (bucket === "slot" ? 125 : 200);
-  return `💡 Recommended DOC: ${pctMin}% - ${pctMax}% of diameter`;
+  if (bucket === "rough") {
+    if (sp >= 31) return "⚠️ Stepover >30% — reduce ADOC to avoid overloading";
+    return "💡 Recommended ADOC: Up to Max LOC";
+  }
+
+  const pctMin = entry[bucket]?.DOC_pct?.min ?? 75;
+  const pctMax = entry[bucket]?.DOC_pct?.max ?? 125;
+  return `💡 Recommended ADOC: ${pctMin}% - ${pctMax}% of diameter`;
 }
 
 // ── Endmill calculation ──
@@ -128,6 +133,8 @@ function calculateEndmill() {
 
     if (stepover > 0.5) warningText += "⚠️ Stepover >50%\n";
     if (depth > dia)    warningText += "⚠️ Depth of cut > diameter\n";
+    if (!isShell && flutes < 5 && (mat === "HRS Steel" || mat === "Stainless Steel"))
+      warningText += "⚠️ IPT/SFM data is based on 5-flute tools — recommend running 5FL for steel\n";
 
     if (isHsm && !isShell) {
       let recSo = dia <= 0.1875 ? 9 : dia <= 0.25 ? 10 : dia <= 0.3125 ? 11 :

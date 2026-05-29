@@ -16,7 +16,7 @@
   <header>
     <div class="brand">
       <div class="brand-name">FEED <span>&amp;</span> SPEED</div>
-      <div class="brand-sub">MACHINING CALCULATOR // OKUMA GENOS M660</div>
+      <div class="brand-sub">MACHINING CALCULATOR</div>
     </div>
     <div class="status-pill" id="statusPill">● LOADING</div>
   </header>
@@ -180,7 +180,10 @@
             <div class="dot"></div>QUICK TOOL SELECT
             <span class="panel-head-sub">FROM LIBRARY</span>
           </div>
-          <div class="panel-body panel-body-flush">
+          <div class="panel-body">
+            <div class="lib-toolbar">
+              <input class="lib-search" id="em-quick-search" type="text" placeholder="Search tools...">
+            </div>
             <div class="quick-cards" id="em-quick-cards">
               <div class="empty-quick">No endmill tools in library yet.<br>Add tools in the Tool Library tab.</div>
             </div>
@@ -286,7 +289,10 @@
             <div class="dot"></div>QUICK TOOL SELECT
             <span class="panel-head-sub">FROM LIBRARY</span>
           </div>
-          <div class="panel-body panel-body-flush">
+          <div class="panel-body">
+            <div class="lib-toolbar">
+              <input class="lib-search" id="dr-quick-search" type="text" placeholder="Search tools...">
+            </div>
             <div class="quick-cards" id="dr-quick-cards">
               <div class="empty-quick">No drill tools in library yet.<br>Add tools in the Tool Library tab.</div>
             </div>
@@ -483,10 +489,6 @@
           <div class="panel-body">
             <div class="lib-toolbar">
               <input class="lib-search" id="lib-search" type="text" placeholder="Search tools...">
-              <button class="sort-btn active" onclick="setFSSort('tnum',this)">T#</button>
-              <button class="sort-btn" onclick="setFSSort('name',this)">NAME</button>
-              <button class="sort-btn" onclick="setFSSort('dia',this)">DIA</button>
-              <button class="sort-btn" onclick="setFSSort('type',this)">TYPE</button>
             </div>
             <div class="tool-cards" id="lib-tool-cards"></div>
           </div>

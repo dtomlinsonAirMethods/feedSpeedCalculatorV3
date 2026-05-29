@@ -217,6 +217,7 @@ html.theme-converter .panel-body { padding: 18px; }
   font-size: 12px !important;
 }
 .btn-sm:hover { border-color: var(--accent); color: var(--accent); box-shadow: none !important; }
+.btn-cancel:hover { border-color: var(--red) !important; color: var(--red) !important; box-shadow: none !important; }
 
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 html.theme-converter .btn-row { margin-top: 12px; }
@@ -679,6 +680,26 @@ button.btn-calc:active { transform: scale(.98) !important; }
   font-weight: normal !important;
 }
 .tc-delete:hover { border-color: var(--red) !important; color: var(--red) !important; box-shadow: none !important; }
+
+.tc-edit {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  border-radius: 3px;
+  width: 24px !important;
+  height: 24px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s;
+  padding: 0;
+  margin: 0 !important;
+  font-weight: normal !important;
+}
+.tc-edit:hover { border-color: var(--accent) !important; color: var(--accent) !important; box-shadow: none !important; }
 
 /* ── TOOL LIBRARY ── */
 .lib-toolbar {

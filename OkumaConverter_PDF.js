@@ -16,7 +16,7 @@ const { execFileSync, spawn } = require('child_process');
 // ── Self-update ───────────────────────────────────────────────
 // Skip update check if we just updated (prevents double popup)
 const JUST_UPDATED = process.argv.includes('--updated');
-const VERSION    = '1.0.3';
+const VERSION    = '1.0.4';
 const UPDATE_URL = 'https://dtomlinsonairmethods.github.io/feedSpeedCalculatorV3/OkumaConverter_PDF.js';
 const SELF_PATH  = __filename;
 
@@ -52,8 +52,6 @@ const LOCK_FILE    = require('os').tmpdir() + '\\okuma_server.json';
 let filePath = process.argv[2];
 if (filePath) filePath = filePath.replace(/^["']|["']$/g, '').trim();
 
-const _DBG = require('os').homedir() + '\\Desktop\\okuma_pdf_debug.txt';
-try { fs.writeFileSync(_DBG, 'STARTED\nargv: ' + JSON.stringify(process.argv) + '\nfilePath: ' + filePath + '\nexists: ' + (filePath ? fs.existsSync(filePath) : 'no') + '\n'); } catch(e) {}
 
 if (!filePath || !fs.existsSync(filePath)) {
   showDialog('error', 'No PDF file received.\nRight-click a PDF and choose "Convert to Okuma Format".');
@@ -71,16 +69,14 @@ async function main() {
   // Confirm with user
   checkForUpdate().catch(() => {});
   const doConvert = await askYesNo(`Convert ${fileName} to Okuma format?`);
-  try { fs.appendFileSync(_DBG, 'doConvert: ' + doConvert + '\n'); } catch(e) {}
-  if (!doConvert) process.exit(0);
+    if (!doConvert) process.exit(0);
 
   const scriptDir = path.dirname(process.argv[1] || __filename);
   process.chdir(scriptDir); // ensure node_modules resolves from script folder
 
   // Check node_modules exists
   const nodeModules = path.join(scriptDir, 'node_modules');
-  try { fs.appendFileSync(_DBG, 'scriptDir: ' + scriptDir + '\nnode_modules exists: ' + fs.existsSync(nodeModules) + '\n'); } catch(e) {}
-
+  
   if (!fs.existsSync(nodeModules)) {
     showDialog('error', 'Missing node_modules folder.\nOpen Command Prompt in your OkumaConverter folder and run:\nnpm install pdfjs-dist@3.11.174 pdf-lib');
     process.exit(1);
@@ -92,11 +88,7 @@ async function main() {
     const pdflib = require('pdf-lib');
     PDFDocument = pdflib.PDFDocument;
     rgb = pdflib.rgb;
-    StandardFonts = pdflib.StandardFonts;
-    fs.appendFileSync(_DBG, 'Libraries loaded OK\n');
-  } catch(e) {
-    fs.appendFileSync(_DBG, 'Library load error: ' + e.message + '\n');
-    showDialog('error', 'Could not load PDF libraries.\nOpen Command Prompt in your OkumaConverter folder and run:\nnpm install pdfjs-dist@3.11.174 pdf-lib\n\nError: ' + e.message);
+    StandardFonts = pdflib.StandardFonts;  } catch(e) {    showDialog('error', 'Could not load PDF libraries.\nOpen Command Prompt in your OkumaConverter folder and run:\nnpm install pdfjs-dist@3.11.174 pdf-lib\n\nError: ' + e.message);
     process.exit(1);
   }
 

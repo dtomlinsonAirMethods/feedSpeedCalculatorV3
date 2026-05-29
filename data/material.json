@@ -18,7 +18,7 @@
     "SFM_countersink": 400
   },
   "Stainless Steel": {
-    "SFM_endmill": 200,
+    "SFM_endmill": 180,
     "SFM_shellmill": 350,
     "SFM_drill": 60,
     "SFM_spot": 80,
@@ -27,7 +27,7 @@
     "SFM_countersink": 120
   },
   "HRS Steel": {
-    "SFM_endmill": 175,
+    "SFM_endmill": 400,
     "SFM_shellmill": 300,
     "SFM_drill": 50,
     "SFM_spot": 90,
